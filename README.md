@@ -105,7 +105,17 @@ python3 tools/extract_script_spells.py \
 The checked-in file was made from mod-playerbots/azerothcore-wotlk f19a187 and
 mod-individual-progression 723c510.
 
-## Install
+## Requirements
+
+- [AzerothCore](https://www.azerothcore.org/) wotlk (master) and a WoW 3.3.5a (12340) client.
+- The bundled `DungeonJournal` addon in `Interface/AddOns`. The module answers the addon, so it
+  does nothing without it.
+- [mod-individual-progression](https://github.com/ZhengPeiRu21/mod-individual-progression) is
+  optional. With it the journal shows era locks and the 40 player Onyxia and Naxxramas tabs.
+- No client patch. [Portalkeeper](https://github.com/Hisha/Portalkeeper) is optional
+  (`sql/portalkeeper_addon.sql` makes the addon required for players).
+
+## Installation
 
 Server:
 ```
@@ -143,6 +153,24 @@ and a fake server and walks the home page, era locks, an instance, a boss's abil
 its filters, quests, search, the 40 player tab and opening inside an instance.
 `DRAGON=1` runs it with a DragonUI stand-in.
 
+## Troubleshooting
+
+- **The journal is empty or out of date:** type `/dj refresh` to fetch the data again. The addon
+  keeps its lists until the server's data stamp changes.
+- **The window is off screen:** `/dj reset` moves it back to the middle. `/dj minimap` shows or
+  hides the minimap button.
+- **Shift-J does nothing:** check that the addon is in `Interface/AddOns/DungeonJournal`. `/dj`
+  and the minimap button open the journal too.
+- **A boss with a C++ script shows no abilities:** run `tools/extract_script_spells.py` against
+  your core and modules to regenerate the script spell SQL. Abilities are also learned as bosses
+  are seen casting them.
+- **No 40 player tabs or era locks:** they need mod-individual-progression with
+  `IndividualProgression.Enable = 1`.
+
+## Credits
+
+Author: [buildthehomelab](https://github.com/buildthehomelab)
+
 ## License
 
-MIT
+MIT, see [LICENSE](LICENSE).
