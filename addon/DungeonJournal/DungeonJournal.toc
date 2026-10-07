@@ -1,0 +1,20 @@
+## Interface: 30300
+## Title: Dungeon Journal
+## Notes: A retail-style dungeon journal: every dungeon and raid with its bosses, their abilities, loot with drop chances and the instance's quests with your progress. Shift-J or /dj. Backed by the mod-dungeon-journal server module.
+## Author: buildthehomelab
+## Version: 1.0.0
+## OptionalDeps: DragonUI
+## SavedVariables: DungeonJournalDB
+## SavedVariablesPerCharacter: DungeonJournalCharDB
+
+Core.lua
+Widgets.lua
+Data.lua
+Frame.lua
+InstanceList.lua
+Instance.lua
+Overview.lua
+Abilities.lua
+Loot.lua
+Quests.lua
+Minimap.lua

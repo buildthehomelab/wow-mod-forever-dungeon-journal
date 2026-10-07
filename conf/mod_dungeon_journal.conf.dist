@@ -1,0 +1,83 @@
+[worldserver]
+
+########################################
+# mod-dungeon-journal
+#
+# Server half of the retail-style dungeon journal. Players with the DungeonJournal addon see every
+# dungeon and raid with its bosses, their abilities, loot with drop chances and the instance's
+# quests, all read from this realm's own data, plus their lockouts and entry requirements.
+#
+# The journal is built once at startup. Changes to Rares, EraLocks and the Loot.* options take
+# effect after a restart, not after .reload config.
+########################################
+
+#
+#    DungeonJournal.Enable
+#        Description: Master switch. With 0 the addon tells players the journal isn't available.
+#        Default:     1
+#
+
+DungeonJournal.Enable = 1
+
+#
+#    DungeonJournal.Rares
+#        Description: List an instance's rare spawns (rare and rare elite creatures spawned in it)
+#                     after its bosses.
+#        Default:     1
+#
+
+DungeonJournal.Rares = 1
+
+#
+#    DungeonJournal.LearnAbilities
+#        Description: Remember the spells journal bosses and their adds are seen casting
+#                     (mod_dungeon_journal_learned), so abilities missing from the scripts show up
+#                     after the first fights.
+#        Default:     1
+#
+
+DungeonJournal.LearnAbilities = 1
+
+#
+#    DungeonJournal.EraLocks
+#        Description: With mod-individual-progression (IndividualProgression.Enable = 1), mark
+#                     instances and difficulties a character's progression stage hasn't opened as
+#                     locked, the way IndividualProgression's teleport checks do. Locked content
+#                     can still be browsed.
+#        Default:     1
+#
+
+DungeonJournal.EraLocks = 1
+
+#
+#    DungeonJournal.Loot.WorldDropThreshold
+#        Description: A reference loot table used by more loot tables than this is a world drop
+#                     table (the "level 30-35 greens") and is left out of the boss loot.
+#        Default:     25
+#
+
+DungeonJournal.Loot.WorldDropThreshold = 25
+
+#
+#    DungeonJournal.Loot.ShowWorldDrops
+#        Description: Show world drop tables in the boss loot anyway (flagged as world drops).
+#        Default:     0
+#
+
+DungeonJournal.Loot.ShowWorldDrops = 0
+
+#
+#    DungeonJournal.Loot.ShowPoorAndCommon
+#        Description: List grey and white items too. Quest items and recipes are always listed.
+#        Default:     0
+#
+
+DungeonJournal.Loot.ShowPoorAndCommon = 0
+
+#
+#    DungeonJournal.MaxQuestsPerInstance
+#        Description: Most quests the Quests tab lists for one instance (5-200).
+#        Default:     60
+#
+
+DungeonJournal.MaxQuestsPerInstance = 60
