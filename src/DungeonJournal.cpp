@@ -1,5 +1,5 @@
 /*
- * mod-dungeon-journal: configuration, the addon transport, request dispatch and script
+ * mod-forever-dungeon-journal: configuration, the addon transport, request dispatch and script
  * registration.
  *
  * Wire format, both directions: "<COMMAND>:<request id>:<field>:<field>..." after the addon

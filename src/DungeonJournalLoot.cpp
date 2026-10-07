@@ -1,5 +1,5 @@
 /*
- * mod-dungeon-journal: loot tables and the chance one kill drops each item.
+ * mod-forever-dungeon-journal: loot tables and the chance one kill drops each item.
  *
  * The core keeps its loot templates private, so the rows are read from the database once at
  * startup, for the bosses' loot ids and every reference they reach. The chances follow
@@ -432,7 +432,7 @@ namespace DungeonJournal::Loot
         for (auto const& [id, table] : sObject)
             sObjectDrops[id] = ToDrops(ComputeBothModes(table, COND_GAMEOBJECT_LOOT, id), LOOT_CHEST);
 
-        LOG_INFO("server.loading", ">> mod-dungeon-journal: {} creature and {} chest loot tables, {} references",
+        LOG_INFO("server.loading", ">> mod-forever-dungeon-journal: {} creature and {} chest loot tables, {} references",
             sCreatureDrops.size(), sObjectDrops.size(), sReference.size());
     }
 

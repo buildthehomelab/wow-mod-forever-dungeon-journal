@@ -1,5 +1,5 @@
 -- Smoke test for the DungeonJournal addon outside the game: stubs just enough of the 3.3.5a API,
--- loads the addon in .toc order and answers its requests with a fake mod-dungeon-journal server,
+-- loads the addon in .toc order and answers its requests with a fake mod-forever-dungeon-journal server,
 -- then walks every page and tab.
 -- Usage (any Lua 5.3+): lua tools/addon_smoke_test.lua addon/DungeonJournal
 -- DRAGON=1 runs it again with a DragonUI stand-in, for the skinned branches.

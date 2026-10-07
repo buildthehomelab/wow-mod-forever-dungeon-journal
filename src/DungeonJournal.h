@@ -1,5 +1,5 @@
 /*
- * mod-dungeon-journal
+ * mod-forever-dungeon-journal
  *
  * Server half of a retail-style dungeon journal (the DungeonJournal addon). Everything the
  * journal shows comes from this realm's own data, so custom loot, mod-individual-progression's

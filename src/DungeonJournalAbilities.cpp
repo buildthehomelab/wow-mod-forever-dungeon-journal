@@ -1,13 +1,13 @@
 /*
- * mod-dungeon-journal: the spells a creature uses, for the journal's Abilities tab.
+ * mod-forever-dungeon-journal: the spells a creature uses, for the journal's Abilities tab.
  *
  * Four sources, in this order:
- *   1. its C++ script: mod_dungeon_journal_script_spell, generated from the scripts' source by
+ *   1. its C++ script: mod_forever_dungeon_journal_script_spell, generated from the scripts' source by
  *      tools/extract_script_spells.py (keyed by ScriptName);
  *   2. its SmartAI script, following the timed action lists it calls; events limited to some
  *      difficulties only show on those;
  *   3. the creature's own spell list (creature_template_spell);
- *   4. what it was seen casting (mod_dungeon_journal_learned, filled by OnCreatureCast).
+ *   4. what it was seen casting (mod_forever_dungeon_journal_learned, filled by OnCreatureCast).
  * A spell with a SpellDifficulty entry is shown as its version for the tab's difficulty.
  * The server only drops passive and hidden spells; the addon also skips spells without a client
  * description, which are the internal helpers (triggers, dummies, visuals).
@@ -123,11 +123,11 @@ namespace DungeonJournal::Abilities
         std::unordered_map<std::string, ScriptData> ReadScriptTable()
         {
             std::unordered_map<std::string, ScriptData> scripts;
-            QueryResult result = WorldDatabase.Query("SELECT ScriptName, Kind, Value FROM mod_dungeon_journal_script_spell "
+            QueryResult result = WorldDatabase.Query("SELECT ScriptName, Kind, Value FROM mod_forever_dungeon_journal_script_spell "
                 "ORDER BY ScriptName, Sort");
             if (!result)
             {
-                LOG_WARN("server.loading", ">> mod-dungeon-journal: mod_dungeon_journal_script_spell is empty; "
+                LOG_WARN("server.loading", ">> mod-forever-dungeon-journal: mod_forever_dungeon_journal_script_spell is empty; "
                     "abilities from C++ scripts are missing until the module's SQL is applied");
                 return scripts;
             }
@@ -314,7 +314,7 @@ namespace DungeonJournal::Abilities
             ReadCreature(entry, scripts);
 
         uint32 learned = 0;
-        if (QueryResult result = WorldDatabase.Query("SELECT Entry, Spell FROM mod_dungeon_journal_learned"))
+        if (QueryResult result = WorldDatabase.Query("SELECT Entry, Spell FROM mod_forever_dungeon_journal_learned"))
             do
             {
                 Field* f = result->Fetch();
@@ -325,7 +325,7 @@ namespace DungeonJournal::Abilities
                 ++learned;
             } while (result->NextRow());
 
-        LOG_INFO("server.loading", ">> mod-dungeon-journal: abilities of {} creatures ({} script names, {} learned)",
+        LOG_INFO("server.loading", ">> mod-forever-dungeon-journal: abilities of {} creatures ({} script names, {} learned)",
             sCreatures.size(), scripts.size(), learned);
     }
 
@@ -379,7 +379,7 @@ namespace DungeonJournal::Abilities
         if (!info || !IsListable(info))
             return false;
         AddSpell(itr->second, spell, ALL_DIFFICULTIES, true);
-        WorldDatabase.Execute("INSERT IGNORE INTO mod_dungeon_journal_learned (Entry, Spell) VALUES ({}, {})", baseEntry, spell);
+        WorldDatabase.Execute("INSERT IGNORE INTO mod_forever_dungeon_journal_learned (Entry, Spell) VALUES ({}, {})", baseEntry, spell);
         return true;
     }
 

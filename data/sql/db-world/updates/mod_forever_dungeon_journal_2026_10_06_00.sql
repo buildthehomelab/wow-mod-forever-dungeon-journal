@@ -1,14 +1,14 @@
--- mod-dungeon-journal: tables and seed data.
+-- mod-forever-dungeon-journal: tables and seed data.
 --
 -- The journal builds itself from the game data (DungeonEncounter.dbc, LFGDungeons.dbc,
 -- instance_encounters, creature and loot templates). These tables only fill the gaps:
---   * mod_dungeon_journal_boss_extra   encounters whose loot sits in a chest, or that are fought
+--   * mod_forever_dungeon_journal_boss_extra   encounters whose loot sits in a chest, or that are fought
 --                                      as several creatures (the Four Horsemen, the Iron Council)
---   * mod_dungeon_journal_variant      extra difficulty tabs, such as mod-individual-progression's
+--   * mod_forever_dungeon_journal_variant      extra difficulty tabs, such as mod-individual-progression's
 --                                      40 player Onyxia and Naxxramas
---   * mod_dungeon_journal_learned      spells bosses were seen casting (written by the module)
+--   * mod_forever_dungeon_journal_learned      spells bosses were seen casting (written by the module)
 
-CREATE TABLE IF NOT EXISTS `mod_dungeon_journal_boss_extra` (
+CREATE TABLE IF NOT EXISTS `mod_forever_dungeon_journal_boss_extra` (
   `MapID` SMALLINT UNSIGNED NOT NULL,
   `Bit` TINYINT UNSIGNED NOT NULL COMMENT 'DungeonEncounter.dbc bit of the encounter',
   `Kind` TINYINT UNSIGNED NOT NULL COMMENT '0 = creature fought in the encounter, 1 = chest with its loot, 2 = creature shown instead of the credit creature',
@@ -17,9 +17,9 @@ CREATE TABLE IF NOT EXISTS `mod_dungeon_journal_boss_extra` (
   `Flags` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '1 = hard mode loot',
   `Comment` VARCHAR(100) NOT NULL DEFAULT '',
   PRIMARY KEY (`MapID`, `Bit`, `Kind`, `Difficulty`, `Entry`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='mod-dungeon-journal: extra creatures and loot chests per encounter';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='mod-forever-dungeon-journal: extra creatures and loot chests per encounter';
 
-CREATE TABLE IF NOT EXISTS `mod_dungeon_journal_variant` (
+CREATE TABLE IF NOT EXISTS `mod_forever_dungeon_journal_variant` (
   `MapID` SMALLINT UNSIGNED NOT NULL,
   `Variant` TINYINT UNSIGNED NOT NULL COMMENT '100 and up; 0-3 are the map difficulties',
   `Difficulty` TINYINT UNSIGNED NOT NULL COMMENT 'map difficulty the variant is played on',
@@ -31,24 +31,24 @@ CREATE TABLE IF NOT EXISTS `mod_dungeon_journal_variant` (
   `HidesDifficulty` TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT '1 = the map difficulty itself gets no tab of its own',
   `Label` VARCHAR(40) NOT NULL,
   PRIMARY KEY (`MapID`, `Variant`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='mod-dungeon-journal: extra difficulty tabs';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='mod-forever-dungeon-journal: extra difficulty tabs';
 
-CREATE TABLE IF NOT EXISTS `mod_dungeon_journal_variant_swap` (
+CREATE TABLE IF NOT EXISTS `mod_forever_dungeon_journal_variant_swap` (
   `MapID` SMALLINT UNSIGNED NOT NULL,
   `Variant` TINYINT UNSIGNED NOT NULL,
   `FromEntry` INT UNSIGNED NOT NULL,
   `ToEntry` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`MapID`, `Variant`, `FromEntry`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='mod-dungeon-journal: creatures a variant replaces';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='mod-forever-dungeon-journal: creatures a variant replaces';
 
-CREATE TABLE IF NOT EXISTS `mod_dungeon_journal_learned` (
+CREATE TABLE IF NOT EXISTS `mod_forever_dungeon_journal_learned` (
   `Entry` INT UNSIGNED NOT NULL COMMENT 'base creature entry (difficulty entries are folded into it)',
   `Spell` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`Entry`, `Spell`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='mod-dungeon-journal: spells bosses were seen casting';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='mod-forever-dungeon-journal: spells bosses were seen casting';
 
-DELETE FROM `mod_dungeon_journal_boss_extra`;
-INSERT INTO `mod_dungeon_journal_boss_extra` (`MapID`, `Bit`, `Kind`, `Difficulty`, `Entry`, `Flags`, `Comment`) VALUES
+DELETE FROM `mod_forever_dungeon_journal_boss_extra`;
+INSERT INTO `mod_forever_dungeon_journal_boss_extra` (`MapID`, `Bit`, `Kind`, `Difficulty`, `Entry`, `Flags`, `Comment`) VALUES
 -- Classic
 (230, 16, 1, 255, 169243, 0, 'BRD: Chest of The Seven'),
 (409, 8, 1, 255, 179703, 0, 'MC: Cache of the Firelord'),
@@ -162,11 +162,11 @@ INSERT INTO `mod_dungeon_journal_boss_extra` (`MapID`, `Bit`, `Kind`, `Difficult
 
 -- mod-individual-progression's vanilla raids. Onyxia below level 71 is a separate creature
 -- (301000); 40 player Naxxramas is played on difficulty 2 with its own creature entries.
-DELETE FROM `mod_dungeon_journal_variant` WHERE `MapID` IN (249, 533);
-INSERT INTO `mod_dungeon_journal_variant` (`MapID`, `Variant`, `Difficulty`, `Expansion`, `MaxPlayers`, `MinLevel`, `RequiredState`, `RequiresIP`, `HidesDifficulty`, `Label`) VALUES
+DELETE FROM `mod_forever_dungeon_journal_variant` WHERE `MapID` IN (249, 533);
+INSERT INTO `mod_forever_dungeon_journal_variant` (`MapID`, `Variant`, `Difficulty`, `Expansion`, `MaxPlayers`, `MinLevel`, `RequiredState`, `RequiresIP`, `HidesDifficulty`, `Label`) VALUES
 (249, 100, 0, 0, 40, 50, 0, 1, 0, '40 Player'),
 (533, 101, 2, 0, 40, 60, 6, 1, 1, '40 Player');
 
-DELETE FROM `mod_dungeon_journal_variant_swap` WHERE `MapID` IN (249, 533);
-INSERT INTO `mod_dungeon_journal_variant_swap` (`MapID`, `Variant`, `FromEntry`, `ToEntry`) VALUES
+DELETE FROM `mod_forever_dungeon_journal_variant_swap` WHERE `MapID` IN (249, 533);
+INSERT INTO `mod_forever_dungeon_journal_variant_swap` (`MapID`, `Variant`, `FromEntry`, `ToEntry`) VALUES
 (249, 100, 10184, 301000);

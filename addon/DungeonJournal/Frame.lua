@@ -361,7 +361,7 @@ local function refresh()
 		for _, p in pairs(pages) do p:Hide() end
 		if DJ.noServer then
 			showStatus("The journal needs the realm's journal module",
-				"This realm doesn't answer the Dungeon Journal yet (mod-dungeon-journal). Ask the realm's admin, or try again with /dj refresh.")
+				"This realm doesn't answer the Dungeon Journal yet (mod-forever-dungeon-journal). Ask the realm's admin, or try again with /dj refresh.")
 		else
 			showStatus("Opening the journal...")
 		end
