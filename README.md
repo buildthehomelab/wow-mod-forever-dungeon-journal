@@ -120,7 +120,7 @@ mod-individual-progression 723c510.
 Server:
 ```
 cd azerothcore-wotlk/modules
-git clone https://github.com/buildthehomelab/wow-mod-dungeon-journal.git mod-dungeon-journal
+git clone https://github.com/buildthehomelab/wow-mod-forever-dungeon-journal.git mod-dungeon-journal
 ```
 Re-run CMake, rebuild, and copy `conf/mod_dungeon_journal.conf.dist` next to your
 `worldserver.conf`. The SQL in `data/sql/db-world` is applied by the database updater.
