@@ -1,7 +1,7 @@
 [worldserver]
 
 ########################################
-# mod-dungeon-journal
+# mod-forever-dungeon-journal
 #
 # Server half of the retail-style dungeon journal. Players with the DungeonJournal addon see every
 # dungeon and raid with its bosses, their abilities, loot with drop chances and the instance's
@@ -31,7 +31,7 @@ DungeonJournal.Rares = 1
 #
 #    DungeonJournal.LearnAbilities
 #        Description: Remember the spells journal bosses and their adds are seen casting
-#                     (mod_dungeon_journal_learned), so abilities missing from the scripts show up
+#                     (mod_forever_dungeon_journal_learned), so abilities missing from the scripts show up
 #                     after the first fights.
 #        Default:     1
 #

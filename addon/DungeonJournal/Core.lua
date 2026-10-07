@@ -1,5 +1,5 @@
 -- DungeonJournal core: saved settings, the server protocol, caches, item and spell helpers and
--- slash commands. The data itself comes from the mod-dungeon-journal server module.
+-- slash commands. The data itself comes from the mod-forever-dungeon-journal server module.
 
 DungeonJournal = DungeonJournal or {}
 local DJ = DungeonJournal

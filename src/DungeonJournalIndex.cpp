@@ -1,5 +1,5 @@
 /*
- * mod-dungeon-journal: the journal's index (instances, wings, difficulty tabs, bosses, quests,
+ * mod-forever-dungeon-journal: the journal's index (instances, wings, difficulty tabs, bosses, quests,
  * entrances) and the request handlers that answer the addon from it.
  *
  * Instances come from LFGDungeons.dbc: one instance per map, with the Dungeon Finder's wings
@@ -9,7 +9,7 @@
  * order; an encounter belongs to the first wing whose last encounter (instance_encounters'
  * lastEncounterDungeon) comes at or after it.
  *
- * Difficulty tabs ("variants") are the map's difficulties, plus mod_dungeon_journal_variant rows
+ * Difficulty tabs ("variants") are the map's difficulties, plus mod_forever_dungeon_journal_variant rows
  * such as mod-individual-progression's 40 player Onyxia and Naxxramas. Each tab is listed under
  * an expansion tier, so 40 player Naxxramas sits with the classic raids and the 10 and 25 player
  * versions with Wrath's.
@@ -103,7 +103,7 @@ namespace DungeonJournal::Index
 
         struct Variant
         {
-            uint8 id = 0;                   // 0-3 = map difficulty, 100+ = mod_dungeon_journal_variant
+            uint8 id = 0;                   // 0-3 = map difficulty, 100+ = mod_forever_dungeon_journal_variant
             uint8 difficulty = 0;
             uint8 expansion = 0;
             uint8 maxPlayers = 0;
@@ -322,7 +322,7 @@ namespace DungeonJournal::Index
         std::map<std::pair<uint32, uint32>, std::vector<SeedExtra>> ReadExtras()
         {
             std::map<std::pair<uint32, uint32>, std::vector<SeedExtra>> extras;
-            if (QueryResult result = WorldDatabase.Query("SELECT MapID, Bit, Kind, Difficulty, Entry, Flags FROM mod_dungeon_journal_boss_extra"))
+            if (QueryResult result = WorldDatabase.Query("SELECT MapID, Bit, Kind, Difficulty, Entry, Flags FROM mod_forever_dungeon_journal_boss_extra"))
                 do
                 {
                     Field* f = result->Fetch();
@@ -340,7 +340,7 @@ namespace DungeonJournal::Index
         {
             std::vector<SeedVariant> variants;
             if (QueryResult result = WorldDatabase.Query("SELECT MapID, Variant, Difficulty, Expansion, MaxPlayers, MinLevel, "
-                "RequiredState, RequiresIP, HidesDifficulty, Label FROM mod_dungeon_journal_variant ORDER BY MapID, Variant"))
+                "RequiredState, RequiresIP, HidesDifficulty, Label FROM mod_forever_dungeon_journal_variant ORDER BY MapID, Variant"))
                 do
                 {
                     Field* f = result->Fetch();
@@ -358,7 +358,7 @@ namespace DungeonJournal::Index
                     variants.push_back(std::move(v));
                 } while (result->NextRow());
 
-            if (QueryResult result = WorldDatabase.Query("SELECT MapID, Variant, FromEntry, ToEntry FROM mod_dungeon_journal_variant_swap"))
+            if (QueryResult result = WorldDatabase.Query("SELECT MapID, Variant, FromEntry, ToEntry FROM mod_forever_dungeon_journal_variant_swap"))
                 do
                 {
                     Field* f = result->Fetch();
@@ -1292,7 +1292,7 @@ namespace DungeonJournal::Index
             bosses += inst.bosses.size();
             quests += inst.quests.size();
         }
-        LOG_INFO("server.loading", ">> mod-dungeon-journal: {} instances, {} bosses, {} quests in {} ms",
+        LOG_INFO("server.loading", ">> mod-forever-dungeon-journal: {} instances, {} bosses, {} quests in {} ms",
             sData.instances.size(), bosses, quests, GetMSTimeDiffToNow(start));
     }
 

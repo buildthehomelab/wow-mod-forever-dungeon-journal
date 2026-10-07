@@ -1,6 +1,6 @@
 ## Interface: 30300
 ## Title: Dungeon Journal
-## Notes: A retail-style dungeon journal: every dungeon and raid with its bosses, their abilities, loot with drop chances and the instance's quests with your progress. Shift-J or /dj. Backed by the mod-dungeon-journal server module.
+## Notes: A retail-style dungeon journal: every dungeon and raid with its bosses, their abilities, loot with drop chances and the instance's quests with your progress. Shift-J or /dj. Backed by the mod-forever-dungeon-journal server module.
 ## Author: buildthehomelab
 ## Version: 1.0.0
 ## OptionalDeps: DragonUI

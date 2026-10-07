@@ -59,9 +59,9 @@ At startup the module builds an index:
   difficulties from `MapDifficulty.dbc`, entrances from `areatrigger_teleport`;
 - **bosses** from `DungeonEncounter.dbc` and `instance_encounters` (each encounter goes to the wing
   its `lastEncounterDungeon` closes), plus rares spawned in the instance;
-- **abilities** from the bosses' C++ scripts (`mod_dungeon_journal_script_spell`, see below),
+- **abilities** from the bosses' C++ scripts (`mod_forever_dungeon_journal_script_spell`, see below),
   SmartAI scripts (following timed action lists, respecting difficulty flags), creature spells,
-  and what bosses are seen casting (`mod_dungeon_journal_learned`). Spells with SpellDifficulty
+  and what bosses are seen casting (`mod_forever_dungeon_journal_learned`). Spells with SpellDifficulty
   versions show the version of the chosen difficulty;
 - **loot** from `creature_loot_template`, `gameobject_loot_template` and
   `reference_loot_template`, with chances worked out the way `LootTemplate::Process` rolls
@@ -79,12 +79,12 @@ changes; abilities for the session; status and quests are asked fresh.
 
 ### Filling the gaps
 
-`data/sql/db-world/updates/mod_dungeon_journal_2026_10_06_00.sql` creates the module's tables and
+`data/sql/db-world/updates/mod_forever_dungeon_journal_2026_10_06_00.sql` creates the module's tables and
 seeds them:
-- `mod_dungeon_journal_boss_extra`: loot chests (Cache of the Firelord, Four Horsemen Chest,
+- `mod_forever_dungeon_journal_boss_extra`: loot chests (Cache of the Firelord, Four Horsemen Chest,
   Ulduar's caches with their hard modes, ICC's Gunship Armory...) and encounters fought as several
   creatures (Four Horsemen, Iron Council, Twin Emperors, Opera Event...).
-- `mod_dungeon_journal_variant` and `mod_dungeon_journal_variant_swap`: extra difficulty tabs.
+- `mod_forever_dungeon_journal_variant` and `mod_forever_dungeon_journal_variant_swap`: extra difficulty tabs.
   The seed adds mod-individual-progression's 40 player Onyxia (creature 301000) and Naxxramas
   (difficulty 2), only when `IndividualProgression.Enable = 1`.
 
@@ -92,12 +92,12 @@ seeds them:
 
 Spells cast from C++ boss scripts aren't in the database, so
 `tools/extract_script_spells.py` reads them from the script sources and writes
-`data/sql/db-world/updates/mod_dungeon_journal_script_spells.sql`. Run it again when the core or a
+`data/sql/db-world/updates/mod_forever_dungeon_journal_script_spells.sql`. Run it again when the core or a
 module with boss scripts changes:
 
 ```
 python3 tools/extract_script_spells.py \
-    --out data/sql/db-world/updates/mod_dungeon_journal_script_spells.sql \
+    --out data/sql/db-world/updates/mod_forever_dungeon_journal_script_spells.sql \
     azerothcore-wotlk/src/server/scripts/{EasternKingdoms,Kalimdor,Outland,Northrend,World} \
     mod-individual-progression/src
 ```
@@ -120,20 +120,20 @@ mod-individual-progression 723c510.
 Server:
 ```
 cd azerothcore-wotlk/modules
-git clone https://github.com/buildthehomelab/wow-mod-dungeon-journal.git mod-dungeon-journal
+git clone https://github.com/buildthehomelab/wow-mod-forever-dungeon-journal.git mod-forever-dungeon-journal
 ```
-Re-run CMake, rebuild, and copy `conf/mod_dungeon_journal.conf.dist` next to your
+Re-run CMake, rebuild, and copy `conf/mod_forever_dungeon_journal.conf.dist` next to your
 `worldserver.conf`. The SQL in `data/sql/db-world` is applied by the database updater.
 
 Client: copy `addon/DungeonJournal` into `Interface/AddOns`. On realms using Portalkeeper,
 `sql/portalkeeper_addon.sql` (run by hand against `acore_world`) makes it a required addon.
 
 To remove the module, take it out of the build and run
-`data/sql/uninstall/mod_dungeon_journal_uninstall_world.sql`.
+`data/sql/uninstall/mod_forever_dungeon_journal_uninstall_world.sql`.
 
 ## Configuration
 
-See `conf/mod_dungeon_journal.conf.dist`: master switch, rares, learning abilities, era locks,
+See `conf/mod_forever_dungeon_journal.conf.dist`: master switch, rares, learning abilities, era locks,
 the world drop threshold, showing world drops or grey and white items, and the quest cap.
 
 ## Commands
