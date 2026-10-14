@@ -522,7 +522,11 @@ J.RefreshPage = refresh
 -- Opens the journal on a section. fromTab: the tab itself was clicked, which takes Dungeons and
 -- Raids back to their home page.
 function J.OpenSection(key, fromTab)
-	if not sections[key] then return false end
+	local s = sections[key]
+	if not s then return false end
+	-- Clicking the tab that's already shown runs its onShow again (the Appearances tab reopens
+	-- the transmog window that way).
+	if fromTab and frame:IsShown() and shownSection == s and s.onShow then pcall(s.onShow, s.panel) end
 	local changes = { section = key }
 	if key == "dungeons" or key == "raids" then
 		changes.raids = key == "raids"

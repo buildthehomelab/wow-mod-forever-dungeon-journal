@@ -416,13 +416,40 @@ local function buildTab(kind, panel)
 		J.Debounce("collection-companions", 0.5, function () J.Fire("COMPANIONS") end)
 	end)
 
-	local use = CreateFrame("Button", J.UniqueName("ToyUse"), right, "SecureActionButtonTemplate,UIPanelButtonTemplate")
-	use:SetSize(110, 24)
-	use:SetText("Use")
-	use:SetPoint("BOTTOMRIGHT", model, "BOTTOMRIGHT", -6, 6)
-	use:SetAttribute("type", "item")
-	do local D = J.Dragon() if D then D.SkinRedButton(use) end end
-	use:Hide()
+	-- A secure button makes every frame it sits in protected, and the journal would then be
+	-- blocked from closing or switching tabs in combat. So it sits on UIParent, over the
+	-- model, and is only moved, shown or hidden out of combat; in combat it isn't there.
+	local use
+	local function syncUse()
+		if not use or InCombatLockdown() then return end
+		local e = state.selected
+		if e and e.mine and panel:IsVisible() and right:IsVisible() then
+			use:SetAttribute("item", "item:" .. e.id)
+			use:ClearAllPoints()
+			use:SetPoint("BOTTOMRIGHT", model, "BOTTOMRIGHT", -6, 6)
+			use:Show()
+		else
+			use:Hide()
+		end
+	end
+	if kind == "toys" then
+		use = CreateFrame("Button", J.UniqueName("ToyUse"), UIParent, "SecureActionButtonTemplate,UIPanelButtonTemplate")
+		use:SetSize(110, 24)
+		use:SetText("Use")
+		use:SetFrameStrata("DIALOG")
+		use:SetAttribute("type", "item")
+		do local D = J.Dragon() if D then D.SkinRedButton(use) end end
+		use:Hide()
+		local combat = CreateFrame("Frame")
+		combat:RegisterEvent("PLAYER_REGEN_DISABLED")
+		combat:RegisterEvent("PLAYER_REGEN_ENABLED")
+		combat:SetScript("OnEvent", function (self, event)
+			-- REGEN_DISABLED comes just before the lockdown starts: the last chance to hide it.
+			if event == "PLAYER_REGEN_DISABLED" then use:Hide() else syncUse() end
+		end)
+		panel:HookScript("OnHide", syncUse)
+		J.frame:HookScript("OnHide", syncUse)
+	end
 
 	local sourcesTitle = right:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	sourcesTitle:SetPoint("TOPLEFT", model, "BOTTOMLEFT", 4, -8)
@@ -544,7 +571,7 @@ local function buildTab(kind, panel)
 	local function renderDetail()
 		local e = state.selected
 		setShown(right, e ~= nil)
-		if not e then return end
+		if not e then syncUse() return end
 		local name = J.EntryName(kind, e) or ("item " .. e.id)
 		bigIcon:SetTexture(J.EntryIcon(kind, e))
 		title:SetText(name)
@@ -574,12 +601,10 @@ local function buildTab(kind, panel)
 			toyText:SetText(text or "")
 			toyText:Show()
 			action:Hide()
-			setShown(use, e.mine)
-			if not InCombatLockdown() then use:SetAttribute("item", "item:" .. e.id) end
+			syncUse()
 		else
 			toyIcon:Hide()
 			toyText:Hide()
-			use:Hide()
 			model:Show()
 			showCreature(e.creature)
 			local c = J.Companion(kind, e)

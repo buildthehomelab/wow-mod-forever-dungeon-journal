@@ -1080,9 +1080,12 @@ namespace Journal::Collections
                     src.kind = 'C';
                     src.id = sla->Spell;
                     src.a = sla->SkillLine;
-                    src.b = sla->MinSkillLineRank;
+                    src.b = std::max(sla->MinSkillLineRank, sla->TrivialSkillLineRankLow);
                     char const* name = skill->name[sWorld->GetDefaultDbcLocale()];
                     src.name = name && *name ? name : skill->name[LOCALE_enUS];
+                    // A recipe past 300 skill is Burning Crusade's, past 375 Wrath's.
+                    if (GetConfig().progressionEnabled && GetConfig().eraLocks)
+                        src.reqState = src.b > 375 ? IP_WOTLK : src.b > 300 ? IP_TBC : 0;
                     AddSourceForItem(eff.ItemType, src);
                 }
             }
@@ -1221,6 +1224,10 @@ namespace Journal::Collections
             }
             e.list = std::move(kept);
 
+            // Achievements, containers and world drops carry no era of their own: they only open an
+            // entry when it has no other source to go by.
+            auto eraless = [](char kind) { return kind == 'N' || kind == 'A' || kind == 'I' || kind == 'R' || kind == '+'; };
+            bool anyDated = std::any_of(e.list.begin(), e.list.end(), [&](Source const& s) { return !eraless(s.kind); });
             e.sources = 0;
             uint8 era = 255;
             for (Source const& s : e.list)
@@ -1228,7 +1235,7 @@ namespace Journal::Collections
                 e.sources |= BitOf(s.kind);
                 if (s.kind == 'V' && !s.extra.empty())
                     e.sources |= SRC_EVENT;
-                if (s.kind != 'N')
+                if (s.kind != 'N' && (!anyDated || !eraless(s.kind)))
                     era = std::min(era, s.reqState);
             }
             e.reqState = era == 255 ? 0 : era;
@@ -1270,7 +1277,8 @@ namespace Journal::Collections
                 if (src.where.empty())
                     src.where = PlaceName(src.spot);
                 // A journal boss's era is its instance's; otherwise the spot's (and the vendor's own).
-                if (!src.b)
+                // (b is the instance only on D and G rows; on V rows it's the honor price.)
+                if ((src.kind != 'D' && src.kind != 'G') || !src.b)
                     src.reqState = std::max(src.reqState, SpotEra(src.spot));
             }
             AddSourceForItem(item, src);
@@ -1347,6 +1355,25 @@ namespace Journal::Collections
             return Find(kind, id);
         }
 
+        // A note, escaped, then cut to 200 bytes so its row fits one message (escaping can
+        // triple a character): never inside a %XX or a UTF-8 character.
+        std::string NoteText(std::string const& text)
+        {
+            constexpr std::size_t LIMIT = 200;
+            std::string out = Escape(text, LIMIT);
+            if (out.size() <= LIMIT)
+                return out;
+            std::size_t cut = LIMIT;
+            if (out[cut - 1] == '%')
+                cut -= 1;
+            else if (out[cut - 2] == '%')
+                cut -= 2;
+            while (cut > 0 && (uint8(out[cut]) & 0xC0) == 0x80)
+                --cut;
+            out.resize(cut);
+            return out;
+        }
+
         std::string Row(Source const& s, std::size_t i)
         {
             uint32 placed = s.spot.placed ? 1 : 0;
@@ -1382,7 +1409,7 @@ namespace Journal::Collections
                         Escape(s.name, 40), Escape(s.where, 40));
                 case 'N':
                 default:
-                    return Acore::StringFormat("N,{},{}", i, Escape(s.name, 200));
+                    return Acore::StringFormat("N,{},{}", i, NoteText(s.name));
             }
         }
     }
