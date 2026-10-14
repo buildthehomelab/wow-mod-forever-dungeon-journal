@@ -1,0 +1,14 @@
+<Bindings>
+	<Binding name="JOURNAL_TOGGLE" header="JOURNAL">
+		Journal.Toggle()
+	</Binding>
+	<Binding name="JOURNAL_MOUNTS">
+		Journal.ToggleSection("mounts")
+	</Binding>
+	<Binding name="JOURNAL_PETS">
+		Journal.ToggleSection("pets")
+	</Binding>
+	<Binding name="JOURNAL_TOYS">
+		Journal.ToggleSection("toys")
+	</Binding>
+</Bindings>

@@ -1,0 +1,102 @@
+[worldserver]
+
+########################################
+# mod-forever-journal
+#
+# Server half of the retail-style Journal addon. Its Dungeons and Raids tabs show every dungeon
+# and raid with its bosses, their abilities, loot with drop chances and the instance's quests,
+# plus the player's lockouts and entry requirements. Its Mounts, Pets and Toys tabs show every
+# collectible and where it comes from. All of it is read from this realm's own data.
+#
+# The journal is built once at startup. Changes to Rares, EraLocks, the Loot.* and the
+# Collections.* options take effect after a restart, not after .reload config.
+########################################
+
+#
+#    Journal.Enable
+#        Description: Master switch. With 0 the addon tells players the journal isn't available.
+#        Default:     1
+#
+
+Journal.Enable = 1
+
+#
+#    Journal.Rares
+#        Description: List an instance's rare spawns (rare and rare elite creatures spawned in it)
+#                     after its bosses.
+#        Default:     1
+#
+
+Journal.Rares = 1
+
+#
+#    Journal.LearnAbilities
+#        Description: Remember the spells journal bosses and their adds are seen casting
+#                     (mod_forever_journal_learned), so abilities missing from the scripts show up
+#                     after the first fights.
+#        Default:     1
+#
+
+Journal.LearnAbilities = 1
+
+#
+#    Journal.EraLocks
+#        Description: With mod-individual-progression (IndividualProgression.Enable = 1), mark
+#                     instances and difficulties a character's progression stage hasn't opened as
+#                     locked, the way IndividualProgression's teleport checks do. Locked content
+#                     can still be browsed.
+#        Default:     1
+#
+
+Journal.EraLocks = 1
+
+#
+#    Journal.Loot.WorldDropThreshold
+#        Description: A reference loot table used by more loot tables than this is a world drop
+#                     table (the "level 30-35 greens") and is left out of the boss loot.
+#        Default:     25
+#
+
+Journal.Loot.WorldDropThreshold = 25
+
+#
+#    Journal.Loot.ShowWorldDrops
+#        Description: Show world drop tables in the boss loot anyway (flagged as world drops).
+#        Default:     0
+#
+
+Journal.Loot.ShowWorldDrops = 0
+
+#
+#    Journal.Loot.ShowPoorAndCommon
+#        Description: List grey and white items too. Quest items and recipes are always listed.
+#        Default:     0
+#
+
+Journal.Loot.ShowPoorAndCommon = 0
+
+#
+#    Journal.MaxQuestsPerInstance
+#        Description: Most quests the Quests tab lists for one instance (5-200).
+#        Default:     60
+#
+
+Journal.MaxQuestsPerInstance = 60
+
+#
+#    Journal.Collections.Enable
+#        Description: The Mounts, Pets and Toys tabs: every mount, companion pet and toy, and its
+#                     vendors, drops, quests, achievements, recipes and trainers.
+#        Default:     1
+#
+
+Journal.Collections.Enable = 1
+
+#
+#    Journal.Collections.ShowUnobtainable
+#        Description: Also list mounts, pets and toys nothing on the realm sells, drops or gives
+#                     (promotions, removed and test items), marked unobtainable.
+#        Default:     0
+#
+
+Journal.Collections.ShowUnobtainable = 0

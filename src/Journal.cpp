@@ -1,5 +1,5 @@
 /*
- * mod-forever-dungeon-journal: configuration, the addon transport, request dispatch and script
+ * mod-forever-journal: configuration, the addon transport, request dispatch and script
  * registration.
  *
  * Wire format, both directions: "<COMMAND>:<request id>:<field>:<field>..." after the addon
@@ -17,12 +17,17 @@
  *   H:<req>                           -> H:<req>:<instance>:<variant>   the instance you're in
  *   M:<req>:<E|Q>:<id>                -> M:<req>:ok:<where>     flags an entrance or quest giver
  *   F:<req>:<text>                    -> FR, FD rows (I/B/L), FE  instances, bosses and loot by name
+ *   C:<req>:<M|P|T>                   -> CR, CD rows, CE        mounts, pets or toys
+ *   W:<req>:<M|P|T>:<id>              -> WR, WD rows, WE        where one comes from
+ *   O:<req>                           -> OR, OD rows, OE        toys the character has
+ *   M:<req>:S:<M|P|T>:<id>:<source>   -> M:<req>:ok:<where>     flags a source
  *
  * Addon messages arrive as CMSG_MESSAGECHAT on the world thread, so requests are answered
- * straight from the hook. The rows are documented beside their handlers (DungeonJournalIndex.cpp).
+ * straight from the hook. The rows are documented beside their handlers (JournalIndex.cpp and
+ * JournalCollections.cpp).
  */
 
-#include "DungeonJournal.h"
+#include "Journal.h"
 #include "Chat.h"
 #include "Config.h"
 #include "Creature.h"
@@ -38,7 +43,7 @@
 #include <charconv>
 #include <unordered_map>
 
-namespace DungeonJournal
+namespace Journal
 {
     namespace
     {
@@ -162,16 +167,18 @@ namespace DungeonJournal
         // the index doesn't depend on.
         void LoadConfig(bool reload)
         {
-            sConfig.enabled = sConfigMgr->GetOption<bool>("DungeonJournal.Enable", true);
-            sConfig.learnAbilities = sConfigMgr->GetOption<bool>("DungeonJournal.LearnAbilities", true);
-            sConfig.maxQuestsPerInstance = std::clamp<uint32>(sConfigMgr->GetOption<uint32>("DungeonJournal.MaxQuestsPerInstance", 60), 5, 200);
+            sConfig.enabled = sConfigMgr->GetOption<bool>("Journal.Enable", true);
+            sConfig.learnAbilities = sConfigMgr->GetOption<bool>("Journal.LearnAbilities", true);
+            sConfig.maxQuestsPerInstance = std::clamp<uint32>(sConfigMgr->GetOption<uint32>("Journal.MaxQuestsPerInstance", 60), 5, 200);
             if (reload)
                 return;
-            sConfig.rares = sConfigMgr->GetOption<bool>("DungeonJournal.Rares", true);
-            sConfig.eraLocks = sConfigMgr->GetOption<bool>("DungeonJournal.EraLocks", true);
-            sConfig.worldDropThreshold = std::max<uint32>(sConfigMgr->GetOption<uint32>("DungeonJournal.Loot.WorldDropThreshold", 25), 2);
-            sConfig.showWorldDrops = sConfigMgr->GetOption<bool>("DungeonJournal.Loot.ShowWorldDrops", false);
-            sConfig.showGrayLoot = sConfigMgr->GetOption<bool>("DungeonJournal.Loot.ShowPoorAndCommon", false);
+            sConfig.collections = sConfigMgr->GetOption<bool>("Journal.Collections.Enable", true);
+            sConfig.showUnobtainable = sConfigMgr->GetOption<bool>("Journal.Collections.ShowUnobtainable", false);
+            sConfig.rares = sConfigMgr->GetOption<bool>("Journal.Rares", true);
+            sConfig.eraLocks = sConfigMgr->GetOption<bool>("Journal.EraLocks", true);
+            sConfig.worldDropThreshold = std::max<uint32>(sConfigMgr->GetOption<uint32>("Journal.Loot.WorldDropThreshold", 25), 2);
+            sConfig.showWorldDrops = sConfigMgr->GetOption<bool>("Journal.Loot.ShowWorldDrops", false);
+            sConfig.showGrayLoot = sConfigMgr->GetOption<bool>("Journal.Loot.ShowPoorAndCommon", false);
             sConfig.progressionEnabled = sConfigMgr->GetOption<bool>("IndividualProgression.Enable", false, false);
             sConfig.zulGurubState = uint8(std::min<uint32>(sConfigMgr->GetOption<uint32>("IndividualProgression.RequiredZulGurubProgression", 3, false), IP_STATE_MAX));
             sConfig.zulAmanState = uint8(std::min<uint32>(sConfigMgr->GetOption<uint32>("IndividualProgression.RequiredZulAmanProgression", 12, false), IP_STATE_MAX));
@@ -196,6 +203,8 @@ namespace DungeonJournal
                 flags |= HELLO_PROGRESSION;
             if (sConfig.learnAbilities)
                 flags |= HELLO_LEARNING;
+            if (sConfig.collections)
+                flags |= HELLO_COLLECTIONS;
             Send(player, "HELLO:" + req + ":" + std::to_string(PROTOCOL_VERSION) + ":" + std::to_string(flags)
                 + ":" + std::to_string(Index::Stamp()) + ":" + std::to_string(ProgressionState(player)));
         }
@@ -221,8 +230,10 @@ namespace DungeonJournal
         float CostOf(std::string_view command)
         {
             // The instance list and "every boss" loot are the long answers; the addon keeps them.
-            if (command == "D")
+            if (command == "D" || command == "C")
                 return 6.0f;
+            if (command == "O")
+                return 2.0f;
             if (command == "L" || command == "Q" || command == "F")
                 return 2.0f;
             return 1.0f;
@@ -269,18 +280,24 @@ namespace DungeonJournal
                 Index::HandleMapPin(player, req, args);
             else if (command == "F")
                 Index::HandleSearch(player, req, args);
+            else if (command == "C" && sConfig.collections)
+                Collections::HandleCatalog(player, req, args);
+            else if (command == "W" && sConfig.collections)
+                Collections::HandleSources(player, req, args);
+            else if (command == "O" && sConfig.collections)
+                Collections::HandleOwnedToys(player, req);
             else
                 SendError(player, req, "unknown");
         }
     }
 }
 
-using namespace DungeonJournal;
+using namespace Journal;
 
-class DungeonJournalPlayerScript : public PlayerScript
+class JournalPlayerScript : public PlayerScript
 {
 public:
-    DungeonJournalPlayerScript() : PlayerScript("DungeonJournalPlayerScript",
+    JournalPlayerScript() : PlayerScript("JournalPlayerScript",
         {
             PLAYERHOOK_CAN_PLAYER_USE_PRIVATE_CHAT,
             PLAYERHOOK_ON_LOGOUT
@@ -312,10 +329,10 @@ public:
     }
 };
 
-class DungeonJournalWorldScript : public WorldScript
+class JournalWorldScript : public WorldScript
 {
 public:
-    DungeonJournalWorldScript() : WorldScript("DungeonJournalWorldScript",
+    JournalWorldScript() : WorldScript("JournalWorldScript",
         { WORLDHOOK_ON_AFTER_CONFIG_LOAD, WORLDHOOK_ON_STARTUP }) { }
 
     void OnAfterConfigLoad(bool reload) override
@@ -334,10 +351,10 @@ public:
 
 // Bosses' abilities that live only in C++ or come from spells triggered at run time: whatever a
 // journal creature casts on its own map is remembered. Runs on map threads.
-class DungeonJournalSpellScript : public AllSpellScript
+class JournalSpellScript : public AllSpellScript
 {
 public:
-    DungeonJournalSpellScript() : AllSpellScript("DungeonJournalSpellScript", { ALLSPELLHOOK_ON_CAST }) { }
+    JournalSpellScript() : AllSpellScript("JournalSpellScript", { ALLSPELLHOOK_ON_CAST }) { }
 
     void OnSpellCast(Spell* /*spell*/, Unit* caster, SpellInfo const* spellInfo, bool /*skipCheck*/) override
     {
@@ -347,9 +364,9 @@ public:
     }
 };
 
-void AddDungeonJournalScripts()
+void AddJournalScripts()
 {
-    new DungeonJournalPlayerScript();
-    new DungeonJournalWorldScript();
-    new DungeonJournalSpellScript();
+    new JournalPlayerScript();
+    new JournalWorldScript();
+    new JournalSpellScript();
 }

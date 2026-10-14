@@ -1,0 +1,22 @@
+## Interface: 30300
+## Title: Journal
+## Notes: A retail-style journal in one window: every dungeon and raid with its bosses, abilities, loot and quests, and every mount, pet and toy with where to get it. Other addons add tabs of their own. Shift-J, /journal, /mounts, /pets, /toys. Backed by the mod-forever-journal server module.
+## Author: buildthehomelab
+## Version: 2.0.0
+## OptionalDeps: DragonUI
+## SavedVariables: JournalDB
+## SavedVariablesPerCharacter: JournalCharDB
+
+Core.lua
+Widgets.lua
+Data.lua
+CollectionData.lua
+Frame.lua
+InstanceList.lua
+Instance.lua
+Overview.lua
+Abilities.lua
+Loot.lua
+Quests.lua
+Collections.lua
+Minimap.lua

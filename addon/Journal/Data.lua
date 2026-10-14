@@ -1,11 +1,11 @@
--- DungeonJournal data: asks the server for each part of the journal and keeps the answers.
+-- Journal data: asks the server for each part of the journal and keeps the answers.
 -- Instance lists, boss lists and loot are kept across sessions until the server's data stamp
 -- changes; abilities for the session (bosses can be seen casting new ones); a player's status and
 -- quests are always asked fresh, with a few seconds' grace for redraws.
 
-local DJ = DungeonJournal
+local J = Journal
 
-local Unescape = DJ.Unescape
+local Unescape = J.Unescape
 
 -- One request per key at a time; everyone asking meanwhile gets the same answer.
 local inflight = {}
@@ -15,7 +15,7 @@ local function fetch(key, cmd, fields, parse, done)
 		return
 	end
 	inflight[key] = { done }
-	DJ.Request(cmd, fields, function (result, err)
+	J.Request(cmd, fields, function (result, err)
 		local waiting = inflight[key] or {}
 		inflight[key] = nil
 		local value = result and parse(result) or nil
@@ -65,34 +65,34 @@ local function buildInstances(rows)
 end
 
 -- Calls done(byId, list) once the instance list is here.
-function DJ.LoadInstances(done)
+function J.LoadInstances(done)
 	if instances then done(instances, instanceList) return end
-	local cache = DJ.Cache()
+	local cache = J.Cache()
 	if cache.list then
 		instances, instanceList = buildInstances(cache.list)
 		done(instances, instanceList)
 		return
 	end
-	if not DJ.Has(DJ.HELLO_JOURNAL) then done(nil) return end
+	if not J.Has(J.HELLO_JOURNAL) then done(nil) return end
 	fetch("D", "D", nil, function (result) return result.rows end, function (rows)
 		if not rows then done(nil) return end
-		DJ.Cache().list = rows
+		J.Cache().list = rows
 		instances, instanceList = buildInstances(rows)
 		done(instances, instanceList)
 	end)
 end
 
-function DJ.Instance(id)
+function J.Instance(id)
 	return instances and instances[id]
 end
 
-DJ.On("CACHE_RESET", function ()
+J.On("CACHE_RESET", function ()
 	instances, instanceList = nil, nil
 end)
 
 -- The tab of an instance to show for a tier: the one the era has opened, the later one when
 -- several are open (25 player over 10), else the first.
-function DJ.VariantsFor(inst, tier)
+function J.VariantsFor(inst, tier)
 	local out = {}
 	for _, v in ipairs(inst.variants) do
 		if tier == nil or v.expansion == tier then table.insert(out, v) end
@@ -100,22 +100,22 @@ function DJ.VariantsFor(inst, tier)
 	return out
 end
 
-function DJ.Variant(inst, id)
+function J.Variant(inst, id)
 	for _, v in ipairs(inst.variants) do
 		if v.id == id then return v end
 	end
 end
 
-function DJ.IsLocked(variant)
-	return DJ.Has(DJ.HELLO_PROGRESSION) and (DJ.state or 18) < (variant.reqState or 0)
+function J.IsLocked(variant)
+	return J.Has(J.HELLO_PROGRESSION) and (J.state or 18) < (variant.reqState or 0)
 end
 
 -- An instance is locked for a tier when every tab it has there is.
-function DJ.InstanceLocked(inst, tier)
+function J.InstanceLocked(inst, tier)
 	local any = false
-	for _, v in ipairs(DJ.VariantsFor(inst, tier)) do
+	for _, v in ipairs(J.VariantsFor(inst, tier)) do
 		any = true
-		if not DJ.IsLocked(v) then return false end
+		if not J.IsLocked(v) then return false end
 	end
 	return any
 end
@@ -133,9 +133,9 @@ local function buildBosses(rows)
 end
 
 local bosses = {}
-function DJ.LoadBosses(inst, done)
+function J.LoadBosses(inst, done)
 	if bosses[inst.id] then done(bosses[inst.id]) return end
-	local cache = DJ.Cache()
+	local cache = J.Cache()
 	if cache.bosses[inst.id] then
 		bosses[inst.id] = buildBosses(cache.bosses[inst.id])
 		done(bosses[inst.id])
@@ -143,16 +143,16 @@ function DJ.LoadBosses(inst, done)
 	end
 	fetch("B" .. inst.id, "B", { tostring(inst.id) }, function (result) return result.rows end, function (rows)
 		if not rows then done(nil) return end
-		DJ.Cache().bosses[inst.id] = rows
+		J.Cache().bosses[inst.id] = rows
 		bosses[inst.id] = buildBosses(rows)
 		done(bosses[inst.id])
 	end)
 end
 
-DJ.On("CACHE_RESET", function () bosses = {} end)
+J.On("CACHE_RESET", function () bosses = {} end)
 
 -- Is the boss fought on this tab? Seeded tabs (40 player) follow the normal encounter list.
-function DJ.BossOnVariant(boss, variant)
+function J.BossOnVariant(boss, variant)
 	local d = variant.id >= 100 and 0 or variant.difficulty
 	return bit.band(boss.difficulties, 2 ^ d) ~= 0
 		or (variant.id >= 100 and bit.band(boss.difficulties, 2 ^ variant.difficulty) ~= 0)
@@ -162,7 +162,7 @@ end
 -- the player's status: lockouts, era locks, requirements
 
 local status, statusAt = {}, {}
-function DJ.LoadStatus(inst, done, force)
+function J.LoadStatus(inst, done, force)
 	if not force and status[inst.id] and GetTime() - statusAt[inst.id] < 5 then done(status[inst.id]) return end
 	fetch("S" .. inst.id, "S", { tostring(inst.id) }, function (result)
 		local out = { state = tonumber(result.meta[2]) or 18, variants = {}, requirements = {} }
@@ -179,18 +179,18 @@ function DJ.LoadStatus(inst, done, force)
 	end, function (value)
 		if value then
 			status[inst.id], statusAt[inst.id] = value, GetTime()
-			DJ.state = value.state
+			J.state = value.state
 		end
 		done(value)
 	end)
 end
 
-DJ.On("LOCKOUTS_CHANGED", function ()
+J.On("LOCKOUTS_CHANGED", function ()
 	for k in pairs(statusAt) do statusAt[k] = 0 end
-	DJ.Fire("STATUS_STALE")
+	J.Fire("STATUS_STALE")
 end)
 
-function DJ.Killed(st, variant, boss)
+function J.Killed(st, variant, boss)
 	local v = st and st.variants[variant.id]
 	if not v or not v.saved or boss.key >= 32 then return false end
 	return bit.band(v.killed, 2 ^ boss.key) ~= 0
@@ -200,7 +200,7 @@ end
 -- abilities (this session)
 
 local abilities = {}
-function DJ.LoadAbilities(inst, boss, variant, done)
+function J.LoadAbilities(inst, boss, variant, done)
 	local key = inst.id .. ":" .. boss.key .. ":" .. variant.id
 	if abilities[key] then done(abilities[key]) return end
 	fetch("A" .. key, "A", { tostring(inst.id), tostring(boss.key), tostring(variant.id) }, function (result)
@@ -236,10 +236,10 @@ local function buildLoot(rows)
 end
 
 local loot = {}
-function DJ.LoadLoot(inst, bossKey, variant, done)
+function J.LoadLoot(inst, bossKey, variant, done)
 	local key = inst.id .. ":" .. bossKey .. ":" .. variant.id
 	if loot[key] then done(loot[key]) return end
-	local cache = DJ.Cache()
+	local cache = J.Cache()
 	if cache.loot[key] then
 		loot[key] = buildLoot(cache.loot[key])
 		done(loot[key])
@@ -249,19 +249,19 @@ function DJ.LoadLoot(inst, bossKey, variant, done)
 		return result.rows
 	end, function (rows)
 		if not rows then done(nil) return end
-		DJ.Cache().loot[key] = rows
+		J.Cache().loot[key] = rows
 		loot[key] = buildLoot(rows)
 		done(loot[key])
 	end)
 end
 
-DJ.On("CACHE_RESET", function () loot = {} ; abilities = {} end)
+J.On("CACHE_RESET", function () loot = {} ; abilities = {} end)
 
 -----------------------------------------
 -- quests (fresh)
 
 local quests, questsAt = {}, {}
-function DJ.LoadQuests(inst, done, force)
+function J.LoadQuests(inst, done, force)
 	if not force and quests[inst.id] and GetTime() - questsAt[inst.id] < 5 then done(quests[inst.id]) return end
 	fetch("Q" .. inst.id, "Q", { tostring(inst.id) }, function (result)
 		local list, byId = {}, {}
@@ -288,10 +288,10 @@ function DJ.LoadQuests(inst, done, force)
 	end)
 end
 
-DJ.On("QUESTS_CHANGED", function () for k in pairs(questsAt) do questsAt[k] = 0 end DJ.Fire("QUESTS_STALE") end)
+J.On("QUESTS_CHANGED", function () for k in pairs(questsAt) do questsAt[k] = 0 end J.Fire("QUESTS_STALE") end)
 
 local questDetail = {}
-function DJ.LoadQuestDetail(quest, done)
+function J.LoadQuestDetail(quest, done)
 	if questDetail[quest] then done(questDetail[quest]) return end
 	fetch("T" .. quest, "QD", { tostring(quest) }, function (result)
 		local d = { text = {}, kills = {}, items = {} }
@@ -327,28 +327,28 @@ end
 -----------------------------------------
 -- where am I, map flags, search
 
-function DJ.Here(done)
-	if not DJ.Has(DJ.HELLO_JOURNAL) then done(nil) return end
-	DJ.Request("H", nil, function (result, err)
+function J.Here(done)
+	if not J.Has(J.HELLO_JOURNAL) then done(nil) return end
+	J.Request("H", nil, function (result, err)
 		if not result then done(nil) return end
 		done(tonumber(result[1]), tonumber(result[2]))
 	end)
 end
 
-function DJ.ShowOnMap(kind, id)
-	if not DJ.Has(DJ.HELLO_MAP_PINS) then return end
-	DJ.Request("M", { kind, tostring(id) }, function (result, err)
+function J.ShowOnMap(kind, id)
+	if not J.Has(J.HELLO_MAP_PINS) then return end
+	J.Request("M", { kind, tostring(id) }, function (result, err)
 		if result and result[1] == "ok" then
-			DJ.Print(Unescape(result[2] or ""))
+			J.Print(Unescape(result[2] or ""))
 		else
-			DJ.Print("that place isn't on any map the journal knows.")
+			J.Print("that place isn't on any map the journal knows.")
 		end
 	end)
 end
 
-function DJ.Search(text, done)
+function J.Search(text, done)
 	text = (text or ""):gsub("[:;|]", " "):match("^%s*(.-)%s*$")
-	if #text < 3 or not DJ.Has(DJ.HELLO_JOURNAL) then done(nil) return end
+	if #text < 3 or not J.Has(J.HELLO_JOURNAL) then done(nil) return end
 	fetch("F" .. text:lower(), "F", { text }, function (result)
 		local out = {}
 		for _, r in ipairs(result.rows) do

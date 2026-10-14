@@ -4,12 +4,12 @@
 -- seen casting them are marked "seen in combat". Hover an ability for its full tooltip;
 -- Shift-click links it in chat.
 
-local DJ = DungeonJournal
-local setShown = DJ.SetShown
-local TAG = DJ.TAG
+local J = Journal
+local setShown = J.SetShown
+local TAG = J.TAG
 
 local pane = CreateFrame("Frame")
-local scroll = DJ.CreateScrollArea(pane)
+local scroll = J.CreateScrollArea(pane)
 scroll:SetPoint("TOPLEFT", pane, "TOPLEFT", 0, 0)
 scroll:SetPoint("BOTTOMRIGHT", pane, "BOTTOMRIGHT", -22, 0)
 scroll:SetScript("OnMouseWheel", function (self, delta)
@@ -38,7 +38,7 @@ local function tagText(tags)
 	local parts = {}
 	for _, t in ipairs(TAGS) do
 		if bit.band(tags, t[1]) ~= 0 then
-			table.insert(parts, DJ.Colored(t[2], t[3][1], t[3][2], t[3][3]))
+			table.insert(parts, J.Colored(t[2], t[3][1], t[3][2], t[3][3]))
 		end
 	end
 	return table.concat(parts, "  ")
@@ -112,8 +112,8 @@ local function makeRow()
 	return r
 end
 
-local headers = DJ.CreatePool(makeHeader)
-local rows = DJ.CreatePool(makeRow)
+local headers = J.CreatePool(makeHeader)
+local rows = J.CreatePool(makeRow)
 local empty = pane:CreateFontString(nil, "OVERLAY", "GameFontDisable")
 empty:SetPoint("TOP", pane, "TOP", 0, -60)
 empty:SetWidth(380)
@@ -133,7 +133,7 @@ function pane:Refresh(ctx)
 		pane.lastKey = ctx.boss.key
 		scroll:ScrollToTop()
 	end
-	DJ.LoadAbilities(ctx.inst, ctx.boss, ctx.variant, function (units)
+	J.LoadAbilities(ctx.inst, ctx.boss, ctx.variant, function (units)
 		if mine ~= serial then return end
 		headers:Reset()
 		rows:Reset()
@@ -144,7 +144,7 @@ function pane:Refresh(ctx)
 		for _, u in ipairs(units or {}) do
 			local spells = {}
 			for _, s in ipairs(u.spells) do
-				local desc = DJ.SpellDescription(s.spell)
+				local desc = J.SpellDescription(s.spell)
 				local name, _, icon = GetSpellInfo(s.spell)
 				if desc and name then table.insert(spells, { s = s, desc = desc, name = name, icon = icon }) end
 			end
@@ -160,7 +160,7 @@ function pane:Refresh(ctx)
 				h.text:SetText((u.add and "Add: " or "") .. u.name)
 				local extra = u.rank == 3 and "Level ??" or ("Level " .. (u.level or "?"))
 				if RANK_TEXT[u.rank] then extra = extra .. " " .. RANK_TEXT[u.rank] end
-				if u.health and u.health > 0 then extra = extra .. "  -  " .. DJ.Number(u.health) .. " health" end
+				if u.health and u.health > 0 then extra = extra .. "  -  " .. J.Number(u.health) .. " health" end
 				h.extra:SetText(extra)
 				y = y + 30
 				if #spells == 0 then
@@ -175,7 +175,7 @@ function pane:Refresh(ctx)
 					r.cast:SetText("")
 					r.tags:SetText("")
 					r.desc:SetWidth(width - 48)
-					r.desc:SetText(DJ.Has(DJ.HELLO_LEARNING)
+					r.desc:SetText(J.Has(J.HELLO_LEARNING)
 						and "No special abilities known. The journal learns them as this creature is fought."
 						or "No special abilities known.")
 					r:SetHeight(42 + r.desc:GetStringHeight())
@@ -216,4 +216,4 @@ function pane:Refresh(ctx)
 	end)
 end
 
-DJ.RegisterPane("abilities", pane)
+J.RegisterPane("abilities", pane)

@@ -1,9 +1,9 @@
 -- A minimap button that opens the journal: left-click toggles it, drag moves it around the
--- minimap. /dj minimap hides or shows it.
+-- minimap. /journal minimap hides or shows it.
 
-local DJ = DungeonJournal
+local J = Journal
 
-local button = CreateFrame("Button", "DungeonJournalMinimapButton", Minimap)
+local button = CreateFrame("Button", "JournalMinimapButton", Minimap)
 button:SetSize(31, 31)
 button:SetFrameStrata("MEDIUM")
 button:SetFrameLevel(8)
@@ -22,7 +22,7 @@ border:SetSize(53, 53)
 border:SetPoint("TOPLEFT", button, "TOPLEFT")
 
 local function place()
-	local angle = math.rad(DungeonJournalDB.minimap.angle or 200)
+	local angle = math.rad(JournalDB.minimap.angle or 200)
 	local radius = (Minimap:GetWidth() / 2) + 10
 	button:ClearAllPoints()
 	button:SetPoint("CENTER", Minimap, "CENTER", math.cos(angle) * radius, math.sin(angle) * radius)
@@ -33,25 +33,25 @@ button:SetScript("OnDragStart", function (self)
 		local mx, my = Minimap:GetCenter()
 		local cx, cy = GetCursorPosition()
 		local scale = Minimap:GetEffectiveScale()
-		DungeonJournalDB.minimap.angle = math.deg(math.atan2(cy / scale - my, cx / scale - mx))
+		JournalDB.minimap.angle = math.deg(math.atan2(cy / scale - my, cx / scale - mx))
 		place()
 	end)
 end)
 button:SetScript("OnDragStop", function (self) self:SetScript("OnUpdate", nil) end)
-button:SetScript("OnClick", function () DJ.Toggle() end)
+button:SetScript("OnClick", function () J.Toggle() end)
 button:SetScript("OnEnter", function (self)
 	GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-	GameTooltip:SetText("Dungeon Journal")
-	GameTooltip:AddLine("Bosses, abilities, loot and quests of every dungeon and raid.", 1, 1, 1, true)
-	local key = GetBindingKey("DUNGEONJOURNAL_TOGGLE")
+	GameTooltip:SetText("Journal")
+	GameTooltip:AddLine("Dungeons and raids, mounts, pets and toys.", 1, 1, 1, true)
+	local key = GetBindingKey("JOURNAL_TOGGLE")
 	GameTooltip:AddLine("Click to open" .. (key and (" (" .. key .. ")") or "") .. ", drag to move.", 0.6, 0.6, 0.6)
 	GameTooltip:Show()
 end)
 button:SetScript("OnLeave", function () GameTooltip:Hide() end)
 
 local function update()
-	if DungeonJournalDB.minimap.hide then button:Hide() else button:Show() ; place() end
+	if JournalDB.minimap.hide then button:Hide() else button:Show() ; place() end
 end
 
-DJ.On("LOGIN", update)
-DJ.On("MINIMAP", update)
+J.On("LOGIN", update)
+J.On("MINIMAP", update)

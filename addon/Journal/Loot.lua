@@ -3,9 +3,9 @@
 -- and a slot menu narrow it down. Hover for the item's tooltip (Shift compares with what you
 -- wear), Shift-click to link it, Ctrl-click to try it on.
 
-local DJ = DungeonJournal
-local setShown = DJ.SetShown
-local LOOT = DJ.LOOT
+local J = Journal
+local setShown = J.SetShown
+local LOOT = J.LOOT
 
 local ROW_HEIGHT = 40
 
@@ -125,33 +125,33 @@ end
 local _, playerClass = UnitClass("player")
 
 local function filterState()
-	local db = DungeonJournalCharDB
+	local db = JournalCharDB
 	if db.lootClass == nil then db.lootClass = playerClass or false end
 	return db
 end
 
-local classMenu = DJ.CreateDropdown(pane, 150, function ()
+local classMenu = J.CreateDropdown(pane, 150, function ()
 	local db = filterState()
 	local items = {
-		{ text = "All classes", checked = db.lootClass == false, func = function () db.lootClass = false ; pane:Refresh(DJ.ctx) end },
+		{ text = "All classes", checked = db.lootClass == false, func = function () db.lootClass = false ; pane:Refresh(J.ctx) end },
 	}
 	for _, class in ipairs(CLASSES) do
 		local name = (LOCALIZED_CLASS_NAMES_MALE and LOCALIZED_CLASS_NAMES_MALE[class]) or class
 		local color = RAID_CLASS_COLORS and RAID_CLASS_COLORS[class]
-		if color then name = DJ.Colored(name, color.r, color.g, color.b) end
+		if color then name = J.Colored(name, color.r, color.g, color.b) end
 		table.insert(items, { text = name, checked = db.lootClass == class,
-			func = function () db.lootClass = class ; pane:Refresh(DJ.ctx) end })
+			func = function () db.lootClass = class ; pane:Refresh(J.ctx) end })
 	end
 	return items
 end)
 classMenu:SetPoint("TOPLEFT", pane, "TOPLEFT", 0, 0)
 
-local slotMenu = DJ.CreateDropdown(pane, 150, function ()
+local slotMenu = J.CreateDropdown(pane, 150, function ()
 	local db = filterState()
-	local items = { { text = "All slots", checked = not db.lootSlot, func = function () db.lootSlot = nil ; pane:Refresh(DJ.ctx) end } }
+	local items = { { text = "All slots", checked = not db.lootSlot, func = function () db.lootSlot = nil ; pane:Refresh(J.ctx) end } }
 	for _, s in ipairs(SLOTS) do
 		table.insert(items, { text = s.text, checked = db.lootSlot == s.key,
-			func = function () db.lootSlot = s.key ; pane:Refresh(DJ.ctx) end })
+			func = function () db.lootSlot = s.key ; pane:Refresh(J.ctx) end })
 	end
 	return items
 end)
@@ -162,7 +162,7 @@ countText:SetPoint("LEFT", slotMenu, "RIGHT", 10, 0)
 countText:SetPoint("RIGHT", pane, "RIGHT", -4, 0)
 countText:SetJustifyH("RIGHT")
 
-local scroll = DJ.CreateScrollArea(pane)
+local scroll = J.CreateScrollArea(pane)
 scroll:SetPoint("TOPLEFT", pane, "TOPLEFT", 0, -30)
 scroll:SetPoint("BOTTOMRIGHT", pane, "BOTTOMRIGHT", -22, 0)
 scroll:SetScript("OnMouseWheel", function (self, delta)
@@ -182,7 +182,7 @@ local function makeRow()
 	local r = CreateFrame("Button", nil, c)
 	r:SetHeight(ROW_HEIGHT)
 	r:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-	r.item = DJ.CreateItemButton(r, 34)
+	r.item = J.CreateItemButton(r, 34)
 	r.item:SetPoint("LEFT", r, "LEFT", 3, 0)
 	r.item:EnableMouse(false)
 	r.name = r:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -205,10 +205,10 @@ local function makeRow()
 	hl:SetAllPoints(r)
 	r:SetScript("OnEnter", function (self)
 		if not self.data then return end
-		DJ.ShowItemTooltip(self, self.data.item)
+		J.ShowItemTooltip(self, self.data.item)
 		local d = self.data
 		GameTooltip:AddLine(" ")
-		GameTooltip:AddDoubleLine("Drop chance", DJ.Chance(d.chance), 1, 0.82, 0, 1, 1, 1)
+		GameTooltip:AddDoubleLine("Drop chance", J.Chance(d.chance), 1, 0.82, 0, 1, 1, 1)
 		if d.maxCount and d.maxCount > 1 then
 			GameTooltip:AddDoubleLine("Amount", d.minCount == d.maxCount and d.minCount or (d.minCount .. "-" .. d.maxCount), 1, 0.82, 0, 1, 1, 1)
 		end
@@ -222,7 +222,7 @@ local function makeRow()
 	end)
 	r:SetScript("OnLeave", function () GameTooltip:Hide() end)
 	r:SetScript("OnClick", function (self)
-		if self.data then DJ.HandleItemClick(self.data.item, self.data.name, self.data.quality) end
+		if self.data then J.HandleItemClick(self.data.item, self.data.name, self.data.quality) end
 	end)
 	-- Shift pressed or released while hovering: compare or stop comparing.
 	r:SetScript("OnUpdate", function (self)
@@ -236,7 +236,7 @@ local function makeRow()
 	return r
 end
 
-local rows = DJ.CreatePool(makeRow)
+local rows = J.CreatePool(makeRow)
 
 local function tagsText(d)
 	local parts = {}
@@ -266,7 +266,7 @@ function pane:Refresh(ctx)
 		scroll:ScrollToTop()
 	end
 
-	DJ.LoadLoot(ctx.inst, bossKey, ctx.variant, function (items)
+	J.LoadLoot(ctx.inst, bossKey, ctx.variant, function (items)
 		if mine ~= serial then return end
 		rows:Reset()
 		local every = bossKey == "all"
@@ -300,9 +300,9 @@ function pane:Refresh(ctx)
 			r:SetPoint("TOPLEFT", c, "TOPLEFT", 0, -y)
 			r:SetWidth(width)
 			local name = GetItemInfo(d.item) or d.name
-			if not GetItemInfo(d.item) then DJ.QueryItem(d.item) end
-			local cr, cg, cb = DJ.QualityColor(d.quality)
-			r.item:SetItem(DJ.ItemIcon(d.item), d.quality, d.maxCount and d.maxCount > 1 and d.maxCount or nil)
+			if not GetItemInfo(d.item) then J.QueryItem(d.item) end
+			local cr, cg, cb = J.QualityColor(d.quality)
+			r.item:SetItem(J.ItemIcon(d.item), d.quality, d.maxCount and d.maxCount > 1 and d.maxCount or nil)
 			r.name:SetText(name)
 			r.name:SetTextColor(cr, cg, cb)
 			r.name:SetWidth(width - 150)
@@ -310,7 +310,7 @@ function pane:Refresh(ctx)
 			if r.bossName then kind = (kind ~= "" and (kind .. "  -  ") or "") .. "|cffffd200" .. r.bossName .. "|r" end
 			r.type:SetText(kind)
 			r.type:SetWidth(width - 120)
-			r.chance:SetText(DJ.Chance(d.chance))
+			r.chance:SetText(J.Chance(d.chance))
 			r.tags:SetText(tagsText(d))
 			y = y + ROW_HEIGHT + 2
 		end
@@ -335,4 +335,4 @@ function pane:Refresh(ctx)
 	end)
 end
 
-DJ.RegisterPane("loot", pane)
+J.RegisterPane("loot", pane)
