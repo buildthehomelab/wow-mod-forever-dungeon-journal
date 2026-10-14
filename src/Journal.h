@@ -1,9 +1,9 @@
 /*
- * mod-forever-dungeon-journal
+ * mod-forever-journal
  *
- * Server half of a retail-style dungeon journal (the DungeonJournal addon). Everything the
- * journal shows comes from this realm's own data, so custom loot, mod-individual-progression's
- * vanilla raids and other modules' changes show up as they are:
+ * Server half of a retail-style journal (the Journal addon): a dungeon journal plus mount, pet
+ * and toy collections. Everything it shows comes from this realm's own data, so custom loot,
+ * mod-individual-progression's vanilla raids and other modules' changes show up as they are:
  *
  *   instances  LFGDungeons.dbc and Map.dbc: wings, level ranges, difficulties, entrances
  *   bosses     DungeonEncounter.dbc and instance_encounters, plus the dungeon's rares
@@ -12,6 +12,8 @@
  *   loot       creature, gameobject (boss chests) and reference loot templates, with drop chances
  *   quests     quests sorted under the dungeon or asking for its creatures and drops, with the
  *              player's own status and rewards
+ *   mounts,    every mount, companion pet and toy players can get, and where from: vendors,
+ *   pets, toys drops, quests, achievements, crafting, trainers, containers and fishing
  *
  * Per player it adds what only the server knows: lockouts, bosses killed this lockout, entry
  * requirements and, with mod-individual-progression, which instances the character's era has
@@ -20,10 +22,11 @@
  * Released under the MIT License.
  */
 
-#ifndef MOD_DUNGEON_JOURNAL_H
-#define MOD_DUNGEON_JOURNAL_H
+#ifndef MOD_JOURNAL_H
+#define MOD_JOURNAL_H
 
 #include "Define.h"
+#include <array>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -32,13 +35,13 @@ class Player;
 class Unit;
 class SpellInfo;
 
-namespace DungeonJournal
+namespace Journal
 {
-    // Addon message prefix; the client sends "DJN\t<command>" as a whisper to itself.
-    constexpr char const* PREFIX = "DJN";
+    // Addon message prefix; the client sends "JNL\t<command>" as a whisper to itself.
+    constexpr char const* PREFIX = "JNL";
 
     // Bumped when a message changes shape. The addon refuses the server data on a mismatch.
-    constexpr uint32 PROTOCOL_VERSION = 1;
+    constexpr uint32 PROTOCOL_VERSION = 2;
 
     // Leaves room for the prefix and tab inside the client's 255-byte chat message limit.
     constexpr std::size_t MAX_PAYLOAD = 240;
@@ -50,6 +53,7 @@ namespace DungeonJournal
         HELLO_MAP_PINS    = 0x02, // M flags an entrance or a quest giver on the map
         HELLO_PROGRESSION = 0x04, // mod-individual-progression is on: eras lock instances
         HELLO_LEARNING    = 0x08, // boss abilities grow as bosses are seen casting
+        HELLO_COLLECTIONS = 0x10, // C, W, O: mounts, pets and toys
     };
 
     // Ability tags (the T field of an A row).
@@ -106,11 +110,13 @@ namespace DungeonJournal
         bool showWorldDrops = false;
         bool showGrayLoot = false;
         uint32 maxQuestsPerInstance = 60;
+        bool collections = true;
+        bool showUnobtainable = false;
     };
 
     Config& GetConfig();
 
-    // ---- DungeonJournal.cpp: transport -----------------------------------------------------------
+    // ---- Journal.cpp: transport -----------------------------------------------------------------
 
     void Send(Player* player, std::string const& payload);
 
@@ -129,7 +135,7 @@ namespace DungeonJournal
     // and for accounts it leaves alone.
     uint8 ProgressionState(Player* player);
 
-    // ---- DungeonJournalIndex.cpp: instances, bosses, quests -------------------------------------
+    // ---- JournalIndex.cpp: instances, bosses, quests --------------------------------------------
 
     namespace Index
     {
@@ -153,9 +159,39 @@ namespace DungeonJournal
 
         // A creature cast a spell: remembered when it is a journal boss or add on its own map.
         void OnCreatureCast(Unit* caster, SpellInfo const* spell);
+
+        // ---- shared with the collections --------------------------------------------------------
+
+        std::string AreaName(uint32 areaId);
+        std::string MapName(uint32 mapId);
+
+        // "Zone (x, y), 40 yards away" for a spot.
+        std::string WhereText(Player* player, uint32 map, float x, float y, uint32 zone);
+
+        // A red flag on the player's map, when they're on the spot's map.
+        void SendPoi(Player* player, uint32 map, float x, float y, std::string const& name);
+
+        // "id*count/id*count", or "-".
+        std::string ItemList(uint32 const* ids, uint32 const* counts, std::size_t n);
+
+        // Where a source is in the dungeon journal.
+        struct Place
+        {
+            uint32 instance = 0;  // journal instance id
+            uint32 boss = 0;      // boss key, 0 = the instance itself
+            uint8 reqState = 0;   // the era state the instance opens at
+            std::string name;     // the instance's name
+        };
+
+        // The journal boss a creature (any difficulty entry) is, or the boss whose chest an object is.
+        bool FindBossOf(uint32 creatureEntry, Place& out);
+        bool FindBossOfChest(uint32 objectEntry, Place& out);
+
+        // The journal instance on a map.
+        bool FindInstanceOnMap(uint32 map, Place& out);
     }
 
-    // ---- DungeonJournalLoot.cpp: loot tables and drop chances -----------------------------------
+    // ---- JournalLoot.cpp: loot tables and drop chances ------------------------------------------
 
     namespace Loot
     {
@@ -168,20 +204,27 @@ namespace DungeonJournal
             uint8 maxCount = 1;
         };
 
-        enum class Store : uint8 { Creature, GameObject };
+        enum class Store : uint8 { Creature, GameObject, Item, Fishing, Pickpocket };
+        constexpr std::size_t STORE_COUNT = 5;
 
-        // Loads the loot tables of the given creature and gameobject loot ids (and every
-        // reference they use).
-        void Load(std::vector<uint32> const& creatureLoot, std::vector<uint32> const& objectLoot);
+        // Loot ids to read, per Store.
+        using LootIds = std::array<std::vector<uint32>, STORE_COUNT>;
 
-        // What one kill (or one opened chest) of a loot id drops, most likely first.
+        // Loads the loot tables of the given loot ids (and every reference they use).
+        void Load(LootIds const& ids);
+
+        // What one kill (or one opened chest, container, cast of the line or pick of a pocket)
+        // of a loot id drops, most likely first.
         std::vector<Drop> const& For(Store store, uint32 lootId);
+
+        // A reference shared by so many tables that it is a world drop table.
+        bool IsWorldDropTable(uint32 reference);
 
         // Folds the data into a hash, for the journal stamp.
         uint32 Hash(uint32 seed);
     }
 
-    // ---- DungeonJournalAbilities.cpp: what a creature casts -------------------------------------
+    // ---- JournalAbilities.cpp: what a creature casts --------------------------------------------
 
     namespace Abilities
     {
@@ -209,6 +252,25 @@ namespace DungeonJournal
         uint32 TagsOf(SpellInfo const* spell);
 
         uint32 Hash(uint32 seed);
+    }
+
+    // ---- JournalCollections.cpp: mounts, pets and toys ------------------------------------------
+
+    namespace Collections
+    {
+        // Before the loot is read: the catalog, and the loot ids that drop anything in it.
+        void Prepare(Loot::LootIds& lootIds);
+
+        // After the loot and the dungeon index: every entry's sources.
+        void Build();
+
+        uint32 Hash(uint32 seed);
+
+        void HandleCatalog(Player* player, std::string const& req, std::vector<std::string_view> const& args);
+        void HandleSources(Player* player, std::string const& req, std::vector<std::string_view> const& args);
+        void HandleOwnedToys(Player* player, std::string const& req);
+        // M:<req>:S:<kind>:<id>:<source>: a red flag on a source.
+        void HandleMapPin(Player* player, std::string const& req, std::vector<std::string_view> const& args);
     }
 }
 

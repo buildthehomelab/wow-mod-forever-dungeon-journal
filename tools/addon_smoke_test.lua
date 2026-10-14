@@ -1,10 +1,10 @@
--- Smoke test for the DungeonJournal addon outside the game: stubs just enough of the 3.3.5a API,
--- loads the addon in .toc order and answers its requests with a fake mod-forever-dungeon-journal server,
+-- Smoke test for the Journal addon outside the game: stubs just enough of the 3.3.5a API,
+-- loads the addon in .toc order and answers its requests with a fake mod-forever-journal server,
 -- then walks every page and tab.
--- Usage (any Lua 5.3+): lua tools/addon_smoke_test.lua addon/DungeonJournal
+-- Usage (any Lua 5.3+): lua tools/addon_smoke_test.lua addon/Journal
 -- DRAGON=1 runs it again with a DragonUI stand-in, for the skinned branches.
 
-local dir = arg[1] or "addon/DungeonJournal"
+local dir = arg[1] or "addon/Journal"
 unpack = table.unpack
 bit = {
 	band = function (a, b) return math.floor(a) & math.floor(b) end,
@@ -150,6 +150,26 @@ function SaveBindings() end
 function GetCurrentBindingSet() return 1 end
 function GetBindingKey(action) for k, a in pairs(bindings) do if a == action then return k end end end
 function select(n, ...) if n == "#" then return #{ ... } end return table.unpack({ ... }, n) end
+function UnitFactionGroup() return "Alliance" end
+function FauxScrollFrame_GetOffset(f) return rawget(f, "__offset") or 0 end
+function FauxScrollFrame_SetOffset(f, o) f.__offset = o end
+function FauxScrollFrame_Update(f, total, shown) f.__total = total end
+function FauxScrollFrame_OnVerticalScroll(f, value, h, fn) f.__offset = math.floor(value / h + 0.5) fn() end
+-- The character's mounts and pets: (creature, name, spell, icon, active)
+local companions = { MOUNT = { { 308, "Black Stallion", 470, "Interface\\Icons\\M", false } },
+	CRITTER = { { 7385, "Bombay Cat", 10673, "Interface\\Icons\\P", false } } }
+function GetNumCompanions(kind) return #companions[kind] end
+function GetCompanionInfo(kind, i) return table.unpack(companions[kind][i]) end
+local called
+function CallCompanion(kind, i) called = kind .. ":" .. i; companions[kind][i][5] = true end
+function DismissCompanion(kind) called = "dismiss:" .. kind end
+function IsMounted() return false end
+function Dismount() end
+function GetAchievementInfo(id) return id, "Leeroy!", 10, false, nil, nil, nil, "Defeat 50 whelps.", 0, "Interface\\Icons\\A" end
+function GetAddOnInfo(name) if name == "DungeonJournal" then return "DungeonJournal", "Dungeon Journal", "", 1 end end
+local disabledAddon
+function DisableAddOn(name) disabledAddon = name end
+function IsAddOnLoaded() return true end
 
 ITEM_QUALITY_COLORS = {}
 for i = 0, 7 do ITEM_QUALITY_COLORS[i] = { r = 1, g = 1, b = 1, hex = "|cffffffff" } end
@@ -216,14 +236,16 @@ end
 -----------------------------------------
 -- the game's items and spells
 
-local items = { [5191] = { "Cruel Barb", 3 }, [5193] = { "Cape of the Brotherhood", 3 }, [2874] = { "Unsent Letter", 1 } }
+local items = { [5191] = { "Cruel Barb", 3 }, [5193] = { "Cape of the Brotherhood", 3 }, [2874] = { "Unsent Letter", 1 },
+	[1973] = { "Orb of Deception", 3 }, [13379] = { "Piccolo of the Flaming Fire", 3 }, [2411] = { "Black Stallion Bridle", 1 } }
 function GetItemInfo(item)
 	local id = type(item) == "number" and item or tonumber(tostring(item):match("item:(%d+)"))
 	local d = id and items[id]
 	if not d then return nil end
 	return d[1], "|cff0070dd|Hitem:" .. id .. ":0:0:0:0:0:0:0:0|h[" .. d[1] .. "]|h|r", d[2], 20, 15, "Weapon", "Swords", 1, "", "Interface\\Icons\\X", 100
 end
-local spellNames = { [5145] = "Arcane Explosion", [6432] = "Smite Stomp", [9999] = "Hidden Trigger", [6603] = "Attack" }
+local spellNames = { [5145] = "Arcane Explosion", [6432] = "Smite Stomp", [9999] = "Hidden Trigger", [6603] = "Attack",
+	[470] = "Black Stallion", [458] = "Brown Horse", [32244] = "Blue Wind Rider", [10673] = "Bombay Cat", [10674] = "Cornish Rex Cat" }
 function GetSpellInfo(id) return spellNames[id], nil, "Interface\\Icons\\S" end
 function GetSpellLink(id) return "|Hspell:" .. id .. "|h[" .. tostring(spellNames[id]) .. "]|h" end
 
@@ -232,7 +254,7 @@ function GetSpellLink(id) return "|Hspell:" .. id .. "|h[" .. tostring(spellName
 
 local outbox = {}
 function SendAddonMessage(prefix, msg, channel)
-	assert(prefix == "DJN" and channel == "WHISPER", "bad addon message")
+	assert(prefix == "JNL" and channel == "WHISPER", "bad addon message")
 	assert(#prefix + 1 + #msg <= 254, "addon message too long")
 	table.insert(outbox, msg)
 end
@@ -249,7 +271,7 @@ end
 
 local function reply(msg)
 	assert(#msg <= 250, "server message too long: " .. #msg)
-	fire("CHAT_MSG_ADDON", "DJN", msg, "WHISPER", "Tester")
+	fire("CHAT_MSG_ADDON", "JNL", msg, "WHISPER", "Tester")
 end
 
 -- Like the server's SendRows: as many rows per message as fit, never splitting one.
@@ -273,7 +295,7 @@ local sent = {}
 local echoOnly = false -- a realm without the module: the whisper to yourself just comes back
 local function serve(msg)
 	if echoOnly then
-		fire("CHAT_MSG_ADDON", "DJN", msg, "WHISPER", "Tester")
+		fire("CHAT_MSG_ADDON", "JNL", msg, "WHISPER", "Tester")
 		return
 	end
 	local args = {}
@@ -283,7 +305,7 @@ local function serve(msg)
 	table.insert(sent, msg)
 	print("  -> " .. msg)
 	if cmd == "HELLO" then
-		reply("HELLO:" .. req .. ":1:15:4242:3")
+		reply("HELLO:" .. req .. ":2:31:4242:3")
 	elseif cmd == "D" then
 		list("D", req, "3", {
 			"I,6,36,0,0,15,25,19,6,Deadmines,Westfall",
@@ -335,6 +357,24 @@ local function serve(msg)
 		reply("M:" .. req .. ":ok:Westfall (42%2C 72)%2C 120 yards away")
 	elseif cmd == "F" then
 		list("F", req, "3", { "I,6", "B,6,6", "L,6,6,0,5191,1650,3" })
+	elseif cmd == "C" then
+		local rows = {
+			M = { "458,284,5656,1,1,0,1,0", "470,308,2411,1,1,0,1,0", "32244,22720,25475,3,6,0,1,8",
+				"99999,1,1,1,0,0,1,0" }, -- 99999: a spell the client doesn't have
+			P = { "10673,7385,8485,1,0,0,1,0", "10674,7384,8486,1,0,0,3,0" },
+			T = { "1973,0,1973,3,0,0,2,0", "13379,0,13379,3,0,0,2,0" },
+		}
+		list("C", req, args[3] .. ":" .. #rows[args[3]], rows[args[3]])
+	elseif cmd == "W" then
+		list("W", req, args[3] .. ":" .. args[4] .. ":3", {
+			"V,0,384,1000000,0,0,-,0,1,Katie Hunter,Elwynn Forest,-",
+			"D,1,639,150,6,6,0,1,0,Edwin VanCleef,The Deadmines",
+			"Q,2,166,22,9,1,1,The Defias Brotherhood,Gryan Stoutmantle,Westfall",
+			"A,3,1234", "C,4,9999,202,250,Engineering", "T,5,2,20,0,0,1,12,Lord Grayson,Stormwind City",
+			"N,6,Ask a GM%2C nicely.", "+,7,V,3",
+		})
+	elseif cmd == "O" then
+		list("O", req, "1", { "1973" })
 	else
 		print("  !! unknown command " .. cmd)
 	end
@@ -360,17 +400,17 @@ local function step(name, fn)
 	tick(0.5)
 end
 
-for line in io.lines(dir .. "/DungeonJournal.toc") do
+for line in io.lines(dir .. "/Journal.toc") do
 	if line:match("%.lua$") then
 		local chunk, err = loadfile(dir .. "/" .. line)
 		if not chunk then report("load " .. line, err) else
-			local ok, e = pcall(chunk, "DungeonJournal", {})
+			local ok, e = pcall(chunk, "Journal", {})
 			if not ok then report("run " .. line, e) end
 		end
 	end
 end
 
-local DJ = DungeonJournal
+local J = Journal
 local function find(pred)
 	for _, f in ipairs(allFrames) do if pred(f) then return f end end
 end
@@ -388,39 +428,40 @@ local function buttonShown(text)
 end
 
 step("login, hello, key binding", function ()
-	fire("ADDON_LOADED", "DungeonJournal")
+	fire("ADDON_LOADED", "Journal")
 	fire("PLAYER_LOGIN")
 	tick(4)
-	assert(DJ.serverReady, "no HELLO answer")
-	assert(DJ.state == 3, "era state not read")
-	assert(DJ.Has(DJ.HELLO_PROGRESSION), "progression flag not read")
-	assert(bindings["SHIFT-J"] == "DUNGEONJOURNAL_TOGGLE", "Shift-J was not bound")
+	assert(J.serverReady, "no HELLO answer")
+	assert(J.state == 3, "era state not read")
+	assert(J.Has(J.HELLO_PROGRESSION), "progression flag not read")
+	assert(bindings["SHIFT-J"] == "JOURNAL_TOGGLE", "Shift-J was not bound")
+	assert(disabledAddon == "DungeonJournal", "the old DungeonJournal addon was not turned off")
 end)
 
 step("open the journal: classic dungeons", function ()
-	DJ.Toggle()
+	J.Toggle()
 	tick(1)
-	assert(DungeonJournalFrame:IsShown(), "window not shown")
+	assert(JournalFrame:IsShown(), "window not shown")
 	assert(counts.D == 1, "instance list not asked once")
 	assert(textShown("^Deadmines$") and textShown("^Scarlet Monastery$"), "classic dungeon tiles missing")
 	assert(not textShown("^Naxxramas$"), "a raid shows among the dungeons")
 end)
 
 step("raids tab: 40 player Naxxramas under classic, locked by era", function ()
-	DJ.Show({ raids = true })
+	J.Show({ raids = true })
 	tick(0.5)
 	assert(textShown("^Naxxramas$"), "Naxxramas missing from classic raids")
 	assert(textShown("Progression stage 6"), "era lock not shown")
-	DJ.Show({ tier = 2 })
+	J.Show({ tier = 2 })
 	tick(0.5)
 	assert(textShown("^Naxxramas$"), "Naxxramas missing from Wrath raids")
 	assert(textShown("Progression stage 13"), "Wrath era lock not shown")
 end)
 
 step("open Deadmines: bosses, rares, overview, lockout and requirements", function ()
-	DJ.OpenInstance(6)
+	J.OpenInstance(6)
 	tick(1)
-	assert(DJ.view.page == "instance" and DJ.view.tier == 0, "didn't move to the instance under its tier")
+	assert(J.view.page == "instance" and J.view.tier == 0, "didn't move to the instance under its tier")
 	assert(textShown("^Edwin VanCleef$") and textShown("^Mr. Smite$"), "boss rows missing")
 	assert(textShown("^Rares$") and textShown("^Miner Johnson$"), "rares section missing")
 	assert(textShown("Difficulties"), "instance overview missing")
@@ -438,11 +479,11 @@ step("entrance on the map", function ()
 end)
 
 step("boss: overview, abilities", function ()
-	DJ.Show({ boss = 6, tab = "overview" })
+	J.Show({ boss = 6, tab = "overview" })
 	tick(1)
 	assert(textShown("3,500 health"), "boss health missing")
 	assert(textShown("Defeated this lockout"), "kill not shown")
-	DJ.Show({ tab = "abilities" })
+	J.Show({ tab = "abilities" })
 	tick(0.5)
 	assert(textShown("^Arcane Explosion$"), "ability missing")
 	assert(textShown("Interruptible") and textShown("Magic"), "ability tags missing")
@@ -452,16 +493,16 @@ step("boss: overview, abilities", function ()
 end)
 
 step("loot: warrior filter, slots, links", function ()
-	DJ.Show({ tab = "loot" })
+	J.Show({ tab = "loot" })
 	tick(0.5)
 	assert(textShown("^Cruel Barb$"), "weapon missing")
 	assert(textShown("^Smite's Plate$") == nil, "plate below level 40 shown to a warrior (wants mail)")
 	assert(textShown("^Cape of the Brotherhood$"), "cloak missing")
 	assert(textShown("^17%%$") and textShown("^100%%$"), "drop chance missing")
 	assert(textShown("of 4 items"), "filtered count missing")
-	DungeonJournalCharDB.lootClass = false
-	DJ.ctx.inst = DJ.Instance(6)
-	DJ.RefreshPage()
+	JournalCharDB.lootClass = false
+	J.ctx.inst = J.Instance(6)
+	J.RefreshPage()
 	tick(0.5)
 	assert(textShown("^Smite's Plate$"), "All classes didn't show everything")
 	local row = find(function (f) return f.__kind == "Button" and rawget(f, "data") and f.data.item == 5191 and f:IsVisible() end)
@@ -470,16 +511,16 @@ step("loot: warrior filter, slots, links", function ()
 	modified.CHATLINK = nil
 	assert(inserted and inserted:find("Cruel Barb"), "Shift-click didn't link")
 	row.__scripts.OnEnter(row)
-	DungeonJournalCharDB.lootSlot = "back"
-	DJ.RefreshPage()
+	JournalCharDB.lootSlot = "back"
+	J.RefreshPage()
 	tick(0.5)
 	assert(textShown("^Cape of the Brotherhood$") and not textShown("^Cruel Barb$"), "slot filter")
-	DungeonJournalCharDB.lootSlot = nil
+	JournalCharDB.lootSlot = nil
 end)
 
 step("every boss's loot", function ()
 	local from = #sent
-	DJ.Show({ boss = false, tab = "loot" })
+	J.Show({ boss = false, tab = "loot" })
 	tick(0.5)
 	local asked = false
 	for i = from + 1, #sent do if sent[i]:match("^L:%d+:6:all:0$") then asked = true end end
@@ -488,7 +529,7 @@ step("every boss's loot", function ()
 end)
 
 step("quests: status, rewards, objectives, map flag", function ()
-	DJ.Show({ tab = "quests" })
+	J.Show({ tab = "quests" })
 	tick(0.5)
 	assert(textShown("The Defias Brotherhood"), "quest missing")
 	assert(textShown("Needs level 22"), "low-level state missing")
@@ -504,29 +545,29 @@ step("quests: status, rewards, objectives, map flag", function ()
 	map.__scripts.OnClick(map)
 	tick(0.5)
 	assert(sent[#sent]:match("^M:%d+:Q:166$"), "giver flag not asked")
-	DungeonJournalCharDB.hideDoneQuests = true
-	DJ.RefreshPage()
+	JournalCharDB.hideDoneQuests = true
+	J.RefreshPage()
 	tick(0.5)
 	assert(not textShown("Red Silk Bandanas"), "done quest not hidden")
 end)
 
 step("search: instances, bosses, loot", function ()
-	DJ.searchBox:SetFocus()
-	DJ.searchBox:SetText("vanc")
-	DJ.searchBox.__scripts.OnTextChanged(DJ.searchBox)
+	J.searchBox:SetFocus()
+	J.searchBox:SetText("vanc")
+	J.searchBox.__scripts.OnTextChanged(J.searchBox)
 	tick(1)
 	assert(sent[#sent]:match("^F:%d+:vanc$"), "search not sent: " .. sent[#sent])
 	local item = find(function (f) return f.__kind == "Button" and rawget(f, "item") == 5191 and f:IsVisible() end)
 	assert(item, "loot result missing")
 	item.__scripts.OnClick(item)
 	tick(0.5)
-	assert(DJ.view.tab == "loot" and DJ.view.boss == 6, "result didn't open the boss's loot")
+	assert(J.view.tab == "loot" and J.view.boss == 6, "result didn't open the boss's loot")
 end)
 
 step("Naxxramas: 40 player tab under classic", function ()
-	DJ.OpenInstance(159, { variant = 101 })
+	J.OpenInstance(159, { variant = 101 })
 	tick(0.5)
-	assert(DJ.view.tier == 0 and DJ.view.variant == 101, "40 player tab not picked")
+	assert(J.view.tier == 0 and J.view.variant == 101, "40 player tab not picked")
 	assert(textShown("locked: progression stage 6"), "40 player lock missing")
 	local menu = buttonShown("40 Player")
 	assert(menu, "difficulty menu doesn't show the 40 player tab")
@@ -535,47 +576,129 @@ step("Naxxramas: 40 player tab under classic", function ()
 end)
 
 step("open inside an instance jumps to it", function ()
-	DungeonJournalFrame:Hide()
-	DJ.Show({ page = "home" })
+	JournalFrame:Hide()
+	J.Show({ page = "home" })
 	inInstance = true
-	DJ.Toggle()
+	J.Toggle()
 	tick(1)
-	assert(DJ.view.page == "instance" and DJ.view.instance == 159 and DJ.view.variant == 101, "didn't open on the current instance")
+	assert(J.view.page == "instance" and J.view.instance == 159 and J.view.variant == 101, "didn't open on the current instance")
 	inInstance = false
 end)
 
 step("cache: no second instance list with the same stamp", function ()
 	local before = counts.D
-	DungeonJournalFrame:Hide()
+	JournalFrame:Hide()
 	fire("PLAYER_LOGIN")
 	tick(4)
-	DJ.Toggle()
+	J.Toggle()
 	tick(1)
 	assert(counts.D == before, "instance list asked again with an unchanged stamp")
 end)
 
 step("realm without the module: the echo isn't an answer", function ()
 	local noServer = false
-	DJ.On("NO_SERVER", function () noServer = true end)
-	DJ.serverReady = false
+	J.On("NO_SERVER", function () noServer = true end)
+	J.serverReady = false
 	echoOnly = true
-	DJ.SayHello()
+	J.SayHello()
 	tick(7)
-	assert(not DJ.serverReady, "the echoed HELLO passed for the server's answer")
+	assert(not J.serverReady, "the echoed HELLO passed for the server's answer")
 	assert(noServer, "NO_SERVER didn't fire")
 	echoOnly = false
-	DJ.SayHello()
+	J.SayHello()
 	tick(1)
-	assert(DJ.serverReady, "HELLO after the module came back")
+	assert(J.serverReady, "HELLO after the module came back")
+end)
+
+step("mounts tab: catalog, collected first, owned count", function ()
+	JournalFrame:Hide()
+	SlashCmdList.JOURNALMOUNTS()
+	tick(1)
+	assert(J.view.section == "mounts", "/mounts didn't open the Mounts tab")
+	assert(counts.C == 1 and sent[#sent - 0]:match("^[COW]"), "catalog not asked")
+	assert(textShown("Collected: |cffffffff1|r / 3"), "collected count wrong (the unknown spell must not count)")
+	assert(textShown("^Black Stallion$") and textShown("^Brown Horse$") and textShown("^Blue Wind Rider$"), "mount rows missing")
+	assert(textShown("Progression stage 8"), "era lock on the wind rider missing")
+	assert(textShown("Vendor: Katie Hunter"), "sources of the first (collected) mount not shown")
+end)
+
+step("mount sources: cost, boss link, quest, achievement, trainer, note, more", function ()
+	assert(textShown("Boss: Edwin VanCleef"), "boss source missing")
+	assert(textShown("Quest: The Defias Brotherhood"), "quest source missing")
+	assert(textShown("Achievement: Leeroy!"), "achievement source missing")
+	assert(textShown("Trainer: Paladin trainers") or textShown("Trainer: "), "trainer source missing")
+	assert(textShown("Ask a GM, nicely."), "note missing")
+	assert(textShown("and 3 more vendors"), "more row missing")
+	local vendor = find(function (f) return f.__kind == "Button" and rawget(f, "source") and f.source.kind == "V" and f:IsVisible() end)
+	vendor.__scripts.OnClick(vendor)
+	tick(0.5)
+	assert(sent[#sent]:match("^M:%d+:S:M:470:0$"), "vendor map flag not asked: " .. sent[#sent])
+	assert(textShown("Flagged on your map"), "map flag answer not shown")
+	local boss = find(function (f) return f.__kind == "Button" and rawget(f, "source") and f.source.kind == "D" and f:IsVisible() end)
+	boss.__scripts.OnClick(boss)
+	tick(1)
+	assert(J.view.section == "dungeons" and J.view.instance == 6 and J.view.boss == 6 and J.view.tab == "loot",
+		"boss source didn't open the dungeon journal on its loot")
+end)
+
+step("mounts: summon, filters, search", function ()
+	J.OpenSection("mounts")
+	tick(0.5)
+	local summon = buttonShown("Summon")
+	assert(summon, "no Summon button for a collected mount")
+	summon.__scripts.OnClick(summon)
+	assert(called == "MOUNT:1", "CallCompanion not called")
+	local f = J.Filters("mounts")
+	f.collected = false
+	J.Fire("COLLECTION_FILTER", "mounts")
+	tick(0.5)
+	assert(not textShown("^Black Stallion$") and textShown("^Brown Horse$"), "collected filter")
+	f.collected = true
+	f.mountType = "flying"
+	J.Fire("COLLECTION_FILTER", "mounts")
+	tick(0.5)
+	assert(textShown("^Blue Wind Rider$") and not textShown("^Brown Horse$"), "flying filter")
+	f.mountType = nil
+	J.Fire("COLLECTION_FILTER", "mounts")
+	tick(0.5)
+end)
+
+step("pets and toys tabs", function ()
+	J.OpenSection("pets")
+	tick(1)
+	assert(textShown("^Bombay Cat$") and textShown("^Cornish Rex Cat$"), "pet rows missing")
+	assert(textShown("Collected: |cffffffff1|r / 2"), "pet count wrong")
+	J.OpenSection("toys")
+	tick(1)
+	assert(counts.O and counts.O >= 1, "owned toys not asked")
+	assert(textShown("^Orb of Deception$") and textShown("^Piccolo of the Flaming Fire$"), "toy rows missing")
+	assert(textShown("Collected: |cffffffff1|r / 2"), "toy count wrong")
+	assert(buttonShown("Use"), "no Use button for an owned toy")
+end)
+
+step("another addon's tab", function ()
+	local built, shownCount = 0, 0
+	Journal.RegisterTab({ key = "beasts", name = "Beasts", order = 60,
+		build = function (panel) built = built + 1; panel.label = panel:CreateFontString(); panel.label:SetText("Field Guide here") end,
+		onShow = function () shownCount = shownCount + 1 end })
+	assert(Journal.OpenTab("beasts"), "OpenTab failed")
+	tick(0.5)
+	assert(built == 1 and shownCount == 1, "build/onShow not called once")
+	assert(textShown("Field Guide here"), "registered panel not shown")
+	assert(JournalFrame.title:GetText() == "Beasts", "window title not the tab's")
+	J.OpenSection("dungeons", true)
+	tick(0.5)
+	assert(not textShown("Field Guide here"), "registered panel still shown")
+	assert(J.view.page == "home", "Dungeons tab didn't go home")
 end)
 
 step("slash commands", function ()
-	SlashCmdList.DUNGEONJOURNAL("help")
-	SlashCmdList.DUNGEONJOURNAL("minimap")
-	assert(DungeonJournalDB.minimap.hide, "minimap toggle")
-	SlashCmdList.DUNGEONJOURNAL("minimap")
-	SlashCmdList.DUNGEONJOURNAL("reset")
-	SlashCmdList.DUNGEONJOURNAL("smite")
+	SlashCmdList.JOURNAL("help")
+	SlashCmdList.JOURNAL("minimap")
+	assert(JournalDB.minimap.hide, "minimap toggle")
+	SlashCmdList.JOURNAL("minimap")
+	SlashCmdList.JOURNAL("reset")
+	SlashCmdList.JOURNAL("smite")
 	tick(1)
 end)
 

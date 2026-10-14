@@ -3,11 +3,11 @@
 -- With a boss picked it shows the boss's model (drag to turn it), level, health on the chosen
 -- difficulty, the creatures fought in the encounter and whether you killed it this lockout.
 
-local DJ = DungeonJournal
-local setShown = DJ.SetShown
+local J = Journal
+local setShown = J.SetShown
 
 local pane = CreateFrame("Frame")
-local scroll = DJ.CreateScrollArea(pane)
+local scroll = J.CreateScrollArea(pane)
 scroll:SetPoint("TOPLEFT", pane, "TOPLEFT", 0, 0)
 scroll:SetPoint("BOTTOMRIGHT", pane, "BOTTOMRIGHT", -22, 0)
 scroll:SetScript("OnMouseWheel", function (self, delta)
@@ -19,14 +19,14 @@ local c = scroll.content
 -----------------------------------------
 -- building blocks, laid out top to bottom
 
-local texts = DJ.CreatePool(function ()
+local texts = J.CreatePool(function ()
 	local fs = c:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	fs:SetJustifyH("LEFT")
 	fs:SetJustifyV("TOP")
 	return fs
 end)
-local icons = DJ.CreatePool(function () return c:CreateTexture(nil, "OVERLAY") end)
-local buttons = DJ.CreatePool(function () return DJ.CreateButton(c, "", 160, 22) end)
+local icons = J.CreatePool(function () return c:CreateTexture(nil, "OVERLAY") end)
+local buttons = J.CreatePool(function () return J.CreateButton(c, "", 160, 22) end)
 
 local y, width
 
@@ -129,7 +129,7 @@ local function showCreature(entry)
 	model:SetCreature(entry)
 	model:SetFacing(model.facing)
 	-- A creature the client hasn't seen yet only shows once its query comes back.
-	DJ.After(0.8, function ()
+	J.After(0.8, function ()
 		if model.shownEntry == entry and model:IsVisible() then
 			model:SetCreature(entry)
 			model:SetFacing(model.facing)
@@ -155,23 +155,23 @@ local function instanceOverview(ctx)
 	local st = ctx.status and ctx.status.inst == inst.id and ctx.status.value or nil
 
 	heading("Difficulties")
-	for _, v in ipairs(DJ.VariantsFor(inst, DJ.view.tier)) do
+	for _, v in ipairs(J.VariantsFor(inst, J.view.tier)) do
 		local line = "|cffffd200" .. v.label .. "|r  " .. (v.players or 0) .. " players"
 		if v.minLevel and v.minLevel > 0 then line = line .. ", level " .. v.minLevel .. "+" end
 		local vs = st and st.variants[v.id]
-		if DJ.IsLocked(v) then
-			line = line .. "  |cffff5555locked: progression stage " .. v.reqState .. " (you: " .. (DJ.state or 0) .. ")|r"
+		if J.IsLocked(v) then
+			line = line .. "  |cffff5555locked: progression stage " .. v.reqState .. " (you: " .. (J.state or 0) .. ")|r"
 		elseif vs and vs.saved then
 			local killed, total = 0, 0
 			for _, b in ipairs(ctx.bosses or {}) do
-				if not b.rare and DJ.BossOnVariant(b, v) then
+				if not b.rare and J.BossOnVariant(b, v) then
 					total = total + 1
-					if DJ.Killed(st, v, b) then killed = killed + 1 end
+					if J.Killed(st, v, b) then killed = killed + 1 end
 				end
 			end
 			local left = math.max(0, (vs.resetIn or 0) - (GetTime() - (vs.at or GetTime())))
 			line = line .. "  |cff80c0ffsaved, " .. killed .. "/" .. total .. " defeated"
-				.. (left > 0 and (", resets in " .. DJ.Duration(left)) or "") .. "|r"
+				.. (left > 0 and (", resets in " .. J.Duration(left)) or "") .. "|r"
 		end
 		text(line, GameFontHighlight, nil, 6, 4)
 	end
@@ -192,17 +192,17 @@ local function instanceOverview(ctx)
 		end
 	end
 
-	if DJ.IsLocked(variant) then
+	if J.IsLocked(variant) then
 		heading("Progression")
 		text("Your character hasn't reached this part of the game yet. It opens at progression stage "
-			.. variant.reqState .. "; you are at stage " .. (DJ.state or 0) .. ".", GameFontHighlight, RED)
+			.. variant.reqState .. "; you are at stage " .. (J.state or 0) .. ".", GameFontHighlight, RED)
 	end
 
 	heading("Entrance")
 	if inst.zone ~= "" then
 		text(inst.zone, GameFontHighlight)
-		if DJ.Has(DJ.HELLO_MAP_PINS) then
-			button("Show on map", function () DJ.ShowOnMap("E", inst.id) end)
+		if J.Has(J.HELLO_MAP_PINS) then
+			button("Show on map", function () J.ShowOnMap("E", inst.id) end)
 			y = y + 28
 		end
 	else
@@ -218,13 +218,13 @@ local function instanceOverview(ctx)
 
 	heading("Quests")
 	local questLine = text("Loading...", GameFontHighlight, GREY)
-	DJ.LoadQuests(inst, function (quests)
+	J.LoadQuests(inst, function (quests)
 		if not quests or mine ~= serial then return end
 		local available, active, done = 0, 0, 0
 		for _, q in ipairs(quests) do
-			if q.state == DJ.QUEST.AVAILABLE then available = available + 1
-			elseif q.state == DJ.QUEST.ACTIVE or q.state == DJ.QUEST.COMPLETE then active = active + 1
-			elseif q.state == DJ.QUEST.DONE then done = done + 1 end
+			if q.state == J.QUEST.AVAILABLE then available = available + 1
+			elseif q.state == J.QUEST.ACTIVE or q.state == J.QUEST.COMPLETE then active = active + 1
+			elseif q.state == J.QUEST.DONE then done = done + 1 end
 		end
 		if #quests == 0 then
 			questLine:SetText("No quests for this instance.")
@@ -234,7 +234,7 @@ local function instanceOverview(ctx)
 			questLine:SetTextColor(1, 1, 1)
 		end
 	end)
-	button("See quests", function () DJ.Show({ tab = "quests" }) end)
+	button("See quests", function () J.Show({ tab = "quests" }) end)
 	y = y + 28
 end
 
@@ -262,7 +262,7 @@ local function bossOverview(ctx)
 	end
 
 	text(boss.name, GameFontNormalHuge, GOLD, 0, 2)
-	local killed = DJ.Killed(st, variant, boss)
+	local killed = J.Killed(st, variant, boss)
 	if boss.rare then
 		text("Rare spawn: it isn't there every run.", GameFontHighlight, { 0.75, 0.75, 1 })
 	elseif killed then
@@ -271,7 +271,7 @@ local function bossOverview(ctx)
 
 	local unitsAt = y
 	local placeholder = text("Loading...", GameFontHighlight, GREY)
-	DJ.LoadAbilities(inst, boss, variant, function (units)
+	J.LoadAbilities(inst, boss, variant, function (units)
 		if not units or mine ~= serial then return end
 		placeholder:Hide()
 		y = unitsAt
@@ -280,7 +280,7 @@ local function bossOverview(ctx)
 		for _, u in ipairs(units) do
 			if not u.add then table.insert(mains, u) end
 			for _, s in ipairs(u.spells) do
-				if DJ.SpellDescription(s.spell) then abilities = abilities + 1 end
+				if J.SpellDescription(s.spell) then abilities = abilities + 1 end
 			end
 		end
 		for _, u in ipairs(mains) do
@@ -288,7 +288,7 @@ local function bossOverview(ctx)
 			local skull = u.rank == 3 and "|TInterface\\TargetingFrame\\UI-TargetingFrame-Skull:14|t " or ""
 			local line = skull .. "|cffffd200" .. u.name .. "|r  " .. (u.rank == 3 and "Level ??" or ("Level " .. u.level))
 				.. (rank ~= "" and (" " .. rank) or "")
-			if u.health and u.health > 0 then line = line .. "  -  " .. DJ.Number(u.health) .. " health" end
+			if u.health and u.health > 0 then line = line .. "  -  " .. J.Number(u.health) .. " health" end
 			text(line, GameFontHighlight, nil, 0, 4)
 			if #mains > 1 and boss.display and boss.display > 0 then
 				local b = button("Show " .. u.name, function () pane.unit = u.entry ; showCreature(u.entry) end, 12)
@@ -298,10 +298,10 @@ local function bossOverview(ctx)
 		end
 		y = y + 6
 		local summary = abilities == 1 and "1 ability" or (abilities .. " abilities")
-		button("Abilities (" .. abilities .. ")", function () DJ.Show({ tab = "abilities" }) end)
-		button("Loot", function () DJ.Show({ tab = "loot" }) end, 170)
+		button("Abilities (" .. abilities .. ")", function () J.Show({ tab = "abilities" }) end)
+		button("Loot", function () J.Show({ tab = "loot" }) end, 170)
 		y = y + 30
-		if abilities == 0 and DJ.Has(DJ.HELLO_LEARNING) then
+		if abilities == 0 and J.Has(J.HELLO_LEARNING) then
 			text("No abilities known yet: the journal learns them as this boss is fought.", GameFontHighlightSmall, GREY)
 		end
 		text(summary .. " on " .. variant.label .. ".", GameFontHighlightSmall, GREY)
@@ -322,6 +322,6 @@ function pane:Refresh(ctx)
 	scroll:SetContentHeight(y)
 end
 
-DJ.On("STATUS", function () if pane:IsShown() and DJ.ctx then pane:Refresh(DJ.ctx) end end)
+J.On("STATUS", function () if pane:IsShown() and J.ctx then pane:Refresh(J.ctx) end end)
 
-DJ.RegisterPane("overview", pane)
+J.RegisterPane("overview", pane)

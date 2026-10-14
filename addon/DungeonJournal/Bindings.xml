@@ -1,5 +1,0 @@
-<Bindings>
-	<Binding name="DUNGEONJOURNAL_TOGGLE" header="DUNGEONJOURNAL">
-		DungeonJournal.Toggle()
-	</Binding>
-</Bindings>

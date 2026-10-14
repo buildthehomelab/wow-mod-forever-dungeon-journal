@@ -3,21 +3,21 @@
 -- tabs (Overview, Abilities, Loot, Quests) and the difficulty menu. The tabs' contents live in
 -- Overview.lua, Abilities.lua, Loot.lua and Quests.lua.
 
-local DJ = DungeonJournal
-local setShown = DJ.SetShown
+local J = Journal
+local setShown = J.SetShown
 
 local LEFT_WIDTH = 286
 local HEADER_HEIGHT = 112
 local BOSS_ROW = 30
 local WING_ROW = 22
 
-local page = CreateFrame("Frame", nil, DJ.pageArea)
-page:SetAllPoints(DJ.pageArea)
+local page = CreateFrame("Frame", nil, J.pageArea)
+page:SetAllPoints(J.pageArea)
 
 -----------------------------------------
 -- left: header and boss list
 
-local left = DJ.CreateInset(page)
+local left = J.CreateInset(page)
 left:SetPoint("TOPLEFT", page, "TOPLEFT", 0, 0)
 left:SetPoint("BOTTOMLEFT", page, "BOTTOMLEFT", 0, 0)
 left:SetWidth(LEFT_WIDTH)
@@ -46,7 +46,7 @@ header.lock = header:CreateTexture(nil, "OVERLAY")
 header.lock:SetTexture("Interface\\LFGFrame\\UI-LFG-ICON-LOCK")
 header.lock:SetSize(26, 26)
 header.lock:SetPoint("TOPRIGHT", header, "TOPRIGHT", -6, -6)
-header:SetScript("OnClick", function () DJ.Show({ boss = false, tab = "overview" }) end)
+header:SetScript("OnClick", function () J.Show({ boss = false, tab = "overview" }) end)
 do
 	local edge = CreateFrame("Frame", nil, header)
 	edge:SetPoint("TOPLEFT", header, "TOPLEFT", -2, 2)
@@ -56,7 +56,7 @@ do
 	edge:EnableMouse(false)
 end
 
-local list = DJ.CreateScrollArea(left)
+local list = J.CreateScrollArea(left)
 list:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -6)
 list:SetPoint("BOTTOMRIGHT", left, "BOTTOMRIGHT", -26, 6)
 list:SetScript("OnMouseWheel", function (self, delta)
@@ -64,7 +64,7 @@ list:SetScript("OnMouseWheel", function (self, delta)
 	self:SetVerticalScroll(math.max(0, math.min(max, self:GetVerticalScroll() - delta * BOSS_ROW * 2)))
 end)
 
-local dragon = DJ.dragon
+local dragon = J.dragon
 
 local function makeWingRow()
 	local r = CreateFrame("Frame", nil, list.content)
@@ -111,15 +111,15 @@ local function makeBossRow()
 	hl:SetVertexColor(1, 1, 1, 0.35)
 	hl:SetAllPoints(b)
 	b:SetScript("OnClick", function (self)
-		local tab = DJ.view.tab
-		if tab == "quests" or tab == "overview" or not DJ.view.boss then tab = "overview" end
-		DJ.Show({ boss = self.boss.key, tab = tab })
+		local tab = J.view.tab
+		if tab == "quests" or tab == "overview" or not J.view.boss then tab = "overview" end
+		J.Show({ boss = self.boss.key, tab = tab })
 	end)
 	return b
 end
 
-local wingRows = DJ.CreatePool(makeWingRow)
-local bossRows = DJ.CreatePool(makeBossRow)
+local wingRows = J.CreatePool(makeWingRow)
+local bossRows = J.CreatePool(makeBossRow)
 
 -----------------------------------------
 -- right: tabs, difficulty menu and the panes
@@ -132,7 +132,7 @@ local tabs = {}
 local TAB_ORDER = { "overview", "abilities", "loot", "quests" }
 local TAB_TEXT = { overview = "Overview", abilities = "Abilities", loot = "Loot", quests = "Quests" }
 for i, key in ipairs(TAB_ORDER) do
-	local tab = DJ.CreateTab(right, TAB_TEXT[key], function () DJ.Show({ tab = key }) end)
+	local tab = J.CreateTab(right, TAB_TEXT[key], function () J.Show({ tab = key }) end)
 	if i == 1 then
 		tab:SetPoint("TOPLEFT", right, "TOPLEFT", 2, -2)
 	else
@@ -141,19 +141,19 @@ for i, key in ipairs(TAB_ORDER) do
 	tabs[key] = tab
 end
 
-local variantMenu = DJ.CreateDropdown(right, 150, function ()
+local variantMenu = J.CreateDropdown(right, 150, function ()
 	local items = {}
-	local inst = DJ.Instance(DJ.view.instance)
+	local inst = J.Instance(J.view.instance)
 	if not inst then return items end
-	for _, v in ipairs(DJ.VariantsFor(inst, DJ.view.tier)) do
-		local locked = DJ.IsLocked(v)
+	for _, v in ipairs(J.VariantsFor(inst, J.view.tier)) do
+		local locked = J.IsLocked(v)
 		table.insert(items, {
 			text = v.label .. (locked and " |cffff5555(locked)|r" or ""),
-			checked = DJ.view.variant == v.id,
+			checked = J.view.variant == v.id,
 			func = function ()
-				DungeonJournalCharDB.lastVariant = DungeonJournalCharDB.lastVariant or {}
-				DungeonJournalCharDB.lastVariant[inst.raid and "raid" or "dungeon"] = v.difficulty
-				DJ.Show({ variant = v.id })
+				JournalCharDB.lastVariant = JournalCharDB.lastVariant or {}
+				JournalCharDB.lastVariant[inst.raid and "raid" or "dungeon"] = v.difficulty
+				J.Show({ variant = v.id })
 			end,
 		})
 	end
@@ -161,13 +161,13 @@ local variantMenu = DJ.CreateDropdown(right, 150, function ()
 end)
 variantMenu:SetPoint("TOPRIGHT", right, "TOPRIGHT", -2, -2)
 
-local paneArea = DJ.CreateInset(right)
+local paneArea = J.CreateInset(right)
 paneArea:SetPoint("TOPLEFT", right, "TOPLEFT", 0, -30)
 paneArea:SetPoint("BOTTOMRIGHT", right, "BOTTOMRIGHT", 0, 0)
-DJ.paneArea = paneArea
+J.paneArea = paneArea
 
 local panes = {}
-function DJ.RegisterPane(key, pane)
+function J.RegisterPane(key, pane)
 	pane:SetParent(paneArea)
 	pane:ClearAllPoints()
 	pane:SetPoint("TOPLEFT", paneArea, "TOPLEFT", 6, -6)
@@ -180,21 +180,21 @@ end
 -- refresh
 
 local function pickVariant(inst)
-	local v = DJ.view
-	local options = DJ.VariantsFor(inst, v.tier)
+	local v = J.view
+	local options = J.VariantsFor(inst, v.tier)
 	if #options == 0 then options = inst.variants end
 	for _, o in ipairs(options) do
 		if o.id == v.variant then return o end
 	end
 	-- The difficulty picked last time for this kind of instance, if open; else the first open one.
-	local last = DungeonJournalCharDB.lastVariant and DungeonJournalCharDB.lastVariant[inst.raid and "raid" or "dungeon"]
+	local last = JournalCharDB.lastVariant and JournalCharDB.lastVariant[inst.raid and "raid" or "dungeon"]
 	if last then
 		for _, o in ipairs(options) do
-			if o.difficulty == last and not DJ.IsLocked(o) then return o end
+			if o.difficulty == last and not J.IsLocked(o) then return o end
 		end
 	end
 	for _, o in ipairs(options) do
-		if not DJ.IsLocked(o) then return o end
+		if not J.IsLocked(o) then return o end
 	end
 	return options[1]
 end
@@ -220,7 +220,7 @@ local function layoutBosses(inst, bosses, variant, st)
 	local number = 0
 	local killedCount, total = 0, 0
 	for _, boss in ipairs(bosses) do
-		if DJ.BossOnVariant(boss, variant) then
+		if J.BossOnVariant(boss, variant) then
 			local wingKey = boss.rare and "rares" or boss.wing
 			if wingKey ~= currentWing and (boss.rare or #inst.wings > 0) then
 				currentWing = wingKey
@@ -255,11 +255,11 @@ local function layoutBosses(inst, bosses, variant, st)
 				total = total + 1
 			end
 			b.text:SetText(boss.name)
-			local killed = DJ.Killed(st, variant, boss)
+			local killed = J.Killed(st, variant, boss)
 			if killed then killedCount = killedCount + 1 end
 			setShown(b.check, killed)
 			if killed then b.text:SetTextColor(0.6, 0.6, 0.6) else b.text:SetTextColor(1, 1, 1) end
-			setShown(b.selected, DJ.view.boss == boss.key)
+			setShown(b.selected, J.view.boss == boss.key)
 			y = y + BOSS_ROW
 		end
 	end
@@ -268,25 +268,25 @@ local function layoutBosses(inst, bosses, variant, st)
 end
 
 local ctx = {}
-DJ.ctx = ctx
+J.ctx = ctx
 
 local function refreshPane()
-	local v = DJ.view
+	local v = J.view
 	for key, pane in pairs(panes) do
 		if key == v.tab then pane:Show() ; if pane.Refresh then pane:Refresh(ctx) end else pane:Hide() end
 	end
 end
 
 function page:Refresh()
-	local v = DJ.view
-	local inst = DJ.Instance(v.instance)
+	local v = J.view
+	local inst = J.Instance(v.instance)
 	if not inst then return end
 
 	local variant = pickVariant(inst)
 	if not variant then return end
 	v.variant = variant.id
 	variantMenu:SetText(variant.label)
-	setShown(variantMenu, #DJ.VariantsFor(inst, v.tier) > 0)
+	setShown(variantMenu, #J.VariantsFor(inst, v.tier) > 0)
 
 	setHeaderArt(inst)
 	header.name:SetText(inst.name)
@@ -296,7 +296,7 @@ function page:Refresh()
 	if players then table.insert(parts, players) end
 	if inst.zone ~= "" then table.insert(parts, inst.zone) end
 	header.sub:SetText(table.concat(parts, "  -  "))
-	local locked = DJ.IsLocked(variant)
+	local locked = J.IsLocked(variant)
 	setShown(header.lock, locked)
 	header.art:SetDesaturated(locked)
 
@@ -310,29 +310,29 @@ function page:Refresh()
 	end
 
 	ctx.inst, ctx.variant, ctx.locked = inst, variant, locked
-	DJ.LoadBosses(inst, function (bosses)
-		if DJ.view.instance ~= inst.id then return end
+	J.LoadBosses(inst, function (bosses)
+		if J.view.instance ~= inst.id then return end
 		bosses = bosses or {}
-		DJ.currentBosses = bosses
+		J.currentBosses = bosses
 		ctx.bosses = bosses
 		ctx.boss = nil
 		for _, b in ipairs(bosses) do
 			if b.key == v.boss then ctx.boss = b end
 		end
 		if v.boss and not ctx.boss then v.boss = nil end
-		DJ.UpdateCrumbs()
+		J.UpdateCrumbs()
 		layoutBosses(inst, bosses, variant, ctx.status and ctx.status.inst == inst.id and ctx.status.value or nil)
 		refreshPane()
-		DJ.LoadStatus(inst, function (st)
-			if DJ.view.instance ~= inst.id or not st then return end
+		J.LoadStatus(inst, function (st)
+			if J.view.instance ~= inst.id or not st then return end
 			ctx.status = { inst = inst.id, value = st }
 			ctx.killed, ctx.total = layoutBosses(inst, bosses, variant, st)
-			DJ.Fire("STATUS", st)
+			J.Fire("STATUS", st)
 		end)
 	end)
 end
 
-DJ.On("STATUS_STALE", function () if page:IsShown() then page:Refresh() end end)
-DJ.On("ITEM_INFO", function () if page:IsShown() then refreshPane() end end)
+J.On("STATUS_STALE", function () if page:IsShown() then page:Refresh() end end)
+J.On("ITEM_INFO", function () if page:IsShown() then refreshPane() end end)
 
-DJ.RegisterPage("instance", page)
+J.RegisterPage("instance", page)

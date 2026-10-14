@@ -2,24 +2,24 @@
 -- to turn in, done, too low, needs an earlier quest), who gives it and where, the XP and money
 -- it pays you and its reward items. Click a quest for its objectives and a map flag on its giver.
 
-local DJ = DungeonJournal
-local setShown = DJ.SetShown
-local Q = DJ.QUEST
+local J = Journal
+local setShown = J.SetShown
+local Q = J.QUEST
 
 local pane = CreateFrame("Frame")
 
-local filterCheck = DJ.CreateCheck(pane, "Hide quests I've done")
+local filterCheck = J.CreateCheck(pane, "Hide quests I've done")
 filterCheck:SetPoint("TOPLEFT", pane, "TOPLEFT", 0, 2)
 filterCheck:SetScript("OnClick", function (self)
-	DungeonJournalCharDB.hideDoneQuests = self:GetChecked() and true or nil
-	pane:Refresh(DJ.ctx)
+	JournalCharDB.hideDoneQuests = self:GetChecked() and true or nil
+	pane:Refresh(J.ctx)
 end)
 
 local countText = pane:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 countText:SetPoint("TOPRIGHT", pane, "TOPRIGHT", -4, -6)
 countText:SetJustifyH("RIGHT")
 
-local scroll = DJ.CreateScrollArea(pane)
+local scroll = J.CreateScrollArea(pane)
 scroll:SetPoint("TOPLEFT", pane, "TOPLEFT", 0, -28)
 scroll:SetPoint("BOTTOMRIGHT", pane, "BOTTOMRIGHT", -22, 0)
 scroll:SetScript("OnMouseWheel", function (self, delta)
@@ -46,17 +46,17 @@ local STATE = {
 -- rows
 
 local function makeRewardButton(parent)
-	local b = DJ.CreateItemButton(parent, 24)
+	local b = J.CreateItemButton(parent, 24)
 	b:SetScript("OnEnter", function (self)
 		if self.entry then
-			DJ.ShowItemTooltip(self, self.entry)
+			J.ShowItemTooltip(self, self.entry)
 			if self.choice then GameTooltip:AddLine("One of these rewards, your choice.", 0.8, 0.8, 0.8) end
 			GameTooltip:Show()
 		end
 	end)
 	b:SetScript("OnLeave", function () GameTooltip:Hide() end)
 	b:SetScript("OnClick", function (self)
-		if self.entry then DJ.HandleItemClick(self.entry, GetItemInfo(self.entry), select(3, GetItemInfo(self.entry))) end
+		if self.entry then J.HandleItemClick(self.entry, GetItemInfo(self.entry), select(3, GetItemInfo(self.entry))) end
 	end)
 	return b
 end
@@ -83,10 +83,10 @@ local function makeRow()
 	r.detail = r:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	r.detail:SetJustifyH("LEFT")
 	r.detail:SetJustifyV("TOP")
-	r.mapButton = DJ.CreateButton(r, "Show giver on map", 150, 20)
+	r.mapButton = J.CreateButton(r, "Show giver on map", 150, 20)
 	r.mapButton:SetScript("OnClick", function (self)
 		local q = self:GetParent().quest
-		if q then DJ.ShowOnMap("Q", q.id) end
+		if q then J.ShowOnMap("Q", q.id) end
 	end)
 	local hl = r:CreateTexture(nil, "HIGHLIGHT")
 	hl:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
@@ -105,17 +105,17 @@ local function makeRow()
 			return
 		end
 		pane.open = pane.open ~= q.id and q.id or nil
-		pane:Refresh(DJ.ctx)
+		pane:Refresh(J.ctx)
 	end)
 	return r
 end
 
-local rows = DJ.CreatePool(makeRow)
+local rows = J.CreatePool(makeRow)
 
 local function payText(q)
 	local parts = {}
-	if q.xp and q.xp > 0 then table.insert(parts, DJ.Number(q.xp) .. " XP") end
-	if q.money and q.money > 0 then table.insert(parts, DJ.Money(q.money)) end
+	if q.xp and q.xp > 0 then table.insert(parts, J.Number(q.xp) .. " XP") end
+	if q.money and q.money > 0 then table.insert(parts, J.Money(q.money)) end
 	return table.concat(parts, "  ")
 end
 
@@ -152,10 +152,10 @@ local function placeRewards(r, q, width, y)
 			r.rewards[i] = b
 		end
 		local _, _, quality = GetItemInfo(it.id)
-		if not quality then DJ.QueryItem(it.id) end
+		if not quality then J.QueryItem(it.id) end
 		b.entry = it.id
 		b.choice = it.choice
-		b:SetItem(DJ.ItemIcon(it.id), quality, it.n)
+		b:SetItem(J.ItemIcon(it.id), quality, it.n)
 		b:ClearAllPoints()
 		b:SetPoint("TOPLEFT", r, "TOPLEFT", x, -y)
 		b:Show()
@@ -173,13 +173,13 @@ local serial = 0
 function pane:Refresh(ctx)
 	serial = serial + 1
 	local mine = serial
-	filterCheck:SetChecked(DungeonJournalCharDB.hideDoneQuests and true or false)
+	filterCheck:SetChecked(JournalCharDB.hideDoneQuests and true or false)
 	if pane.lastInst ~= ctx.inst.id then
 		pane.lastInst = ctx.inst.id
 		pane.open = nil
 		scroll:ScrollToTop()
 	end
-	DJ.LoadQuests(ctx.inst, function (quests)
+	J.LoadQuests(ctx.inst, function (quests)
 		if mine ~= serial then return end
 		rows:Reset()
 		local width = math.max(200, scroll:GetWidth() - 8)
@@ -187,7 +187,7 @@ function pane:Refresh(ctx)
 		local shown, done = 0, 0
 		for _, q in ipairs(quests or {}) do
 			if q.state == Q.DONE then done = done + 1 end
-			if not (DungeonJournalCharDB.hideDoneQuests and q.state == Q.DONE) then
+			if not (JournalCharDB.hideDoneQuests and q.state == Q.DONE) then
 				shown = shown + 1
 				local st = STATE[q.state] or STATE[Q.LOCKED]
 				local r = rows:Get()
@@ -236,16 +236,16 @@ function pane:Refresh(ctx)
 						d:SetText(table.concat(lines, "\n"))
 					end
 					local waiting = true
-					DJ.LoadQuestDetail(q.id, function (detail)
+					J.LoadQuestDetail(q.id, function (detail)
 						if mine ~= serial then return end
 						fill(detail)
 						-- The detail arrived after the layout: lay out again with its height. Not
 						-- after a failure, which would only ask again.
-						if detail and not waiting then pane:Refresh(DJ.ctx) end
+						if detail and not waiting then pane:Refresh(J.ctx) end
 					end)
 					waiting = false
 					h = h + 4 + d:GetStringHeight() + 6
-					if q.giverKind ~= "I" and DJ.Has(DJ.HELLO_MAP_PINS) then
+					if q.giverKind ~= "I" and J.Has(J.HELLO_MAP_PINS) then
 						r.mapButton:ClearAllPoints()
 						r.mapButton:SetPoint("TOPLEFT", r, "TOPLEFT", 28, -h)
 						r.mapButton:Show()
@@ -275,6 +275,6 @@ function pane:Refresh(ctx)
 	end)
 end
 
-DJ.On("QUESTS_STALE", function () if pane:IsShown() and DJ.ctx then pane:Refresh(DJ.ctx) end end)
+J.On("QUESTS_STALE", function () if pane:IsShown() and J.ctx then pane:Refresh(J.ctx) end end)
 
-DJ.RegisterPane("quests", pane)
+J.RegisterPane("quests", pane)

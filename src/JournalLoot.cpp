@@ -1,8 +1,9 @@
 /*
- * mod-forever-dungeon-journal: loot tables and the chance one kill drops each item.
+ * mod-forever-journal: loot tables and the chance one kill drops each item.
  *
  * The core keeps its loot templates private, so the rows are read from the database once at
- * startup, for the bosses' loot ids and every reference they reach. The chances follow
+ * startup, for the bosses' loot ids (and the collections' creatures, chests, containers, fishing
+ * zones and pickpocket tables) and every reference they reach. The chances follow
  * LootTemplate::Process:
  *   - an ungrouped item rolls on its own chance;
  *   - a group drops at most one entry: the explicitly chanced ones take their slice of a 0-100
@@ -15,10 +16,10 @@
  * core applies them; Rate.Drop.Item.GroupAmount is not.
  *
  * A reference shared by many loot tables is a world drop table (the level 30-35 greens and so
- * on); it is left out unless DungeonJournal.Loot.ShowWorldDrops is on, as retail's journal does.
+ * on); it is left out unless Journal.Loot.ShowWorldDrops is on, as retail's journal does.
  */
 
-#include "DungeonJournal.h"
+#include "Journal.h"
 #include "DatabaseEnv.h"
 #include "QueryResult.h"
 #include "ItemTemplate.h"
@@ -27,12 +28,13 @@
 #include "StringFormat.h"
 #include "World.h"
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <functional>
 #include <unordered_map>
 #include <unordered_set>
 
-namespace DungeonJournal::Loot
+namespace Journal::Loot
 {
     namespace
     {
@@ -50,8 +52,7 @@ namespace DungeonJournal::Loot
 
         using Table = std::vector<Row>;
 
-        std::unordered_map<uint32, Table> sCreature;
-        std::unordered_map<uint32, Table> sObject;
+        std::array<std::unordered_map<uint32, Table>, STORE_COUNT> sTables;
         std::unordered_map<uint32, Table> sReference;
 
         // How many loot tables use each reference, to tell world drop tables apart.
@@ -60,8 +61,7 @@ namespace DungeonJournal::Loot
         // (source type, loot id, item) with rows in `conditions`.
         std::unordered_set<uint64> sConditioned;
 
-        std::unordered_map<uint32, std::vector<Drop>> sCreatureDrops;
-        std::unordered_map<uint32, std::vector<Drop>> sObjectDrops;
+        std::array<std::unordered_map<uint32, std::vector<Drop>>, STORE_COUNT> sDrops;
         std::vector<Drop> const sNone;
 
         constexpr uint16 LOOT_MODE_DEFAULT_BIT = 1;
@@ -69,8 +69,17 @@ namespace DungeonJournal::Loot
 
         // conditions.SourceTypeOrReferenceId
         constexpr uint32 COND_CREATURE_LOOT = 1;
+        constexpr uint32 COND_FISHING_LOOT = 3;
         constexpr uint32 COND_GAMEOBJECT_LOOT = 4;
+        constexpr uint32 COND_ITEM_LOOT = 5;
+        constexpr uint32 COND_PICKPOCKETING_LOOT = 8;
         constexpr uint32 COND_REFERENCE_LOOT = 10;
+
+        // Per Store: its table and its conditions source type.
+        constexpr std::array<char const*, STORE_COUNT> STORE_TABLES = { "creature_loot_template",
+            "gameobject_loot_template", "item_loot_template", "fishing_loot_template", "pickpocketing_loot_template" };
+        constexpr std::array<uint32, STORE_COUNT> STORE_CONDITIONS = { COND_CREATURE_LOOT, COND_GAMEOBJECT_LOOT,
+            COND_ITEM_LOOT, COND_FISHING_LOOT, COND_PICKPOCKETING_LOOT };
 
         uint64 ConditionKey(uint32 source, uint32 loot, uint32 item)
         {
@@ -152,8 +161,8 @@ namespace DungeonJournal::Loot
         void ReadConditions()
         {
             if (QueryResult result = WorldDatabase.Query("SELECT DISTINCT SourceTypeOrReferenceId, SourceGroup, SourceEntry "
-                "FROM conditions WHERE SourceTypeOrReferenceId IN ({}, {}, {})", COND_CREATURE_LOOT, COND_GAMEOBJECT_LOOT,
-                COND_REFERENCE_LOOT))
+                "FROM conditions WHERE SourceTypeOrReferenceId IN ({}, {}, {}, {}, {}, {})", COND_CREATURE_LOOT,
+                COND_FISHING_LOOT, COND_GAMEOBJECT_LOOT, COND_ITEM_LOOT, COND_PICKPOCKETING_LOOT, COND_REFERENCE_LOOT))
                 do
                 {
                     Field* f = result->Fetch();
@@ -396,22 +405,25 @@ namespace DungeonJournal::Loot
         }
     }
 
-    void Load(std::vector<uint32> const& creatureLoot, std::vector<uint32> const& objectLoot)
+    void Load(LootIds const& ids)
     {
-        sCreature.clear();
-        sObject.clear();
+        for (auto& tables : sTables)
+            tables.clear();
         sReference.clear();
         sReferenceUsers.clear();
         sConditioned.clear();
-        sCreatureDrops.clear();
-        sObjectDrops.clear();
+        for (auto& drops : sDrops)
+            drops.clear();
 
         ReadReferenceUsers();
         ReadConditions();
 
-        std::vector<uint32> pending = ReadTable("creature_loot_template", creatureLoot, sCreature);
-        std::vector<uint32> fromObjects = ReadTable("gameobject_loot_template", objectLoot, sObject);
-        pending.insert(pending.end(), fromObjects.begin(), fromObjects.end());
+        std::vector<uint32> pending;
+        for (std::size_t store = 0; store < STORE_COUNT; ++store)
+        {
+            std::vector<uint32> refs = ReadTable(STORE_TABLES[store], ids[store], sTables[store]);
+            pending.insert(pending.end(), refs.begin(), refs.end());
+        }
 
         // References, level by level. World drop tables are read too when they're shown.
         for (uint32 depth = 0; depth < MAX_DEPTH && !pending.empty(); ++depth)
@@ -427,20 +439,28 @@ namespace DungeonJournal::Loot
             pending = ReadTable("reference_loot_template", wanted, sReference);
         }
 
-        for (auto const& [id, table] : sCreature)
-            sCreatureDrops[id] = ToDrops(ComputeBothModes(table, COND_CREATURE_LOOT, id), 0);
-        for (auto const& [id, table] : sObject)
-            sObjectDrops[id] = ToDrops(ComputeBothModes(table, COND_GAMEOBJECT_LOOT, id), LOOT_CHEST);
+        for (std::size_t store = 0; store < STORE_COUNT; ++store)
+        {
+            uint32 extra = store == std::size_t(Store::GameObject) ? uint32(LOOT_CHEST) : 0u;
+            for (auto const& [id, table] : sTables[store])
+                sDrops[store][id] = ToDrops(ComputeBothModes(table, STORE_CONDITIONS[store], id), extra);
+        }
 
-        LOG_INFO("server.loading", ">> mod-forever-dungeon-journal: {} creature and {} chest loot tables, {} references",
-            sCreatureDrops.size(), sObjectDrops.size(), sReference.size());
+        LOG_INFO("server.loading", ">> mod-forever-journal: {} creature, {} chest, {} container, {} fishing and {} pickpocket "
+            "loot tables, {} references", sDrops[0].size(), sDrops[1].size(), sDrops[2].size(), sDrops[3].size(),
+            sDrops[4].size(), sReference.size());
     }
 
     std::vector<Drop> const& For(Store store, uint32 lootId)
     {
-        auto const& map = store == Store::Creature ? sCreatureDrops : sObjectDrops;
+        auto const& map = sDrops[std::size_t(store)];
         auto itr = map.find(lootId);
         return itr != map.end() ? itr->second : sNone;
+    }
+
+    bool IsWorldDropTable(uint32 reference)
+    {
+        return IsWorldDrop(reference);
     }
 
     uint32 Hash(uint32 seed)
@@ -456,10 +476,10 @@ namespace DungeonJournal::Loot
             return h;
         };
         uint32 acc = 0;
-        for (auto const* map : { &sCreatureDrops, &sObjectDrops })
-            for (auto const& [id, drops] : *map)
+        for (std::size_t store = 0; store < STORE_COUNT; ++store)
+            for (auto const& [id, drops] : sDrops[store])
                 for (Drop const& d : drops)
-                    acc ^= mix(mix(mix(2166136261u, id), d.item), uint32(d.chance * 100.0f) ^ (d.flags << 20));
+                    acc ^= mix(mix(mix(2166136261u + uint32(store), id), d.item), uint32(d.chance * 100.0f) ^ (d.flags << 20));
         return mix(seed, acc);
     }
 }

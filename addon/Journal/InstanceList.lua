@@ -1,43 +1,37 @@
--- The journal's home page, as retail's: a tier menu, Dungeons and Raids tabs, and a tile per
--- instance with its Dungeon Finder art, name and level range. Instances the character's era
+-- The Dungeons and Raids tabs' home page, as retail's: a tier menu and a tile per instance with
+-- its Dungeon Finder art, name and level range. Instances the character's era
 -- hasn't opened (mod-individual-progression) carry a lock.
 
-local DJ = DungeonJournal
-local setShown = DJ.SetShown
+local J = Journal
+local setShown = J.SetShown
 
 local COLUMNS = 4
 local TILE_HEIGHT = 104
 local GAP = 8
 
-local page = CreateFrame("Frame", nil, DJ.pageArea)
-page:SetAllPoints(DJ.pageArea)
+local page = CreateFrame("Frame", nil, J.pageArea)
+page:SetAllPoints(J.pageArea)
 
-local tierMenu = DJ.CreateDropdown(page, 190, function ()
+local tierMenu = J.CreateDropdown(page, 190, function ()
 	local items = {}
 	for tier = 0, 2 do
-		table.insert(items, { text = DJ.EXPANSIONS[tier], checked = DJ.view.tier == tier,
-			func = function () DJ.Show({ tier = tier }) end })
+		table.insert(items, { text = J.EXPANSIONS[tier], checked = J.view.tier == tier,
+			func = function () J.Show({ tier = tier }) end })
 	end
 	return items
 end)
 tierMenu:SetPoint("TOPLEFT", page, "TOPLEFT", 4, -2)
 
-local dungeonsTab, raidsTab
-dungeonsTab = DJ.CreateTab(page, "Dungeons", function () DJ.Show({ raids = false }) end)
-raidsTab = DJ.CreateTab(page, "Raids", function () DJ.Show({ raids = true }) end)
-raidsTab:SetPoint("TOPRIGHT", page, "TOPRIGHT", -4, -2)
-dungeonsTab:SetPoint("RIGHT", raidsTab, "LEFT", -4, 0)
-
 local eraNote = page:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 eraNote:SetPoint("LEFT", tierMenu, "RIGHT", 12, 0)
-eraNote:SetPoint("RIGHT", dungeonsTab, "LEFT", -12, 0)
+eraNote:SetPoint("RIGHT", page, "RIGHT", -8, 0)
 eraNote:SetJustifyH("LEFT")
 
-local inset = DJ.CreateInset(page)
+local inset = J.CreateInset(page)
 inset:SetPoint("TOPLEFT", page, "TOPLEFT", 0, -30)
 inset:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
 
-local scroll = DJ.CreateScrollArea(inset)
+local scroll = J.CreateScrollArea(inset)
 scroll:SetPoint("TOPLEFT", inset, "TOPLEFT", 8, -8)
 scroll:SetPoint("BOTTOMRIGHT", inset, "BOTTOMRIGHT", -28, 8)
 scroll:SetScript("OnMouseWheel", function (self, delta)
@@ -93,8 +87,8 @@ local function makeTile()
 		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 		GameTooltip:SetText(inst.name)
 		GameTooltip:AddLine((inst.raid and "Raid" or "Dungeon") .. ", level " .. inst.minLevel .. "-" .. inst.maxLevel, 1, 1, 1)
-		for _, v in ipairs(DJ.VariantsFor(inst, DJ.view.tier)) do
-			local locked = DJ.IsLocked(v)
+		for _, v in ipairs(J.VariantsFor(inst, J.view.tier)) do
+			local locked = J.IsLocked(v)
 			GameTooltip:AddDoubleLine(v.label, locked and ("Progression stage " .. v.reqState) or (v.players .. " players"),
 				1, 0.82, 0, locked and 1 or 0.8, locked and 0.3 or 0.8, locked and 0.3 or 0.8)
 		end
@@ -111,12 +105,12 @@ local function makeTile()
 		GameTooltip:Hide()
 	end)
 	t:SetScript("OnClick", function (self)
-		if self.inst then DJ.OpenInstance(self.inst.id) end
+		if self.inst then J.OpenInstance(self.inst.id) end
 	end)
 	return t
 end
 
-local tiles = DJ.CreatePool(makeTile)
+local tiles = J.CreatePool(makeTile)
 
 local GENERIC_BG = "Interface\\LFGFrame\\UI-LFG-BACKGROUND-QUESTPAPER"
 
@@ -133,7 +127,7 @@ local function setTileArt(t, inst)
 	end
 	local iconOk = inst.texture and t.icon:SetTexture("Interface\\LFGFrame\\LFGIcon-" .. inst.texture)
 	if iconOk then
-		DJ.SetPortrait(t.icon, "Interface\\LFGFrame\\LFGIcon-" .. inst.texture)
+		J.SetPortrait(t.icon, "Interface\\LFGFrame\\LFGIcon-" .. inst.texture)
 		t.icon:Show()
 	else
 		t.icon:Hide()
@@ -141,19 +135,17 @@ local function setTileArt(t, inst)
 end
 
 function page:Refresh()
-	local v = DJ.view
+	local v = J.view
 	local tier = v.tier or 0
-	tierMenu:SetText(DJ.EXPANSIONS[tier])
-	dungeonsTab:SetSelected(not v.raids)
-	raidsTab:SetSelected(v.raids and true or false)
+	tierMenu:SetText(J.EXPANSIONS[tier])
 
-	if DJ.Has(DJ.HELLO_PROGRESSION) and (DJ.state or 18) < 18 then
-		eraNote:SetText("|cff9d9d9dYour progression stage: |r" .. (DJ.state or 0))
+	if J.Has(J.HELLO_PROGRESSION) and (J.state or 18) < 18 then
+		eraNote:SetText("|cff9d9d9dYour progression stage: |r" .. (J.state or 0))
 	else
 		eraNote:SetText("")
 	end
 
-	DJ.LoadInstances(function (byId, list)
+	J.LoadInstances(function (byId, list)
 		tiles:Reset()
 		if not list then return end
 		local shown = {}
@@ -180,12 +172,12 @@ function page:Refresh()
 			t.name:SetText(inst.name)
 			local levels = inst.minLevel == inst.maxLevel and ("Level " .. inst.minLevel)
 				or ("Level " .. inst.minLevel .. "-" .. inst.maxLevel)
-			local locked = DJ.InstanceLocked(inst, tier)
+			local locked = J.InstanceLocked(inst, tier)
 			setShown(t.lock, locked)
 			if locked then
 				t.name:SetTextColor(0.6, 0.6, 0.6)
 				local need = 99
-				for _, var in ipairs(DJ.VariantsFor(inst, tier)) do need = math.min(need, var.reqState or 0) end
+				for _, var in ipairs(J.VariantsFor(inst, tier)) do need = math.min(need, var.reqState or 0) end
 				t.sub:SetText("|cffff5555Progression stage " .. need .. "|r")
 				t.bg:SetDesaturated(true)
 			else
@@ -206,4 +198,4 @@ function page:Refresh()
 end
 
 page:SetScript("OnSizeChanged", function () if page:IsShown() then page:Refresh() end end)
-DJ.RegisterPage("home", page)
+J.RegisterPage("home", page)

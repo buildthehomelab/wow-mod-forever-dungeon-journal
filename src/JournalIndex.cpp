@@ -1,5 +1,5 @@
 /*
- * mod-forever-dungeon-journal: the journal's index (instances, wings, difficulty tabs, bosses, quests,
+ * mod-forever-journal: the journal's index (instances, wings, difficulty tabs, bosses, quests,
  * entrances) and the request handlers that answer the addon from it.
  *
  * Instances come from LFGDungeons.dbc: one instance per map, with the Dungeon Finder's wings
@@ -9,13 +9,13 @@
  * order; an encounter belongs to the first wing whose last encounter (instance_encounters'
  * lastEncounterDungeon) comes at or after it.
  *
- * Difficulty tabs ("variants") are the map's difficulties, plus mod_forever_dungeon_journal_variant rows
+ * Difficulty tabs ("variants") are the map's difficulties, plus mod_forever_journal_variant rows
  * such as mod-individual-progression's 40 player Onyxia and Naxxramas. Each tab is listed under
  * an expansion tier, so 40 player Naxxramas sits with the classic raids and the 10 and 25 player
  * versions with Wrath's.
  */
 
-#include "DungeonJournal.h"
+#include "Journal.h"
 #include "Creature.h"
 #include "CreatureData.h"
 #include "DBCStores.h"
@@ -45,7 +45,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-namespace DungeonJournal::Index
+namespace Journal::Index
 {
     namespace
     {
@@ -103,7 +103,7 @@ namespace DungeonJournal::Index
 
         struct Variant
         {
-            uint8 id = 0;                   // 0-3 = map difficulty, 100+ = mod_forever_dungeon_journal_variant
+            uint8 id = 0;                   // 0-3 = map difficulty, 100+ = mod_forever_journal_variant
             uint8 difficulty = 0;
             uint8 expansion = 0;
             uint8 maxPlayers = 0;
@@ -190,7 +190,7 @@ namespace DungeonJournal::Index
 
         Data sData;
 
-        // ---- helpers ------------------------------------------------------------------------------
+        // ---- helpers ----------------------------------------------------------------------------
 
         char const* DbcString(char const* const (&names)[16])
         {
@@ -202,20 +202,6 @@ namespace DungeonJournal::Index
         {
             char const* name = names[sWorld->GetDefaultDbcLocale()];
             return name && *name ? name : names[LOCALE_enUS];
-        }
-
-        std::string AreaName(uint32 areaId)
-        {
-            if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(areaId))
-                return DbcString(area->area_name);
-            return "";
-        }
-
-        std::string MapName(uint32 mapId)
-        {
-            if (MapEntry const* map = sMapStore.LookupEntry(mapId))
-                return DbcString(map->name);
-            return "";
         }
 
         uint32 Fnv(uint32 h, std::string_view text)
@@ -317,12 +303,12 @@ namespace DungeonJournal::Index
             return label;
         }
 
-        // ---- seeds --------------------------------------------------------------------------------
+        // ---- seeds ------------------------------------------------------------------------------
 
         std::map<std::pair<uint32, uint32>, std::vector<SeedExtra>> ReadExtras()
         {
             std::map<std::pair<uint32, uint32>, std::vector<SeedExtra>> extras;
-            if (QueryResult result = WorldDatabase.Query("SELECT MapID, Bit, Kind, Difficulty, Entry, Flags FROM mod_forever_dungeon_journal_boss_extra"))
+            if (QueryResult result = WorldDatabase.Query("SELECT MapID, Bit, Kind, Difficulty, Entry, Flags FROM mod_forever_journal_boss_extra"))
                 do
                 {
                     Field* f = result->Fetch();
@@ -340,7 +326,7 @@ namespace DungeonJournal::Index
         {
             std::vector<SeedVariant> variants;
             if (QueryResult result = WorldDatabase.Query("SELECT MapID, Variant, Difficulty, Expansion, MaxPlayers, MinLevel, "
-                "RequiredState, RequiresIP, HidesDifficulty, Label FROM mod_forever_dungeon_journal_variant ORDER BY MapID, Variant"))
+                "RequiredState, RequiresIP, HidesDifficulty, Label FROM mod_forever_journal_variant ORDER BY MapID, Variant"))
                 do
                 {
                     Field* f = result->Fetch();
@@ -358,7 +344,7 @@ namespace DungeonJournal::Index
                     variants.push_back(std::move(v));
                 } while (result->NextRow());
 
-            if (QueryResult result = WorldDatabase.Query("SELECT MapID, Variant, FromEntry, ToEntry FROM mod_forever_dungeon_journal_variant_swap"))
+            if (QueryResult result = WorldDatabase.Query("SELECT MapID, Variant, FromEntry, ToEntry FROM mod_forever_journal_variant_swap"))
                 do
                 {
                     Field* f = result->Fetch();
@@ -369,7 +355,7 @@ namespace DungeonJournal::Index
             return variants;
         }
 
-        // ---- instances ----------------------------------------------------------------------------
+        // ---- instances --------------------------------------------------------------------------
 
         struct LfgGroup
         {
@@ -549,7 +535,7 @@ namespace DungeonJournal::Index
             });
         }
 
-        // ---- bosses -------------------------------------------------------------------------------
+        // ---- bosses -----------------------------------------------------------------------------
 
         void AddCreature(Boss& boss, uint32 entry, bool front)
         {
@@ -708,7 +694,7 @@ namespace DungeonJournal::Index
             }
         }
 
-        // ---- entrances ----------------------------------------------------------------------------
+        // ---- entrances --------------------------------------------------------------------------
 
         void PlaceEntrances()
         {
@@ -757,7 +743,7 @@ namespace DungeonJournal::Index
             }
         }
 
-        // ---- quests -------------------------------------------------------------------------------
+        // ---- quests -----------------------------------------------------------------------------
 
         bool IsRaidQuest(Quest const* quest)
         {
@@ -1000,7 +986,7 @@ namespace DungeonJournal::Index
             return MapName(g.map);
         }
 
-        // ---- lookups for the handlers -------------------------------------------------------------
+        // ---- lookups for the handlers -----------------------------------------------------------
 
         Instance const* FindInstance(std::vector<std::string_view> const& args, std::size_t at)
         {
@@ -1141,52 +1127,115 @@ namespace DungeonJournal::Index
                     }
             }
         }
+    }
 
-        void SendPoi(Player* player, uint32 map, float x, float y, std::string const& name)
-        {
-            if (player->GetMapId() != map)
-                return;
-            WorldPacket data(SMSG_GOSSIP_POI, 4 + 4 + 4 + 4 + 4 + name.size() + 1);
-            data << uint32(POI_FLAGS);
-            data << float(x);
-            data << float(y);
-            data << uint32(POI_ICON_RED_FLAG);
-            data << uint32(0);
-            data << name;
-            player->SendDirectMessage(&data);
-        }
+    // ---- shared with the collections ------------------------------------------------------------
 
-        std::string WhereText(Player* player, uint32 map, float x, float y, uint32 zone)
-        {
-            std::string text = zone ? AreaName(zone) : MapName(map);
-            if (zone)
-            {
-                float zx = x;
-                float zy = y;
-                Map2ZoneCoordinates(zx, zy, zone);
-                if (zx >= 0.0f && zx <= 100.0f && zy >= 0.0f && zy <= 100.0f)
-                    text += Acore::StringFormat(" ({:.0f}, {:.0f})", zx, zy);
-            }
-            if (player->GetMapId() == map)
-                text += Acore::StringFormat(", {} yards away", uint32(player->GetExactDist2d(x, y)));
-            else if (zone)
-                text += " - " + MapName(map);
-            return text;
-        }
+    std::string AreaName(uint32 areaId)
+    {
+        if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(areaId))
+            return DbcString(area->area_name);
+        return "";
+    }
 
-        std::string ItemList(uint32 const* ids, uint32 const* counts, std::size_t n)
+    std::string MapName(uint32 mapId)
+    {
+        if (MapEntry const* map = sMapStore.LookupEntry(mapId))
+            return DbcString(map->name);
+        return "";
+    }
+
+    void SendPoi(Player* player, uint32 map, float x, float y, std::string const& name)
+    {
+        if (player->GetMapId() != map)
+            return;
+        WorldPacket data(SMSG_GOSSIP_POI, 4 + 4 + 4 + 4 + 4 + name.size() + 1);
+        data << uint32(POI_FLAGS);
+        data << float(x);
+        data << float(y);
+        data << uint32(POI_ICON_RED_FLAG);
+        data << uint32(0);
+        data << name;
+        player->SendDirectMessage(&data);
+    }
+
+    std::string WhereText(Player* player, uint32 map, float x, float y, uint32 zone)
+    {
+        std::string text = zone ? AreaName(zone) : MapName(map);
+        if (zone)
         {
-            std::string out;
-            for (std::size_t i = 0; i < n; ++i)
-            {
-                if (!ids[i] || !sObjectMgr->GetItemTemplate(ids[i]))
-                    continue;
-                if (!out.empty())
-                    out += '/';
-                out += std::to_string(ids[i]) + "*" + std::to_string(std::max<uint32>(1, counts[i]));
-            }
-            return out.empty() ? "-" : out;
+            float zx = x;
+            float zy = y;
+            Map2ZoneCoordinates(zx, zy, zone);
+            if (zx >= 0.0f && zx <= 100.0f && zy >= 0.0f && zy <= 100.0f)
+                text += Acore::StringFormat(" ({:.0f}, {:.0f})", zx, zy);
         }
+        if (player->GetMapId() == map)
+            text += Acore::StringFormat(", {} yards away", uint32(player->GetExactDist2d(x, y)));
+        else if (zone)
+            text += " - " + MapName(map);
+        return text;
+    }
+
+    std::string ItemList(uint32 const* ids, uint32 const* counts, std::size_t n)
+    {
+        std::string out;
+        for (std::size_t i = 0; i < n; ++i)
+        {
+            if (!ids[i] || !sObjectMgr->GetItemTemplate(ids[i]))
+                continue;
+            if (!out.empty())
+                out += '/';
+            out += std::to_string(ids[i]) + "*" + std::to_string(std::max<uint32>(1, counts[i]));
+        }
+        return out.empty() ? "-" : out;
+    }
+
+    bool FindBossOf(uint32 creatureEntry, Place& out)
+    {
+        uint32 base = BaseEntry(creatureEntry);
+        for (Instance const& inst : sData.instances)
+            for (Boss const& b : inst.bosses)
+                if (std::find(b.creatures.begin(), b.creatures.end(), base) != b.creatures.end())
+                {
+                    FindInstanceOnMap(inst.map, out);
+                    out.instance = inst.id;
+                    out.boss = b.key;
+                    return true;
+                }
+        return false;
+    }
+
+    bool FindBossOfChest(uint32 objectEntry, Place& out)
+    {
+        for (Instance const& inst : sData.instances)
+            for (Boss const& b : inst.bosses)
+                for (Chest const& c : b.chests)
+                    if (c.entry == objectEntry)
+                    {
+                        FindInstanceOnMap(inst.map, out);
+                        out.instance = inst.id;
+                        out.boss = b.key;
+                        return true;
+                    }
+        return false;
+    }
+
+    bool FindInstanceOnMap(uint32 map, Place& out)
+    {
+        auto range = sData.byMap.equal_range(map);
+        if (range.first == range.second)
+            return false;
+        Instance const& inst = sData.instances[range.first->second];
+        out.instance = inst.id;
+        out.boss = 0;
+        out.name = inst.name;
+        // The era the instance opens at: its most open difficulty.
+        uint8 need = 255;
+        for (Variant const& v : inst.variants)
+            need = std::min(need, v.reqState);
+        out.reqState = need == 255 ? 0 : need;
+        return true;
     }
 
     // ---- build ----------------------------------------------------------------------------------
@@ -1255,12 +1304,19 @@ namespace DungeonJournal::Index
         sData.learnable = bases;
         sData.learnable.insert(adds.begin(), adds.end());
 
-        Loot::Load(std::vector<uint32>(creatureLoot.begin(), creatureLoot.end()),
-            std::vector<uint32>(objectLoot.begin(), objectLoot.end()));
+        Loot::LootIds lootIds;
+        lootIds[std::size_t(Loot::Store::Creature)].assign(creatureLoot.begin(), creatureLoot.end());
+        lootIds[std::size_t(Loot::Store::GameObject)].assign(objectLoot.begin(), objectLoot.end());
+        // The collections' sources: whatever drops a mount, a pet or a toy.
+        if (GetConfig().collections)
+            Collections::Prepare(lootIds);
+        Loot::Load(lootIds);
 
         PlaceEntrances();
         BuildQuests();
         BuildSearch();
+        if (GetConfig().collections)
+            Collections::Build();
 
         uint32 h = 2166136261u;
         h = Fnv(h, PROTOCOL_VERSION);
@@ -1282,6 +1338,7 @@ namespace DungeonJournal::Index
         }
         h = Loot::Hash(h);
         h = Abilities::Hash(h);
+        h = Collections::Hash(h);
         h = Fnv(h, uint32(GetConfig().showGrayLoot) | (uint32(GetConfig().showWorldDrops) << 1) | (uint32(GetConfig().rares) << 2));
         sData.stamp = h ? h : 1;
 
@@ -1292,7 +1349,7 @@ namespace DungeonJournal::Index
             bosses += inst.bosses.size();
             quests += inst.quests.size();
         }
-        LOG_INFO("server.loading", ">> mod-forever-dungeon-journal: {} instances, {} bosses, {} quests in {} ms",
+        LOG_INFO("server.loading", ">> mod-forever-journal: {} instances, {} bosses, {} quests in {} ms",
             sData.instances.size(), bosses, quests, GetMSTimeDiffToNow(start));
     }
 
@@ -1723,6 +1780,12 @@ namespace DungeonJournal::Index
     // M:<req>:E:<instance>  or  M:<req>:Q:<quest>   -> M:<req>:ok:<where>, or ERR:<req>:none
     void HandleMapPin(Player* player, std::string const& req, std::vector<std::string_view> const& args)
     {
+        if (args.size() > 2 && args[2] == "S")
+        {
+            Collections::HandleMapPin(player, req, args);
+            return;
+        }
+
         uint32 id = 0;
         if (args.size() < 4 || !ParseUInt(args[3], id))
         {
