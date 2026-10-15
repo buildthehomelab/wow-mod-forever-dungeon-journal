@@ -13,6 +13,7 @@ J.HELLO_MAP_PINS = 2
 J.HELLO_PROGRESSION = 4
 J.HELLO_LEARNING = 8
 J.HELLO_COLLECTIONS = 16
+J.HELLO_QUESTS = 32
 
 -- Ability tags.
 J.TAG = {
@@ -31,7 +32,7 @@ J.CLASS_BITS = { WARRIOR = 1, PALADIN = 2, HUNTER = 4, ROGUE = 8, PRIEST = 16, D
 	WARLOCK = 256, DRUID = 1024 }
 
 -- Quest states.
-J.QUEST = { AVAILABLE = 0, ACTIVE = 1, COMPLETE = 2, DONE = 3, LOW_LEVEL = 4, PREREQ = 5, LOCKED = 6 }
+J.QUEST = { AVAILABLE = 0, ACTIVE = 1, COMPLETE = 2, DONE = 3, LOW_LEVEL = 4, PREREQ = 5, LOCKED = 6, ERA = 7 }
 
 J.EXPANSIONS = { [0] = "Classic", [1] = "Burning Crusade", [2] = "Wrath of the Lich King" }
 
@@ -258,7 +259,8 @@ J.state = 18
 local nextReq = 0
 local pending = {}
 -- list answers: first letter of the R/D/E codes per command
-local LISTS = { D = true, B = true, S = true, A = true, L = true, K = true, Q = true, T = true, F = true, C = true, W = true, O = true }
+local LISTS = { D = true, B = true, S = true, A = true, L = true, K = true, Q = true, T = true, F = true, C = true, W = true, O = true,
+	G = true, Z = true, X = true }
 
 local function send(msg)
 	SendAddonMessage(J.PREFIX, msg, "WHISPER", UnitName("player"))
@@ -488,9 +490,10 @@ BINDING_NAME_JOURNAL_TOGGLE = "Toggle the Journal"
 BINDING_NAME_JOURNAL_MOUNTS = "Mounts"
 BINDING_NAME_JOURNAL_PETS = "Pets"
 BINDING_NAME_JOURNAL_TOYS = "Toys"
+BINDING_NAME_JOURNAL_QUESTS = "Quests"
 
 local HELP = "|cffffd200/journal|r (or Shift-J) opens the journal. |cffffd200/journal <name>|r searches dungeons, bosses "
-	.. "and loot. |cffffd200/mounts|r, |cffffd200/pets|r and |cffffd200/toys|r open those tabs. |cffffd200/journal minimap|r "
+	.. "and loot. |cffffd200/quests|r, |cffffd200/mounts|r, |cffffd200/pets|r and |cffffd200/toys|r open those tabs. |cffffd200/journal minimap|r "
 	.. "shows or hides the minimap button. |cffffd200/journal reset|r moves the window back. |cffffd200/journal refresh|r "
 	.. "fetches the data again."
 
@@ -522,6 +525,8 @@ SlashCmdList.JOURNAL = function (msg)
 	end
 end
 
+SLASH_JOURNALQUESTS1 = "/quests"
+SlashCmdList.JOURNALQUESTS = function () J.ToggleSection("quests") end
 SLASH_JOURNALMOUNTS1 = "/mounts"
 SlashCmdList.JOURNALMOUNTS = function () J.ToggleSection("mounts") end
 SLASH_JOURNALPETS1 = "/pets"

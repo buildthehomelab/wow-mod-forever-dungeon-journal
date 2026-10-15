@@ -22,10 +22,13 @@
  *   W:<req>:<M|P|T>:<id>              -> WR, WD rows, WE        where one comes from
  *   O:<req>                           -> OR, OD rows, OE        toys the character has
  *   M:<req>:S:<M|P|T>:<id>:<source>   -> M:<req>:ok:<where>     flags a source
+ *   G:<req>                           -> GR, GD rows, GE        quest headings, with the player's counts
+ *   Z:<req>:<heading>                 -> ZR, ZD rows (Q/R), ZE  every quest under a heading
+ *   X:<req>:<text>                    -> XR, XD rows (C/Q/R), XE  quests by name
  *
  * Addon messages arrive as CMSG_MESSAGECHAT on the world thread, so requests are answered
- * straight from the hook. The rows are documented beside their handlers (JournalIndex.cpp and
- * JournalCollections.cpp).
+ * straight from the hook. The rows are documented beside their handlers (JournalIndex.cpp,
+ * JournalCollections.cpp and JournalQuests.cpp).
  */
 
 #include "Journal.h"
@@ -175,6 +178,7 @@ namespace Journal
                 return;
             sConfig.collections = sConfigMgr->GetOption<bool>("Journal.Collections.Enable", true);
             sConfig.showUnobtainable = sConfigMgr->GetOption<bool>("Journal.Collections.ShowUnobtainable", false);
+            sConfig.quests = sConfigMgr->GetOption<bool>("Journal.Quests.Enable", true);
             sConfig.rares = sConfigMgr->GetOption<bool>("Journal.Rares", true);
             sConfig.eraLocks = sConfigMgr->GetOption<bool>("Journal.EraLocks", true);
             sConfig.worldDropThreshold = std::max<uint32>(sConfigMgr->GetOption<uint32>("Journal.Loot.WorldDropThreshold", 25), 2);
@@ -206,6 +210,8 @@ namespace Journal
                 flags |= HELLO_LEARNING;
             if (sConfig.collections)
                 flags |= HELLO_COLLECTIONS;
+            if (sConfig.quests)
+                flags |= HELLO_QUESTS;
             Send(player, "HELLO:" + req + ":" + std::to_string(PROTOCOL_VERSION) + ":" + std::to_string(flags)
                 + ":" + std::to_string(Index::Stamp()) + ":" + std::to_string(ProgressionState(player)));
         }
@@ -235,7 +241,10 @@ namespace Journal
                 return 6.0f;
             if (command == "O")
                 return 2.0f;
-            if (command == "L" || command == "Q" || command == "F")
+            // Every heading, and the longest headings' quests.
+            if (command == "G" || command == "Z")
+                return 4.0f;
+            if (command == "L" || command == "Q" || command == "F" || command == "K" || command == "X")
                 return 2.0f;
             return 1.0f;
         }
@@ -289,6 +298,12 @@ namespace Journal
                 Collections::HandleSources(player, req, args);
             else if (command == "O" && sConfig.collections)
                 Collections::HandleOwnedToys(player, req);
+            else if (command == "G" && sConfig.quests)
+                Quests::HandleCategories(player, req);
+            else if (command == "Z" && sConfig.quests)
+                Quests::HandleCategory(player, req, args);
+            else if (command == "X" && sConfig.quests)
+                Quests::HandleSearch(player, req, args);
             else
                 SendError(player, req, "unknown");
         }
@@ -347,8 +362,11 @@ public:
     // the map files.
     void OnStartup() override
     {
-        if (GetConfig().enabled)
-            Index::Build();
+        if (!GetConfig().enabled)
+            return;
+        Index::Build();
+        if (GetConfig().quests)
+            Quests::Build();
     }
 };
 

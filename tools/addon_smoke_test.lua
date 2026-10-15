@@ -313,7 +313,7 @@ local function serve(msg)
 	table.insert(sent, msg)
 	print("  -> " .. msg)
 	if cmd == "HELLO" then
-		reply("HELLO:" .. req .. ":2:31:4242:3")
+		reply("HELLO:" .. req .. ":2:63:4242:3")
 	elseif cmd == "D" then
 		list("D", req, "3", {
 			"I,6,36,0,0,15,25,19,6,Deadmines,Westfall",
@@ -391,6 +391,26 @@ local function serve(msg)
 			"Q,2,166,22,9,1,1,The Defias Brotherhood,Gryan Stoutmantle,Westfall",
 			"A,3,1234", "C,4,9999,202,250,Engineering,0,0,0", "T,5,2,20,0,0,1,12,Lord Grayson,Stormwind City",
 			"N,6,Ask a GM%2C nicely.", "+,7,V,3",
+		})
+	elseif cmd == "G" then
+		-- Westfall is where the tester stands; Hellfire Peninsula is past their era (3).
+		list("G", req, "5:40", {
+			"G,E,12,30,28,28,0,1,10,Elwynn Forest", "G,E,40,45,44,3,0,10,20,Westfall",
+			"G,O,3483,80,80,0,8,58,63,Hellfire Peninsula", "G,D,1581,6,6,1,0,17,22,The Deadmines",
+			"G,C,100081,12,12,2,0,10,60,Warrior",
+		})
+	elseif cmd == "Z" then
+		list("Z", req, args[3] .. ":3", {
+			"Q,166,0,22,14,8,2650,1800,C,234,The Defias Brotherhood,Gryan Stoutmantle,-,0,0",
+			"R,166,-,5193*1/2874*1",
+			"Q,167,5,22,14,8,2650,1800,C,234,The Defias Brotherhood,Gryan Stoutmantle,-,1,0",
+			"R,167,-,-",
+			"Q,9999,7,60,58,0,0,0,C,16820,Arrival in Outland,Thrallmar Scout,Hellfire Peninsula,0,8",
+			"R,9999,-,-",
+		})
+	elseif cmd == "X" then
+		list("X", req, "1", {
+			"C,166,40", "Q,166,0,22,14,8,2650,1800,C,234,The Defias Brotherhood,Gryan Stoutmantle,-,0,0", "R,166,-,-",
 		})
 	elseif cmd == "O" then
 		-- Orb of Deception in the bags, Piccolo of the Flaming Fire only in the bank.
@@ -736,6 +756,56 @@ step("pets and toys tabs", function ()
 	tick(0.2)
 	assert(not buttonShown("Use") and not buttonShown("Equip"), "a Use button for a toy in the bank")
 	assert(textShown("in your bank"), "a toy in the bank isn't said to be there")
+end)
+
+step("quests tab: headings, where you are, chains, era, search, filters", function ()
+	SlashCmdList.JOURNALQUESTS()
+	tick(1)
+	assert(J.view.section == "quests", "/quests didn't open the Quests tab")
+	assert(counts.G == 1, "headings not asked")
+	assert(sent[#sent]:match("^Z:%d+:40$"), "the heading you're in (Westfall) not opened: " .. sent[#sent])
+	assert(textShown("^Eastern Kingdoms$") and textShown("^Outland$") and textShown("^Classes$"), "group rows missing")
+	assert(textShown("^Westfall"), "zone row missing")
+	assert(textShown("Quests done: |cffffffff34|r / 170"), "overall count wrong")
+	assert(textShown("%(Part 2"), "chain step missing")
+	assert(textShown("Progression stage 8"), "era-locked quest not marked")
+	assert(textShown("Needs an earlier quest"), "prerequisite state missing")
+	local row = find(function (f) return f.__kind == "Button" and type(rawget(f, "quest")) == "table" and f.quest.id == 167 and f:IsVisible() end)
+	row.__scripts.OnClick(row)
+	tick(0.5)
+	assert(sent[#sent]:match("^QD:%d+:167$"), "quest detail not asked")
+	local map = buttonShown("Show giver on map")
+	map.__scripts.OnClick(map)
+	tick(0.5)
+	assert(sent[#sent]:match("^M:%d+:Q:167$"), "giver map flag not asked")
+	-- a heading in the tree
+	local elwynn = find(function (f) return f.__kind == "Button" and type(rawget(f, "entry")) == "table" and f.entry.heading
+		and f.entry.heading.id == 12 and f:IsVisible() end)
+	elwynn.__scripts.OnClick(elwynn)
+	tick(0.5)
+	assert(sent[#sent]:match("^Z:%d+:12$"), "clicking Elwynn didn't ask for its quests")
+	assert(JournalCharDB.questTab.heading == 12, "selection not remembered")
+	-- collapse a group
+	local ek = find(function (f) return f.__kind == "Button" and type(rawget(f, "entry")) == "table" and f.entry.group
+		and f.entry.group.key == "E" and f:IsVisible() end)
+	ek.__scripts.OnClick(ek)
+	assert(not textShown("^Westfall"), "collapsed group still lists its zones")
+	ek.__scripts.OnClick(ek)
+	-- filters
+	JournalCharDB.questTab.onlyAvailable = true
+	J.Fire("QUESTS_CHANGED")
+	tick(6)
+	assert(not textShown("Needs an earlier quest"), "only-available filter")
+	JournalCharDB.questTab.onlyAvailable = nil
+	-- search
+	local box = find(function (f) return f.__kind == "EditBox" and rawget(f, "hint") and f.hint:GetText() == "Search quests" end)
+	box:SetText("defias")
+	box.__scripts.OnTextChanged(box)
+	tick(1)
+	assert(sent[#sent]:match("^X:%d+:defias$"), "quest search not asked: " .. sent[#sent])
+	assert(textShown("^Search: defias$") and textShown("%(Westfall%)"), "search result without its heading")
+	J.OpenSection("dungeons", true)
+	tick(0.5)
 end)
 
 step("another addon's tab", function ()
