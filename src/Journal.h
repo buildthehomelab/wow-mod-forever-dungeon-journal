@@ -369,7 +369,8 @@ namespace Journal
 
     namespace Directory
     {
-        // Journal.Directory.*; at startup and on every config reload.
+        // Journal.Directory.*; at startup and on every config reload. The index is only built at
+        // startup, so turning the Directory on at a reload waits for the next restart.
         void LoadConfig();
 
         // Reads every service NPC and object spawn. Only from OnStartup: zones the database

@@ -116,8 +116,10 @@ Journal.Quests.Enable = 1
 #        Description: The Directory tab: every friendly trainer, flight master, innkeeper, bank,
 #                     auction house, mailbox, vendor and other service on the continents, nearest
 #                     first, flagged on the map. The Town Guide spell and .find open it, and show
-#                     a menu with the same search to characters without the addon. Replaces
-#                     mod-npc-finder: take that module out of the build.
+#                     a menu with the same search to characters without the addon. Turning it
+#                     off works at a config reload; turning it on takes a restart.
+#                     Replaces mod-npc-finder: never build both. They register the same .find
+#                     command, and the worldserver stops at startup on the duplicate.
 #        Default:     1
 #
 

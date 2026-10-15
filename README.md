@@ -372,7 +372,8 @@ IDs: spell 90050 (`spell_dbc` and the client patch), `npc_text` 9500500-9500502 
 
 The Directory is mod-npc-finder's town guide, moved into the journal. Take mod-npc-finder out of
 the build (delete `modules/mod-npc-finder` and its `mod_npc_finder.conf`) before you rebuild with
-this version: both register `.find` and the Town Guide spell. Its rows (spell 90050 and the menu
+this version. Never build both: they register the same `.find` command, and the worldserver stops
+at startup on the duplicate (and both would answer the Town Guide spell). Its rows (spell 90050 and the menu
 text) and the zones it saved to `creature` and `gameobject` stay as they are, so there's nothing to
 run against the database and no client patch to change. Its `NpcFinder.*` settings are now
 `Journal.Directory.*`; `NpcFinder.HideLockedContinents` follows `Journal.EraLocks`.
@@ -445,6 +446,8 @@ tab registered by another addon.
   `.find` and `/directory` work without it.
 - **The Town Guide opens a menu instead of the Directory:** the addon tells the server it can open
   the tab a few seconds after login; until then, and without the addon, you get the menu.
+- **The Town Guide does nothing:** the Journal addon was turned off with a `/reload` after it had
+  told the server it was there. Log out and back in, or turn the addon back on.
 - **An NPC is missing from the Directory:** the spawn list is read once at startup (restart after
   `.npc add`), and the Directory leaves out anyone hostile to you, holiday NPCs outside their event
   and places your progression stage hasn't opened.

@@ -134,6 +134,7 @@ local function build(panel)
 	local _, playerClass = UnitClass("player")
 	local className = (UnitClass("player"))
 	local state = { selected = nil, entries = {}, places = {}, picked = nil }
+	local lastText = "" -- the search text last acted on
 
 	local status = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	status:SetPoint("CENTER", panel, "CENTER", 0, 20)
@@ -208,6 +209,8 @@ local function build(panel)
 		state.selected = e
 		db.selected = e and e.key or nil
 		if search:GetText() ~= "" then
+			-- SetText fires OnTextChanged at once: it mustn't ask the server a second time.
+			lastText = ""
 			search:SetText("")
 			search:ClearFocus()
 		end
@@ -505,7 +508,6 @@ local function build(panel)
 		renderRight()
 	end
 
-	local lastText = ""
 	search:SetScript("OnTextChanged", function (self)
 		local text = self:GetText() or ""
 		setShown(self.hint, text == "" and not self:HasFocus())
@@ -533,8 +535,8 @@ local function build(panel)
 		load = load,
 		-- .find <words>: straight to a search.
 		search = function (text)
-			search:SetText(text)
 			lastText = text
+			search:SetText(text)
 			setShown(search.hint, false)
 			renderRows()
 			renderRight()

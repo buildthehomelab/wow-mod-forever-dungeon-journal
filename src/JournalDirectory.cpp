@@ -1102,7 +1102,7 @@ namespace Journal::Directory
         {
             if (!Enabled())
             {
-                ChatHandler(player->GetSession()).SendSysMessage("The Town Guide is turned off on this server.");
+                ChatHandler(player->GetSession()).SendSysMessage("The Town Guide is turned off on this server (turning it on takes a restart).");
                 return;
             }
 
@@ -1110,7 +1110,7 @@ namespace Journal::Directory
             {
                 std::string message = "OPEN:0:directory";
                 if (text.find_first_not_of(" \t\r\n") != std::string_view::npos)
-                    message += ":" + Escape(text.substr(0, MAX_SEARCH_LENGTH), MAX_SEARCH_LENGTH);
+                    message += ":" + Escape(text, MAX_SEARCH_LENGTH);
                 Send(player, message);
                 return;
             }
@@ -1271,6 +1271,8 @@ namespace Journal::Directory
         uint32 found = 0;
         std::vector<uint32> results = Search(player, query, found);
 
+        // A row fits one message unless a dozen of its characters need escaping (SendRows would
+        // drop it); no service NPC's name and title come close.
         std::vector<std::string> rows;
         rows.reserve(results.size());
         for (uint32 index : results)

@@ -221,9 +221,11 @@ namespace Journal
 
         void HandleHello(Player* player, std::string const& req, std::vector<std::string_view> const& args)
         {
-            // Older addons send no features; a later HELLO (a UI reload) replaces what was sent.
+            // Older addons send no features; a later HELLO (a UI reload) replaces what was sent. An
+            // addon on another protocol refuses the server's data, so it can't open a tab either.
+            uint32 protocol = 0;
             uint32 features = 0;
-            if (args.size() > 3)
+            if (args.size() > 3 && ParseUInt(args[2], protocol) && protocol == PROTOCOL_VERSION)
                 ParseUInt(args[3], features);
             {
                 std::lock_guard<std::mutex> lock(sFeaturesLock);
@@ -317,7 +319,7 @@ namespace Journal
                 Index::HandleQuestDetail(player, req, args);
             else if (command == "H")
                 Index::HandleHere(player, req);
-            else if (command == "M" && args.size() > 2 && args[2] == "N")
+            else if (command == "M" && args.size() > 2 && args[2] == "N" && Directory::Ready())
                 Directory::HandleMapPin(player, req, args);
             else if (command == "M")
                 Index::HandleMapPin(player, req, args);
