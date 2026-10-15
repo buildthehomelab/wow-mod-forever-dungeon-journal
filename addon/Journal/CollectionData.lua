@@ -14,7 +14,7 @@ J.KINDS = {
 }
 
 -- Catalog row flags (EntryFlags in JournalCollections.cpp).
-J.ENTRY = { ALLIANCE = 0x01, HORDE = 0x02, FLYING = 0x04, CLASS = 0x08, UNOBTAINABLE = 0x10 }
+J.ENTRY = { ALLIANCE = 0x01, HORDE = 0x02, FLYING = 0x04, CLASS = 0x08, UNOBTAINABLE = 0x10, SCALING = 0x20 }
 
 -- Source bits (SourceBits), with the names the filter menu shows.
 J.SOURCE = {
@@ -122,6 +122,12 @@ function J.Companion(kind, e)
 	return owned[kind][e.id]
 end
 
+-- A toy in the bags (or worn) can be used; one only in the bank is collected but can't.
+function J.ToyInBags(e)
+	local t = owned.toys[e.id]
+	return t ~= nil and t ~= false and t ~= 0
+end
+
 -- Asks the server which toys are in the bags or bank, at most every few seconds.
 function J.RefreshToys(done)
 	if not J.Has(J.HELLO_COLLECTIONS) then if done then done() end return end
@@ -130,7 +136,8 @@ function J.RefreshToys(done)
 	J.Request("O", nil, function (result)
 		if result then
 			local have = {}
-			for _, r in ipairs(result.rows) do have[r[1]] = true end
+			-- "<item>,<in bags>"; a server without the second field only counted the bags and bank.
+			for _, r in ipairs(result.rows) do have[r[1]] = r[2] == nil and 1 or r[2] end
 			owned.toys = have
 			J.Fire("COLLECTION_OWNED", "toys")
 		end
@@ -212,8 +219,10 @@ function J.FilteredEntries(kind, catalog, text)
 			if ok and f.usable and not J.Usable(e) then ok = false end
 			if ok and f.hideLocked and J.EntryLocked(e) then ok = false end
 			if ok and kind == "mounts" and f.mountType then
+				-- A mount that runs on the ground and flies where you can fly is both.
 				local flying = band(e.flags, J.ENTRY.FLYING) ~= 0
-				if (f.mountType == "flying") ~= flying then ok = false end
+				local scaling = band(e.flags, J.ENTRY.SCALING) ~= 0
+				if not scaling and (f.mountType == "flying") ~= flying then ok = false end
 			end
 			if ok and anySource then
 				local hit = false
@@ -252,9 +261,11 @@ local function buildSources(rows)
 		elseif kind == "D" then
 			s.creature, s.chance, s.instance, s.boss, s.reqState, s.placed, s.rare = r[3], r[4], r[5], r[6], r[7], r[8] == 1, r[9] == 1
 			s.name, s.where = Unescape(tostring(r[10])), Unescape(tostring(r[11] or "-"))
+			s.variant, s.tabs = r[12] ~= 255 and r[12] or nil, Unescape(tostring(r[13] or "-"))
 		elseif kind == "G" then
 			s.object, s.chance, s.instance, s.boss, s.reqState, s.placed = r[3], r[4], r[5], r[6], r[7], r[8] == 1
 			s.name, s.where = Unescape(tostring(r[9])), Unescape(tostring(r[10] or "-"))
+			s.variant, s.tabs = r[11] ~= 255 and r[11] or nil, Unescape(tostring(r[12] or "-"))
 		elseif kind == "P" then
 			s.creature, s.chance, s.reqState, s.placed = r[3], r[4], r[5], r[6] == 1
 			s.name, s.where = Unescape(tostring(r[7])), Unescape(tostring(r[8] or "-"))
@@ -269,6 +280,7 @@ local function buildSources(rows)
 			s.achievement = r[3]
 		elseif kind == "C" then
 			s.spell, s.skill, s.rank, s.name = r[3], r[4], r[5], Unescape(tostring(r[6]))
+			s.recipe, s.reqSpell, s.reqState = r[7] ~= 0 and r[7] or nil, r[8] ~= 0 and r[8] or nil, r[9]
 		elseif kind == "T" then
 			s.class, s.level, s.copper, s.reqState, s.placed, s.trainers = r[3], r[4], r[5], r[6], r[7] == 1, r[8]
 			s.name, s.where = Unescape(tostring(r[9])), Unescape(tostring(r[10] or "-"))
@@ -314,6 +326,10 @@ events:RegisterEvent("PLAYERBANKSLOTS_CHANGED")
 events:SetScript("OnEvent", function (self, event)
 	if event == "BAG_UPDATE" or event == "PLAYERBANKSLOTS_CHANGED" then
 		J.Debounce("collection-bags", 1.0, function () J.Fire("BAGS") end)
+	elseif event == "COMPANION_UPDATE" and not (J.frame and J.frame:IsShown()) then
+		-- Fires constantly in cities (anyone's pet or mount); the tabs read the companions
+		-- again when they're opened, so there's nothing to do while the journal is closed.
+		return
 	else
 		J.Debounce("collection-companions", 0.3, function () J.Fire("COMPANIONS") end)
 	end

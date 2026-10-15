@@ -9,7 +9,7 @@
  *
  * Where each entry comes from:
  *   V  vendors (npc_vendor and the vendor lists it references; price, honor, arena points and
- *      items; vendors only spawned by a world event say so)
+ *      items, gold only when the core asks for it; vendors only spawned by a world event say so)
  *   D  creature drops, G chests, P pickpocketing, F fishing, I containers, with the chance per
  *      kill, chest, pocket, cast or container worked out like the dungeon journal's loot. Drops of
  *      a dungeon journal boss link to it. R: only through a world drop table.
@@ -18,12 +18,15 @@
  *   C  crafted: a profession spell creates the item
  *   T  trainers (class mounts)
  *   N  notes from mod_forever_journal_collection_note, for what the data can't tell
- * Entries with no source at all (promotions, test spells) are left out unless
- * Journal.Collections.ShowUnobtainable is on.
+ * Sources nobody can reach are left out: vendors and creatures with no spawn that nothing
+ * summons, quests no one hands out or the realm has disabled. Entries with no source at all
+ * (promotions, test spells) are left out unless Journal.Collections.ShowUnobtainable is on.
  *
  * With mod-individual-progression each source carries the era state that opens it: Outland and
- * Northrend spots, the dungeon journal's instance locks, and vendor and quest conditions on
- * mod-individual-progression's state quests. An entry is locked while every source is.
+ * Northrend spots (of a creature's spawns, the most open one), the dungeon journal's tabs the
+ * boss drops it on, vendor and quest conditions on mod-individual-progression's state quests,
+ * and what an achievement asks for. An entry is locked while every source is; a flying mount
+ * (one that only flies) is never open before Burning Crusade.
  *
  * The client knows which mounts and pets a character has (GetCompanionInfo); for toys the
  * server says which ones are in the character's bags or bank.
@@ -33,28 +36,33 @@
  *       <id>,<creature>,<item>,<quality>,<flags>,<class mask>,<source bits>,<era state>
  *       id = the spell for mounts and pets, the item for toys
  *   W:<req>:<kind>:<id>   -> WR:<req>:<kind>:<id>:<sources>, WD rows (below), WE
- *   O:<req>               -> OR:<req>:<toys>, OD rows (item ids), OE   toys the character has
+ *   O:<req>               -> OR:<req>:<toys>, OD rows, OE              toys the character has
+ *       <item>,<in bags 0/1>   (0 = only in the bank: collected, but it can't be used from there)
  *   M:<req>:S:<kind>:<id>:<source> -> M:<req>:ok:<where>               a map flag on a source
  *
  * WD rows, each with the source's index <i> second (for M):
  *   V,<i>,<npc>,<copper>,<honor>,<arena>,<items>,<era>,<placed>,<name>,<where>,<event>
- *   D,<i>,<creature>,<chance x100>,<instance>,<boss>,<era>,<placed>,<rare>,<name>,<where>
- *   G,<i>,<object>,<chance x100>,<instance>,<boss>,<era>,<placed>,<name>,<where>
+ *   D,<i>,<creature>,<chance x100>,<instance>,<boss>,<era>,<placed>,<rare>,<name>,<where>,<variant>,<tabs>
+ *   G,<i>,<object>,<chance x100>,<instance>,<boss>,<era>,<placed>,<name>,<where>,<variant>,<tabs>
+ *       variant: the dungeon journal tab to open (255 = any); tabs: the difficulties it drops on
+ *       ("Heroic", "25 Player"), "-" when it drops on all of them
  *   P,<i>,<creature>,<chance x100>,<era>,<placed>,<name>,<where>
  *   F,<i>,<area>,<chance x100>,<era>,<zone>
  *   I,<i>,<container item>,<chance x100>
  *   R,<i>
  *   Q,<i>,<quest>,<level>,<era>,<placed>,<faction 0/1 Alliance/2 Horde>,<title>,<giver>,<where>
  *   A,<i>,<achievement>
- *   C,<i>,<spell>,<skill>,<rank>,<profession>
+ *   C,<i>,<spell>,<skill>,<rank>,<profession>,<recipe item>,<specialisation spell>,<era>
  *   T,<i>,<class>,<level>,<copper>,<era>,<placed>,<trainers>,<name>,<where>
  *   N,<i>,<text>
  *   +,<i>,<row kind>,<more>      more sources of that kind than were sent
  */
 
 #include "Journal.h"
+#include "AchievementMgr.h"
 #include "CreatureData.h"
 #include "DBCStores.h"
+#include "DisableMgr.h"
 #include "DatabaseEnv.h"
 #include "GameObject.h"
 #include "ItemTemplate.h"
@@ -70,6 +78,7 @@
 #include "Timer.h"
 #include "World.h"
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <map>
 #include <optional>
@@ -100,6 +109,7 @@ namespace Journal::Collections
             ENTRY_FLYING       = 0x04,
             ENTRY_CLASS        = 0x08, // a class's own (the class mask says which)
             ENTRY_UNOBTAINABLE = 0x10, // no source found (only with ShowUnobtainable)
+            ENTRY_SCALING      = 0x20, // a ground mount that flies where you can fly (with ENTRY_FLYING)
         };
 
         // The <source bits> field: which kinds of source an entry has, for the addon's filters.
@@ -136,6 +146,29 @@ namespace Journal::Collections
         // Sources of one kind sent per entry; the rest are counted in a '+' row.
         constexpr std::size_t MAX_PER_KIND = 8;
 
+        // Spawns looked at per creature on Outland's map, where the zone decides the era.
+        constexpr std::size_t MAX_ZONE_LOOKUPS = 4;
+
+        // Mounts the core's spell_gen_mount script turns into their flying version in flying
+        // zones (their own spell only has the ground aura), by spell_script_names' script name:
+        // these run on the ground elsewhere...
+        constexpr std::array<char const*, 5> SCALING_FLYERS = { "spell_magic_broom", "spell_headless_horseman_mount",
+            "spell_big_love_rocket", "spell_invincible", "spell_celestial_steed" };
+        // ...and these only fly (the script has no ground version for them).
+        constexpr std::array<char const*, 3> SCRIPTED_FLYERS = { "spell_winged_steed_of_the_ebon_blade",
+            "spell_blazing_hippogryph", "spell_x53_touring_rocket" };
+
+        // Achievement criteria the era reads (AchievementCriteriaTypes).
+        constexpr uint32 CRITERIA_KILL_CREATURE = 0;
+        constexpr uint32 CRITERIA_WIN_BG = 1;
+        constexpr uint32 CRITERIA_REACH_LEVEL = 5;
+        constexpr uint32 CRITERIA_REACH_SKILL_LEVEL = 7;
+        constexpr uint32 CRITERIA_COMPLETE_ACHIEVEMENT = 8;
+        constexpr uint32 CRITERIA_COMPLETE_QUESTS_IN_ZONE = 11;
+        constexpr uint32 CRITERIA_DEATH_AT_MAP = 16;
+        constexpr uint32 CRITERIA_COMPLETE_QUEST = 27;
+        constexpr uint32 CRITERIA_LEARN_SKILL_LEVEL = 40;
+
         struct Spot
         {
             bool placed = false;
@@ -144,6 +177,14 @@ namespace Journal::Collections
             float y = 0.0f;
             float z = 0.0f;
             uint32 zone = 0;
+        };
+
+        struct Spawn
+        {
+            uint32 map = 0;
+            float x = 0.0f;
+            float y = 0.0f;
+            float z = 0.0f;
         };
 
         struct Source
@@ -155,11 +196,16 @@ namespace Journal::Collections
             uint32 c = 0;          // V arena, D/G boss, T copper, D rare
             uint32 d = 0;          // T trainer count
             uint8 reqState = 0;
+            uint8 variant = 255;   // D/G: the dungeon journal tab it drops on (255 = any)
+            uint32 recipe = 0;     // C: the recipe item that teaches the craft
+            uint32 reqSpell = 0;   // C: the specialisation the recipe asks for
             std::string items;     // V: extended cost items
             std::string name;
             std::string where;
-            std::string extra;     // V: event, Q: who starts it
-            uint32 at = 0;         // T: the trainer whose spot is shown
+            std::string extra;     // V: event, Q: who starts it, D/G: the tabs it drops on
+            uint32 at = 0;         // T: the trainer whose spot is shown, Q: who starts it
+            bool atObject = false; // Q: started by an object
+            std::vector<uint32> trainers; // T: every trainer creature, for the nearest map flag
             Spot spot;
             float sort = 0.0f;     // higher first within a kind
         };
@@ -195,6 +241,9 @@ namespace Journal::Collections
             // loot id -> catalog items its table can give, per loot store
             std::array<std::unordered_map<uint32, std::unordered_set<uint32>>, Loot::STORE_COUNT> lootItems;
             std::unordered_map<uint32, std::vector<std::pair<uint32, uint32>>> trainers; // spell -> (trainer id, row)
+            // Every spawn of the creatures and objects a source names, for the nearest map flag.
+            std::unordered_map<uint32, std::vector<Spawn>> creatureSpawns;
+            std::unordered_map<uint32, std::vector<Spawn>> objectSpawns;
             uint32 hash = 0;
         };
 
@@ -211,6 +260,16 @@ namespace Journal::Collections
         std::unordered_map<uint32, std::vector<TrainerRow>> sTrainerRows; // learned spell -> rows
         std::unordered_map<uint32, std::vector<uint32>> sQuestsBySpell;   // learned spell -> quests
         std::unordered_map<uint32, std::vector<uint32>> sQuestsByItem;    // item -> quests
+        std::unordered_set<uint32> sQuestTaught;                          // spells a quest teaches (not just casts)
+        std::unordered_map<uint32, uint32> sBaseOf;                       // difficulty entry -> base creature
+
+        // The creature a difficulty entry (a heroic or 25 player boss) is a version of; only the
+        // base creature has spawns.
+        uint32 BaseOf(uint32 entry)
+        {
+            auto itr = sBaseOf.find(entry);
+            return itr != sBaseOf.end() ? itr->second : entry;
+        }
 
         // ---- helpers ----------------------------------------------------------------------------
 
@@ -405,6 +464,8 @@ namespace Journal::Collections
                         continue;
                     uint32 learned = LearnedBy(sSpellMgr->GetSpellInfo(spellId));
                     sQuestsBySpell[learned ? learned : spellId].push_back(id);
+                    if (learned)
+                        sQuestTaught.insert(learned);
                 }
                 for (uint32 item : quest->RewardItemId)
                     if (item)
@@ -456,8 +517,53 @@ namespace Journal::Collections
                 if (IsMountSpell(sSpellMgr->GetSpellInfo(spellId), creature, flying))
                     AddSpellEntry(spellId);
             }
-            for (auto const& [spellId, quests] : sQuestsBySpell)
-                AddSpellEntry(spellId);
+            // Only mounts a quest teaches: a quest that casts a summon (Nether Ray Desummoner) or
+            // a mount aura on you gives no companion of its own, and pets come from their skill
+            // line or an item.
+            for (uint32 spellId : sQuestTaught)
+            {
+                uint32 creature = 0;
+                bool flying = false;
+                if (IsMountSpell(sSpellMgr->GetSpellInfo(spellId), creature, flying))
+                    AddSpellEntry(spellId);
+            }
+
+            // Mounts the core's spell_gen_mount script turns into flying mounts where you can fly.
+            auto markScripted = [](auto const& scripts, uint32 flags)
+            {
+                std::string names;
+                for (char const* name : scripts)
+                    names += std::string(names.empty() ? "'" : ",'") + name + "'";
+                if (QueryResult result = WorldDatabase.Query("SELECT CAST(spell_id AS SIGNED) FROM spell_script_names "
+                    "WHERE ScriptName IN ({})", names))
+                    do
+                    {
+                        int64 spellId = result->Fetch()[0].Get<int64>();
+                        if (spellId > 0)
+                            if (Entry* e = Find(KIND_MOUNT, uint32(spellId)))
+                                e->flags |= flags;
+                    } while (result->NextRow());
+            };
+            markScripted(SCALING_FLYERS, ENTRY_FLYING | ENTRY_SCALING);
+            markScripted(SCRIPTED_FLYERS, ENTRY_FLYING);
+
+            // Race and class limits of the skill line, for mounts and pets no item teaches
+            // (paladins' Thalassian Charger is for blood elves only).
+            // A spell with several rows is open to every row's races and classes; a row without
+            // a mask opens it to all.
+            std::unordered_map<uint32, std::pair<uint32, uint32>> lineLimits; // spell -> (races, classes)
+            for (uint32 i = 0; i < sSkillLineAbilityStore.GetNumRows(); ++i)
+                if (SkillLineAbilityEntry const* sla = sSkillLineAbilityStore.LookupEntry(i))
+                {
+                    if (sla->SkillLine != SKILL_MOUNTS && sla->SkillLine != SKILL_COMPANIONS)
+                        continue;
+                    auto [itr, added] = lineLimits.try_emplace(sla->Spell, sla->RaceMask, sla->ClassMask);
+                    if (added)
+                        continue;
+                    auto& [races, classes] = itr->second;
+                    races = (races && sla->RaceMask) ? (races | sla->RaceMask) : 0;
+                    classes = (classes && sla->ClassMask) ? (classes | sla->ClassMask) : 0;
+                }
 
             // Toys.
             if (QueryResult result = WorldDatabase.Query("SELECT ItemID FROM mod_forever_journal_toy ORDER BY ItemID"))
@@ -510,6 +616,22 @@ namespace Journal::Collections
                             anyClass = true;
                         classes |= c;
                     }
+                    if (e.items.empty())
+                        if (auto limits = lineLimits.find(e.spell); limits != lineLimits.end())
+                        {
+                            uint32 r = limits->second.first & (RACEMASK_ALLIANCE | RACEMASK_HORDE);
+                            if (r && r != (RACEMASK_ALLIANCE | RACEMASK_HORDE))
+                            {
+                                anyRace = false;
+                                races = r;
+                            }
+                            uint32 c = limits->second.second & CLASSMASK_ALL;
+                            if (c && c != CLASSMASK_ALL)
+                            {
+                                anyClass = false;
+                                classes = c;
+                            }
+                        }
                     e.quality = std::max<uint8>(1, quality);
                     if (!anyRace)
                     {
@@ -551,27 +673,42 @@ namespace Journal::Collections
                     s.insert(ref);
                 return s;
             }()));
+            // The reference links of every table, read once each: an IN list on Reference can't
+            // use an index, so asking per chunk of ids would scan the table again every time.
+            auto readLinks = [](char const* table)
+            {
+                std::unordered_map<uint32, std::vector<uint32>> parents; // referenced table -> tables using it
+                if (QueryResult result = WorldDatabase.Query("SELECT CAST(Entry AS UNSIGNED), CAST(ABS(Reference) AS UNSIGNED) "
+                    "FROM {} WHERE Reference <> 0", table))
+                    do
+                    {
+                        Field* f = result->Fetch();
+                        parents[uint32(f[1].Get<uint64>())].push_back(uint32(f[0].Get<uint64>()));
+                    } while (result->NextRow());
+                return parents;
+            };
+            std::unordered_map<uint32, std::vector<uint32>> refParents = readLinks("reference_loot_template");
             for (uint32 depth = 0; depth < 6 && !frontier.empty(); ++depth)
             {
                 std::unordered_set<uint32> next;
-                QueryIn("SELECT CAST(Entry AS UNSIGNED), CAST(ABS(Reference) AS UNSIGNED) FROM reference_loot_template "
-                    "WHERE ABS(Reference) IN ({})", frontier, [&](Field* f)
+                for (uint32 child : frontier)
                 {
-                    uint32 parent = uint32(f[0].Get<uint64>());
-                    uint32 child = uint32(f[1].Get<uint64>());
-                    auto& set = refItems[parent];
-                    std::size_t before = set.size();
-                    set.insert(refItems[child].begin(), refItems[child].end());
-                    if (set.size() != before)
-                        next.insert(parent);
-                });
+                    auto users = refParents.find(child);
+                    if (users == refParents.end())
+                        continue;
+                    for (uint32 parent : users->second)
+                    {
+                        if (parent == child)
+                            continue;
+                        auto& set = refItems[parent];
+                        std::size_t before = set.size();
+                        set.insert(refItems[child].begin(), refItems[child].end());
+                        if (set.size() != before)
+                            next.insert(parent);
+                    }
+                }
                 frontier = Sorted(next);
             }
-            std::vector<uint32> refs;
-            for (auto const& [ref, set] : refItems)
-                refs.push_back(ref);
-            std::sort(refs.begin(), refs.end());
-
             static char const* const TABLES[Loot::STORE_COUNT] = { "creature_loot_template", "gameobject_loot_template",
                 "item_loot_template", "fishing_loot_template", "pickpocketing_loot_template" };
             for (std::size_t store = 0; store < Loot::STORE_COUNT; ++store)
@@ -582,12 +719,14 @@ namespace Journal::Collections
                 {
                     found[uint32(f[0].Get<uint64>())].insert(uint32(f[1].Get<uint64>()));
                 });
-                QueryIn(Acore::StringFormat("SELECT CAST(Entry AS UNSIGNED), CAST(ABS(Reference) AS UNSIGNED) FROM {} "
-                    "WHERE ABS(Reference) IN ({{}})", TABLES[store]), refs, [&](Field* f)
+                for (auto const& [ref, users] : readLinks(TABLES[store]))
                 {
-                    auto const& set = refItems[uint32(f[1].Get<uint64>())];
-                    found[uint32(f[0].Get<uint64>())].insert(set.begin(), set.end());
-                });
+                    auto set = refItems.find(ref);
+                    if (set == refItems.end())
+                        continue;
+                    for (uint32 loot : users)
+                        found[loot].insert(set->second.begin(), set->second.end());
+                }
                 std::unordered_set<uint32> have(lootIds[store].begin(), lootIds[store].end());
                 for (auto const& [loot, set] : found)
                     if (have.insert(loot).second)
@@ -623,7 +762,25 @@ namespace Journal::Collections
             return 0;
         }
 
-        // First spawn of each wanted creature or object, placed in its zone.
+        // The zone a spot on an open map is in; 0 in instances. A first start may load terrain
+        // here, before the world loop runs: keep the freeze detector from taking it for a hang.
+        uint32 ZoneAt(uint32 map, float x, float y, float z)
+        {
+            static uint32 computed = 0;
+            MapEntry const* entry = sMapStore.LookupEntry(map);
+            if (!entry || entry->Instanceable())
+                return 0;
+            uint32 zone = 0;
+            uint32 area = 0;
+            sMapMgr->GetZoneAndAreaId(PHASEMASK_NORMAL, zone, area, map, x, y, z);
+            if (++computed % 50 == 0)
+                ++World::m_worldLoopCounter;
+            return zone;
+        }
+
+        // Where each wanted creature or object stands: of all its spawns, the one in the most
+        // open era (a Darkmoon Faire vendor in Elwynn rather than Terokkar), placed in its zone.
+        // Every spawn is kept for the map flag, which picks the nearest.
         class Spots
         {
         public:
@@ -633,35 +790,51 @@ namespace Journal::Collections
             void Resolve()
             {
                 for (auto const& [spawnId, data] : sObjectMgr->GetAllCreatureData())
-                    Take(_creatures, data.id, data.mapid, data.posX, data.posY, data.posZ);
+                    if (_creatures.count(data.id))
+                        sData.creatureSpawns[data.id].push_back({ data.mapid, data.posX, data.posY, data.posZ });
                 for (auto const& [spawnId, data] : sObjectMgr->GetAllGOData())
-                    Take(_objects, data.id, data.mapid, data.posX, data.posY, data.posZ);
-                uint32 computed = 0;
-                for (auto* set : { &_creatures, &_objects })
-                    for (auto& [entry, spot] : *set)
-                    {
-                        if (!spot.placed)
-                            continue;
-                        MapEntry const* map = sMapStore.LookupEntry(spot.map);
-                        if (!map || map->Instanceable())
-                            continue;
-                        uint32 area = 0;
-                        sMapMgr->GetZoneAndAreaId(PHASEMASK_NORMAL, spot.zone, area, spot.map, spot.x, spot.y, spot.z);
-                        if (++computed % 50 == 0)
-                            ++World::m_worldLoopCounter;
-                    }
+                    if (_objects.count(data.id))
+                        sData.objectSpawns[data.id].push_back({ data.mapid, data.posX, data.posY, data.posZ });
+                Choose(_creatures, sData.creatureSpawns);
+                Choose(_objects, sData.objectSpawns);
             }
 
             Spot const& Creature(uint32 entry) const { return Lookup(_creatures, entry); }
             Spot const& Object(uint32 entry) const { return Lookup(_objects, entry); }
 
         private:
-            static void Take(std::unordered_map<uint32, Spot>& set, uint32 entry, uint32 map, float x, float y, float z)
+            static void Choose(std::unordered_map<uint32, Spot>& wanted, std::unordered_map<uint32, std::vector<Spawn>> const& spawns)
             {
-                auto itr = set.find(entry);
-                if (itr == set.end() || itr->second.placed)
-                    return;
-                itr->second = { true, map, x, y, z, 0 };
+                for (auto& [entry, spot] : wanted)
+                {
+                    auto itr = spawns.find(entry);
+                    if (itr == spawns.end() || itr->second.empty())
+                        continue;
+                    uint8 bestEra = 255;
+                    std::size_t lookups = 0;
+                    for (Spawn const& s : itr->second)
+                    {
+                        // Only Outland needs the zone to tell the era; elsewhere the map does.
+                        uint32 zone = 0;
+                        if (s.map == 530)
+                        {
+                            if (lookups >= MAX_ZONE_LOOKUPS)
+                                continue;
+                            ++lookups;
+                            zone = ZoneAt(s.map, s.x, s.y, s.z);
+                        }
+                        uint8 era = WorldEra(s.map, zone);
+                        if (era < bestEra)
+                        {
+                            bestEra = era;
+                            spot = { true, s.map, s.x, s.y, s.z, zone };
+                        }
+                        if (era == 0)
+                            break;
+                    }
+                    if (spot.placed && !spot.zone && spot.map != 530)
+                        spot.zone = ZoneAt(spot.map, spot.x, spot.y, spot.z);
+                }
             }
 
             static Spot const& Lookup(std::unordered_map<uint32, Spot> const& set, uint32 entry)
@@ -806,8 +979,11 @@ namespace Journal::Collections
                 Source src;
                 src.kind = 'V';
                 src.id = s.vendor;
+                // Gold only when the core asks for it (VendorItem::IsGoldRequired): an item with an
+                // extended cost is bought with that alone unless it is flagged to take gold too.
                 if (ItemTemplate const* proto = sObjectMgr->GetItemTemplate(s.item))
-                    src.a = uint32(std::max<int32>(0, proto->BuyPrice));
+                    if (!s.extendedCost || proto->HasFlag2(ITEM_FLAG2_DONT_IGNORE_BUY_PRICE))
+                        src.a = uint32(std::max<int32>(0, proto->BuyPrice));
                 if (ItemExtendedCostEntry const* cost = s.extendedCost ? sItemExtendedCostStore.LookupEntry(s.extendedCost) : nullptr)
                 {
                     src.b = cost->reqhonorpoints;
@@ -880,8 +1056,11 @@ namespace Journal::Collections
                             src.c = place.boss;
                             src.where = place.name;
                             src.reqState = place.reqState;
+                            src.variant = place.variant;
+                            src.extra = place.label;
                         }
                         spots.WantCreature(entry);
+                        spots.WantCreature(BaseOf(entry));
                         src.sort = chance;
                         pending.emplace_back(item, std::move(src));
                     }
@@ -899,6 +1078,7 @@ namespace Journal::Collections
                         src.a = chanceOf(chance);
                         src.name = CreatureName(entry);
                         spots.WantCreature(entry);
+                        spots.WantCreature(BaseOf(entry));
                         src.sort = chance;
                         pending.emplace_back(item, std::move(src));
                     }
@@ -929,6 +1109,8 @@ namespace Journal::Collections
                             src.c = place.boss;
                             src.where = place.name;
                             src.reqState = place.reqState;
+                            src.variant = place.variant;
+                            src.extra = place.label;
                         }
                         spots.WantObject(entry);
                         src.sort = chance;
@@ -984,6 +1166,11 @@ namespace Journal::Collections
                 [&](Field* f) { giver.emplace(uint32(f[0].Get<uint64>()), std::make_pair('C', uint32(f[1].Get<uint64>()))); });
             QueryIn("SELECT CAST(quest AS UNSIGNED), CAST(id AS UNSIGNED) FROM gameobject_queststarter WHERE quest IN ({})", quests,
                 [&](Field* f) { giver.emplace(uint32(f[0].Get<uint64>()), std::make_pair('G', uint32(f[1].Get<uint64>()))); });
+            // Holiday quests (Children's Week's orphans) are handed out only while their event runs.
+            QueryIn("SELECT CAST(quest AS UNSIGNED), CAST(id AS UNSIGNED) FROM game_event_creature_quest WHERE quest IN ({})", quests,
+                [&](Field* f) { giver.emplace(uint32(f[0].Get<uint64>()), std::make_pair('C', uint32(f[1].Get<uint64>()))); });
+            QueryIn("SELECT CAST(quest AS UNSIGNED), CAST(id AS UNSIGNED) FROM game_event_gameobject_quest WHERE quest IN ({})", quests,
+                [&](Field* f) { giver.emplace(uint32(f[0].Get<uint64>()), std::make_pair('G', uint32(f[1].Get<uint64>()))); });
             for (auto const& [quest, g] : giver)
             {
                 if (g.first == 'C')
@@ -991,7 +1178,35 @@ namespace Journal::Collections
                 else
                     spots.WantObject(g.second);
             }
-            spots.Resolve();
+
+            // Quests something else hands out: an item that starts them, a spell, a SmartAI
+            // script, the Dungeon Finder's reward quests, or the quest before them in a chain.
+            std::unordered_set<uint32> started;
+            for (auto const& [itemId, proto] : *sObjectMgr->GetItemTemplateStore())
+                if (proto.StartQuest)
+                    started.insert(proto.StartQuest);
+            for (uint32 i = 0; i < sSpellMgr->GetSpellInfoStoreSize(); ++i)
+                if (SpellInfo const* spell = sSpellMgr->GetSpellInfo(i))
+                    for (SpellEffectInfo const& eff : spell->Effects)
+                        if (eff.Effect == SPELL_EFFECT_QUEST_START && eff.MiscValue > 0)
+                            started.insert(uint32(eff.MiscValue));
+            if (QueryResult result = WorldDatabase.Query("SELECT CAST(action_param1 AS UNSIGNED) FROM smart_scripts WHERE action_type = 7"))
+                do
+                {
+                    started.insert(uint32(result->Fetch()[0].Get<uint64>())); // SMART_ACTION_OFFER_QUEST
+                } while (result->NextRow());
+            if (QueryResult result = WorldDatabase.Query("SELECT CAST(firstQuestId AS UNSIGNED), CAST(otherQuestId AS UNSIGNED) FROM lfg_dungeon_rewards"))
+                do
+                {
+                    Field* f = result->Fetch();
+                    started.insert(uint32(f[0].Get<uint64>()));
+                    started.insert(uint32(f[1].Get<uint64>()));
+                } while (result->NextRow());
+            for (auto const& [id, quest] : sObjectMgr->GetQuestTemplates())
+                if (quest->GetNextQuestInChain())
+                    started.insert(quest->GetNextQuestInChain());
+
+            spots.Resolve(); // everything wanted so far: vendors, drops, trainers, quest givers
 
             auto eras = ReadEraConditions(COND_SOURCE_QUEST_AVAILABLE);
 
@@ -999,6 +1214,12 @@ namespace Journal::Collections
             {
                 Quest const* q = sObjectMgr->GetQuestTemplate(questId);
                 if (!q)
+                    return std::nullopt;
+                // Nobody can take a quest with no one to give it (Kanrethad's Quest), or one the
+                // realm has disabled.
+                if (!giver.count(questId) && !started.count(questId))
+                    return std::nullopt;
+                if (DisableMgr::IsDisabledFor(DISABLE_TYPE_QUEST, questId, nullptr))
                     return std::nullopt;
                 Source src;
                 src.kind = 'Q';
@@ -1012,6 +1233,7 @@ namespace Journal::Collections
                 src.name = q->GetTitle();
                 if (auto itr = giver.find(questId); itr != giver.end())
                 {
+                    src.at = itr->second.second;
                     if (itr->second.first == 'C')
                     {
                         src.extra = CreatureName(itr->second.second);
@@ -1019,6 +1241,7 @@ namespace Journal::Collections
                     }
                     else if (GameObjectTemplate const* t = sObjectMgr->GetGameObjectTemplate(itr->second.second))
                     {
+                        src.atObject = true;
                         src.extra = t->name;
                         src.spot = spots.Object(itr->second.second);
                     }
@@ -1043,24 +1266,117 @@ namespace Journal::Collections
                                 AddSource(ref, *src);
         }
 
+        uint8 SkillEra(uint32 skill)
+        {
+            return skill > 375 ? IP_WOTLK : skill > 300 ? IP_TBC : 0;
+        }
+
+        // The era state an achievement can be earned at: the most closed of its map, the
+        // achievements it is made of, and what its criteria ask for (a boss's instance, a quest's
+        // zone, a level or skill past classic's). Glory of the Raider is Wrath's; Leading the
+        // Cavalry (count mounts) has no era.
+        uint8 AchievementEra(uint32 id, std::unordered_map<uint32, uint8>& memo, uint32 depth = 0)
+        {
+            if (auto itr = memo.find(id); itr != memo.end())
+                return itr->second;
+            AchievementEntry const* ach = sAchievementStore.LookupEntry(id);
+            if (!ach || depth > 4)
+                return 0; // not remembered: asked again nearer the top, it is worked out then
+            memo[id] = 0; // a loop in the data ends here
+            uint8 era = 0;
+            auto take = [&](uint8 e) { era = std::max(era, e); };
+            if (ach->mapID >= 0)
+                take(Index::MapEra(uint32(ach->mapID)));
+            if (ach->refAchievement)
+                take(AchievementEra(ach->refAchievement, memo, depth + 1));
+            auto questEra = [&](uint32 questId)
+            {
+                Quest const* q = sObjectMgr->GetQuestTemplate(questId);
+                if (q && q->GetZoneOrSort() > 0)
+                    if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(uint32(q->GetZoneOrSort())))
+                        take(WorldEra(area->mapid, area->zone ? area->zone : area->ID));
+            };
+            if (AchievementCriteriaEntryList const* criteria = sAchievementMgr->GetAchievementCriteriaByAchievement(id))
+                for (AchievementCriteriaEntry const* c : *criteria)
+                {
+                    switch (c->requiredType)
+                    {
+                        case CRITERIA_KILL_CREATURE:
+                        {
+                            Index::Place place;
+                            if (Index::FindBossOf(c->kill_creature.creatureID, place))
+                                take(place.reqState);
+                            break;
+                        }
+                        case CRITERIA_WIN_BG:
+                            take(Index::MapEra(c->win_bg.bgMapID));
+                            break;
+                        case CRITERIA_DEATH_AT_MAP:
+                            take(Index::MapEra(c->death_at_map.mapID));
+                            break;
+                        case CRITERIA_REACH_LEVEL:
+                            if (GetConfig().progressionEnabled && GetConfig().eraLocks)
+                                take(c->reach_level.level > 70 ? IP_WOTLK : c->reach_level.level > 60 ? IP_TBC : 0);
+                            break;
+                        case CRITERIA_REACH_SKILL_LEVEL:
+                            if (GetConfig().progressionEnabled && GetConfig().eraLocks)
+                                take(SkillEra(c->reach_skill_level.skillLevel));
+                            break;
+                        case CRITERIA_LEARN_SKILL_LEVEL:
+                            // apprentice 1 ... master 5 (TBC), grand master 6 (Wrath)
+                            if (GetConfig().progressionEnabled && GetConfig().eraLocks)
+                                take(c->learn_skill_level.skillLevel >= 6 ? IP_WOTLK : c->learn_skill_level.skillLevel == 5 ? IP_TBC : 0);
+                            break;
+                        case CRITERIA_COMPLETE_ACHIEVEMENT:
+                            take(AchievementEra(c->complete_achievement.linkedAchievement, memo, depth + 1));
+                            break;
+                        case CRITERIA_COMPLETE_QUEST:
+                            questEra(c->complete_quest.questID);
+                            break;
+                        case CRITERIA_COMPLETE_QUESTS_IN_ZONE:
+                            if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(c->complete_quests_in_zone.zoneID))
+                                take(WorldEra(area->mapid, area->zone ? area->zone : area->ID));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            memo[id] = era;
+            return era;
+        }
+
         void BuildAchievements()
         {
             std::vector<uint32> items;
             for (auto const& [item, refs] : sData.byItem)
                 items.push_back(item);
             std::sort(items.begin(), items.end());
+            std::unordered_map<uint32, uint8> memo;
             QueryIn("SELECT CAST(ID AS UNSIGNED), CAST(ItemID AS UNSIGNED) FROM achievement_reward WHERE ItemID IN ({})", items,
                 [&](Field* f)
             {
                 Source src;
                 src.kind = 'A';
                 src.id = uint32(f[0].Get<uint64>());
+                src.reqState = AchievementEra(src.id, memo);
                 AddSourceForItem(uint32(f[1].Get<uint64>()), src);
             });
         }
 
         void BuildCrafted()
         {
+            // Craft spell -> the recipe item that teaches it (its RequiredSpell is the
+            // specialisation, such as Gnomish Engineer).
+            std::unordered_map<uint32, ItemTemplate const*> recipes;
+            for (auto const& [itemId, proto] : *sObjectMgr->GetItemTemplateStore())
+            {
+                if (proto.Class != ITEM_CLASS_RECIPE)
+                    continue;
+                for (auto const& s : proto.Spells)
+                    if (s.SpellId > 0 && s.SpellTrigger == ITEM_SPELLTRIGGER_LEARN_SPELL_ID)
+                        recipes.emplace(uint32(s.SpellId), &proto);
+            }
+
             for (uint32 i = 0; i < sSkillLineAbilityStore.GetNumRows(); ++i)
             {
                 SkillLineAbilityEntry const* sla = sSkillLineAbilityStore.LookupEntry(i);
@@ -1083,15 +1399,23 @@ namespace Journal::Collections
                     src.b = std::max(sla->MinSkillLineRank, sla->TrivialSkillLineRankLow);
                     char const* name = skill->name[sWorld->GetDefaultDbcLocale()];
                     src.name = name && *name ? name : skill->name[LOCALE_enUS];
-                    // A recipe past 300 skill is Burning Crusade's, past 375 Wrath's.
+                    // A recipe past 300 skill is Burning Crusade's, past 375 Wrath's. Recipes at
+                    // exactly 300 are both eras'; flying mounts made at 300 (the Flying Machine)
+                    // still come out as Burning Crusade's, since every flying mount is (Finish).
                     if (GetConfig().progressionEnabled && GetConfig().eraLocks)
-                        src.reqState = src.b > 375 ? IP_WOTLK : src.b > 300 ? IP_TBC : 0;
+                        src.reqState = SkillEra(src.b);
+                    if (auto recipe = recipes.find(sla->Spell); recipe != recipes.end())
+                    {
+                        src.recipe = recipe->second->ItemId;
+                        src.reqSpell = recipe->second->RequiredSpell;
+                    }
                     AddSourceForItem(eff.ItemType, src);
                 }
             }
         }
 
-        void BuildTrainers()
+        // Trainer sources, before the spots are resolved; FinishTrainers places them after.
+        void BuildTrainers(Spots& spots, std::vector<std::pair<Ref, Source>>& found)
         {
             // Trainer id -> its creatures.
             std::unordered_map<uint32, std::vector<uint32>> creatures;
@@ -1103,8 +1427,6 @@ namespace Journal::Collections
                     creatures[uint32(f[1].Get<uint64>())].push_back(uint32(f[0].Get<uint64>()));
                 } while (result->NextRow());
 
-            Spots spots;
-            std::vector<std::pair<Ref, Source>> found;
             for (auto const& [spell, refs] : sData.bySpell)
             {
                 auto itr = sTrainerRows.find(spell);
@@ -1132,9 +1454,9 @@ namespace Journal::Collections
                     src.b = row.level;
                     src.c = row.cost;
                     src.d = uint32(trainers.size());
-                    src.name = CreatureName(trainers.front());
-                    spots.WantCreature(trainers.front());
-                    src.at = trainers.front();
+                    src.trainers = trainers;
+                    for (uint32 t : trainers)
+                        spots.WantCreature(t);
                     for (Ref const& ref : refs)
                     {
                         Entry* e = Get(ref);
@@ -1147,10 +1469,31 @@ namespace Journal::Collections
                     }
                 }
             }
-            spots.Resolve();
+        }
+
+        // The trainer shown is the one in the most open era (a class trainer in a capital
+        // rather than Shattrath); the map flag picks the nearest one that isn't hostile.
+        void FinishTrainers(Spots const& spots, std::vector<std::pair<Ref, Source>>& found)
+        {
             for (auto& [ref, src] : found)
             {
-                src.spot = spots.Creature(src.at);
+                uint8 best = 255;
+                for (uint32 t : src.trainers)
+                {
+                    Spot const& spot = spots.Creature(t);
+                    if (!spot.placed)
+                        continue;
+                    uint8 era = SpotEra(spot);
+                    if (era < best)
+                    {
+                        best = era;
+                        src.at = t;
+                        src.spot = spot;
+                    }
+                }
+                if (!src.at && !src.trainers.empty())
+                    src.at = src.trainers.front();
+                src.name = CreatureName(src.at);
                 src.where = PlaceName(src.spot);
                 src.reqState = SpotEra(src.spot);
                 AddSource(ref, src);
@@ -1224,9 +1567,9 @@ namespace Journal::Collections
             }
             e.list = std::move(kept);
 
-            // Achievements, containers and world drops carry no era of their own: they only open an
-            // entry when it has no other source to go by.
-            auto eraless = [](char kind) { return kind == 'N' || kind == 'A' || kind == 'I' || kind == 'R' || kind == '+'; };
+            // Containers and world drops carry no era of their own: they only open an entry when
+            // it has no other source to go by. (Achievements carry theirs: AchievementEra.)
+            auto eraless = [](char kind) { return kind == 'N' || kind == 'I' || kind == 'R' || kind == '+'; };
             bool anyDated = std::any_of(e.list.begin(), e.list.end(), [&](Source const& s) { return !eraless(s.kind); });
             e.sources = 0;
             uint8 era = 255;
@@ -1239,6 +1582,11 @@ namespace Journal::Collections
                     era = std::min(era, s.reqState);
             }
             e.reqState = era == 255 ? 0 : era;
+            // There is nowhere to fly before Outland, wherever the mount comes from. (Mounts that
+            // scale run on the ground too.)
+            if (e.kind == KIND_MOUNT && (e.flags & ENTRY_FLYING) && !(e.flags & ENTRY_SCALING)
+                && GetConfig().progressionEnabled && GetConfig().eraLocks)
+                e.reqState = std::max(e.reqState, IP_TBC);
             if (e.list.empty())
                 e.flags |= ENTRY_UNOBTAINABLE;
         }
@@ -1252,6 +1600,12 @@ namespace Journal::Collections
         sTrainerRows.clear();
         sQuestsBySpell.clear();
         sQuestsByItem.clear();
+        sQuestTaught.clear();
+        sBaseOf.clear();
+        for (auto const& [entry, cinfo] : *sObjectMgr->GetCreatureTemplates())
+            for (uint32 diff : cinfo.DifficultyEntry)
+                if (diff)
+                    sBaseOf.emplace(diff, entry);
 
         ReadTrainers();
         ReadQuestRewards();
@@ -1265,15 +1619,24 @@ namespace Journal::Collections
         Spots spots;
         std::vector<std::pair<uint32, Source>> pending;
         std::unordered_set<uint32> worldDrops;
+        std::vector<std::pair<Ref, Source>> trainers;
         BuildVendors(spots, pending);
         BuildDrops(spots, pending, worldDrops);
+        BuildTrainers(spots, trainers);
         BuildQuests(spots); // resolves the spots of everything wanted so far
+        FinishTrainers(spots, trainers);
 
         for (auto& [item, src] : pending)
         {
             if (src.kind == 'V' || src.kind == 'D' || src.kind == 'P' || src.kind == 'G')
             {
                 src.spot = src.kind == 'G' ? spots.Object(src.id) : spots.Creature(src.id);
+                if (src.kind != 'G' && !src.spot.placed)
+                    src.spot = spots.Creature(BaseOf(src.id)); // a heroic version stands where its base does
+                // A vendor or creature with no spawn that nothing summons (an unused template)
+                // can't be met: it gives nothing.
+                if (src.kind != 'G' && !src.spot.placed && !Index::IsSummonable(src.id))
+                    continue;
                 if (src.where.empty())
                     src.where = PlaceName(src.spot);
                 // A journal boss's era is its instance's; otherwise the spot's (and the vendor's own).
@@ -1291,7 +1654,6 @@ namespace Journal::Collections
         }
         BuildAchievements();
         BuildCrafted();
-        BuildTrainers();
         BuildNotes();
 
         uint32 h = 2166136261u;
@@ -1310,6 +1672,7 @@ namespace Journal::Collections
                 Entry const& e = list[i];
                 sData.byId[kind][e.id] = i;
                 h = Fnv(Fnv(Fnv(Fnv(Fnv(h, e.id), e.creature), e.flags), e.sources), e.reqState);
+                h = Fnv(Fnv(Fnv(h, e.quality), e.classMask), e.items.empty() ? 0 : e.items.front());
                 for (Source const& s : e.list)
                     h = Fnv(Fnv(Fnv(h, uint32(s.kind)), s.id), s.a);
             }
@@ -1321,6 +1684,7 @@ namespace Journal::Collections
         sTrainerRows.clear();
         sQuestsBySpell.clear();
         sQuestsByItem.clear();
+        sQuestTaught.clear();
         sData.hash = Fnv(h, uint32(GetConfig().showUnobtainable));
 
         LOG_INFO("server.loading", ">> mod-forever-journal: {} mounts, {} pets and {} toys in {} ms",
@@ -1383,11 +1747,11 @@ namespace Journal::Collections
                     return Acore::StringFormat("V,{},{},{},{},{},{},{},{},{},{},{}", i, s.id, s.a, s.b, s.c, s.items.empty() ? "-" : s.items,
                         s.reqState, placed, Escape(s.name, 40), Escape(s.where, 40), Escape(s.extra, 30));
                 case 'D':
-                    return Acore::StringFormat("D,{},{},{},{},{},{},{},{},{},{}", i, s.id, s.a, s.b, s.c, s.reqState, placed, s.d,
-                        Escape(s.name, 40), Escape(s.where, 40));
+                    return Acore::StringFormat("D,{},{},{},{},{},{},{},{},{},{},{},{}", i, s.id, s.a, s.b, s.c, s.reqState, placed, s.d,
+                        Escape(s.name, 40), Escape(s.where, 40), s.variant, Escape(s.extra, 40));
                 case 'G':
-                    return Acore::StringFormat("G,{},{},{},{},{},{},{},{},{}", i, s.id, s.a, s.b, s.c, s.reqState, placed,
-                        Escape(s.name, 40), Escape(s.where, 40));
+                    return Acore::StringFormat("G,{},{},{},{},{},{},{},{},{},{},{}", i, s.id, s.a, s.b, s.c, s.reqState, placed,
+                        Escape(s.name, 40), Escape(s.where, 40), s.variant, Escape(s.extra, 40));
                 case 'P':
                     return Acore::StringFormat("P,{},{},{},{},{},{},{}", i, s.id, s.a, s.reqState, placed, Escape(s.name, 40),
                         Escape(s.where, 40));
@@ -1403,7 +1767,8 @@ namespace Journal::Collections
                 case 'A':
                     return Acore::StringFormat("A,{},{}", i, s.id);
                 case 'C':
-                    return Acore::StringFormat("C,{},{},{},{},{}", i, s.id, s.a, s.b, Escape(s.name, 30));
+                    return Acore::StringFormat("C,{},{},{},{},{},{},{},{}", i, s.id, s.a, s.b, Escape(s.name, 30), s.recipe,
+                        s.reqSpell, s.reqState);
                 case 'T':
                     return Acore::StringFormat("T,{},{},{},{},{},{},{},{},{}", i, s.a, s.b, s.c, s.reqState, placed, s.d,
                         Escape(s.name, 40), Escape(s.where, 40));
@@ -1455,10 +1820,11 @@ namespace Journal::Collections
 
     void HandleOwnedToys(Player* player, std::string const& req)
     {
+        // In the bags (or worn) it can be used; in the bank it is only collected.
         std::vector<std::string> rows;
         for (Entry const& e : sData.entries[KIND_TOY])
             if (player->HasItemCount(e.id, 1, true))
-                rows.push_back(std::to_string(e.id));
+                rows.push_back(Acore::StringFormat("{},{}", e.id, player->HasItemCount(e.id, 1, false) ? 1 : 0));
         Send(player, "OR:" + req + ":" + std::to_string(rows.size()));
         SendRows(player, "OD:" + req, rows);
         Send(player, "OE:" + req);
@@ -1480,7 +1846,60 @@ namespace Journal::Collections
             SendError(player, req, "none");
             return;
         }
-        Index::SendPoi(player, s.spot.map, s.spot.x, s.spot.y, s.kind == 'Q' && !s.extra.empty() ? s.extra : s.name);
-        Send(player, "M:" + req + ":ok:" + Escape(Index::WhereText(player, s.spot.map, s.spot.x, s.spot.y, s.spot.zone), 120));
+
+        // The nearest spawn on the player's map of whoever the source names (any of a class's
+        // trainers), leaving out creatures hostile to the player; else the spot the row shows.
+        std::vector<uint32> creatures;
+        std::vector<uint32> objects;
+        switch (s.kind)
+        {
+            case 'V': case 'D': case 'P': creatures = { s.id, BaseOf(s.id) }; break;
+            case 'G': objects = { s.id }; break;
+            case 'T': creatures = s.trainers; break;
+            case 'Q':
+                if (s.at)
+                    (s.atObject ? objects : creatures).push_back(s.at);
+                break;
+            default: break;
+        }
+        FactionTemplateEntry const* mine = player->GetFactionTemplateEntry();
+        Spot spot = s.spot;
+        std::string name = s.kind == 'Q' && !s.extra.empty() ? s.extra : s.name;
+        float best = -1.0f;
+        auto consider = [&](std::vector<Spawn> const& spawns, std::string const& who)
+        {
+            for (Spawn const& sp : spawns)
+            {
+                if (sp.map != player->GetMapId())
+                    continue;
+                float dist = player->GetExactDist2d(sp.x, sp.y);
+                if (best >= 0.0f && dist >= best)
+                    continue;
+                best = dist;
+                spot = { true, sp.map, sp.x, sp.y, sp.z, 0 };
+                name = who;
+            }
+        };
+        for (uint32 c : creatures)
+        {
+            CreatureTemplate const* t = sObjectMgr->GetCreatureTemplate(c);
+            if (!t)
+                continue;
+            // The other faction's vendors, trainers and quest givers are no use; drops and
+            // pockets come from creatures you fight anyway.
+            FactionTemplateEntry const* theirs = sFactionTemplateStore.LookupEntry(t->faction);
+            if ((s.kind == 'V' || s.kind == 'T' || s.kind == 'Q') && mine && theirs && theirs->IsHostileTo(*mine))
+                continue;
+            if (auto itr = sData.creatureSpawns.find(c); itr != sData.creatureSpawns.end())
+                consider(itr->second, s.kind == 'Q' && !s.extra.empty() ? s.extra : t->Name);
+        }
+        for (uint32 o : objects)
+            if (auto itr = sData.objectSpawns.find(o); itr != sData.objectSpawns.end())
+                consider(itr->second, name);
+        if (best >= 0.0f)
+            spot.zone = ZoneAt(spot.map, spot.x, spot.y, spot.z);
+
+        Index::SendPoi(player, spot.map, spot.x, spot.y, name);
+        Send(player, "M:" + req + ":ok:" + Escape(Index::WhereText(player, spot.map, spot.x, spot.y, spot.zone), 120));
     }
 }

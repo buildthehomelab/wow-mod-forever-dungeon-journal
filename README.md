@@ -74,23 +74,26 @@ On the left, the list: collected ones first in their quality colour, then the re
 with a lock on those your progression stage hasn't opened. A search box, a Filter menu and the
 collected count sit above it. On the right, the one you picked:
 - its **model** (drag to turn it; toys show their icon and what using them does), whether it's for
-  one faction or class, a flying mount or not, and a **Summon**, **Dismount** or **Use** button
-  when you have it;
+  one faction or class, a ground, flying, or ground and flying mount (Invincible, the Headless
+  Horseman's Mount...), and a **Summon**, **Dismount**, **Use** or **Equip** (trinket toys) button
+  when you have it. A toy in your bank counts as collected and says so; take it out to use it;
 - **Where to get it**: every source the realm has, each on its own line:
 
 | Source | Shows | Click |
 | --- | --- | --- |
 | Vendor | who, where, price (gold, honor, arena points, tokens), the world event they come with | flag on the map |
-| Boss, drop, chest | who or what, where, the drop chance | a boss opens in the Dungeons tab, others flag the map |
+| Boss, drop, chest | who or what, where, the difficulties it drops on (Heroic, 25 Player), the drop chance | a boss opens in the Dungeons tab on that difficulty, others flag the map |
 | Pickpocket, fishing, container | who, the zone, or the container item, with the chance | |
 | Quest | the quest, who starts it, where, its level and faction | flag the quest giver |
 | Achievement | the achievement and what it asks | opens it in the achievement window |
-| Profession | the profession, the skill it takes and the recipe | |
-| Trainer | the class's trainers (class mounts), level and cost | flag the nearest trainer listed |
+| Profession | the profession, the skill it takes, the recipe and the specialisation it needs | |
+| Trainer | the class's trainers (class mounts), level and cost | flag the nearest trainer of your faction |
 | World drop | drops from a shared world drop table | |
 
 Up to eight sources of each kind are listed, most likely or cheapest first; a last line counts the
-rest.
+rest. Map flags go to the nearest spawn on your map. Sources nobody can reach are left out: vendors
+and creatures that are never spawned or summoned, and quests nobody hands out or the realm has
+disabled.
 
 ## How it works
 
@@ -127,9 +130,12 @@ entry requirements (`dungeon_access_requirements`), the progression stage and th
 bags and bank. The client itself knows which mounts and pets a character has.
 
 With mod-individual-progression each source carries the stage that opens it: Outland (outside
-the blood elf and draenei zones) and Northrend spots, the dungeon journal's instance locks, and
-`conditions` on vendors and quests that ask for its state quests. A mount, pet or toy is locked
-while every source is.
+the blood elf and draenei zones) and Northrend spots (a creature spawned in several places counts
+where it is most open), the stage of the dungeon journal tabs a boss drops it on, `conditions` on
+vendors and quests that ask for its state quests, and for achievements what they ask for (the
+raids and dungeons, quests, levels and skills of their criteria and of the achievements they are
+made of). A mount, pet or toy is locked while every source is, and a mount that only flies is never
+open before the Burning Crusade stage.
 
 The addon keeps instance lists, boss lists, loot and the mount, pet and toy lists across sessions
 until the server's data stamp changes; abilities and sources for the session; status, quests and
