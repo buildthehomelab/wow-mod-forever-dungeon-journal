@@ -1,7 +1,8 @@
 -- The Overview tab. With no boss picked it describes the instance: difficulties with your
 -- lockout on each, what it takes to get in, where the entrance is, your era lock and its quests.
 -- With a boss picked it shows the boss's model (drag to turn it), level, health on the chosen
--- difficulty, the creatures fought in the encounter and whether you killed it this lockout.
+-- difficulty, the creatures fought in the encounter, its enrage timer, what it gives besides its
+-- loot and whether you killed it this lockout.
 
 local J = Journal
 local setShown = J.SetShown
@@ -280,7 +281,7 @@ local function bossOverview(ctx)
 		for _, u in ipairs(units) do
 			if not u.add then table.insert(mains, u) end
 			for _, s in ipairs(u.spells) do
-				if J.SpellDescription(s.spell) then abilities = abilities + 1 end
+				if J.AbilityDescription(s) or s.note then abilities = abilities + 1 end
 			end
 		end
 		for _, u in ipairs(mains) do
@@ -294,6 +295,23 @@ local function bossOverview(ctx)
 				local b = button("Show " .. u.name, function () pane.unit = u.entry ; showCreature(u.entry) end, 12)
 				b:SetHeight(20)
 				y = y + 24
+			end
+		end
+		local enraged = {}
+		for _, u in ipairs(mains) do
+			local e = u.enrage
+			local key = e and (e.spell .. ":" .. e.seconds)
+			if e and not enraged[key] then
+				enraged[key] = true
+				local name = GetSpellInfo(e.spell) or "Enrage"
+				text("|cffff5020" .. name .. "|r after " .. J.EnrageTime(e.seconds)
+					.. (#mains > 1 and (" (" .. u.name .. ")") or ""), GameFontHighlight, nil, 0, 4)
+			end
+		end
+		if units.rewards and #units.rewards > 0 then
+			y = y + 2
+			for _, r in ipairs(units.rewards) do
+				text("|cffffd200Also rewards:|r " .. r, GameFontHighlight, nil, 0, 4)
 			end
 		end
 		y = y + 6

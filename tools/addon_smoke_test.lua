@@ -250,7 +250,9 @@ function GetItemInfo(item)
 	if not d then return nil end
 	return d[1], "|cff0070dd|Hitem:" .. id .. ":0:0:0:0:0:0:0:0|h[" .. d[1] .. "]|h|r", d[2], 20, 15, "Weapon", "Swords", 1, "", "Interface\\Icons\\X", 100
 end
+-- 7777 and 8888 have no description in the client: the server writes one.
 local spellNames = { [5145] = "Arcane Explosion", [6432] = "Smite Stomp", [9999] = "Hidden Trigger", [6603] = "Attack",
+	[7777] = "Berserk", [8888] = "Shadow Prison", [7778] = "Hard Enrage",
 	[470] = "Black Stallion", [458] = "Brown Horse", [32244] = "Blue Wind Rider", [10673] = "Bombay Cat", [10674] = "Cornish Rex Cat" }
 function GetSpellInfo(id) return spellNames[id], nil, "Interface\\Icons\\S" end
 function GetSpellLink(id) return "|Hspell:" .. id .. "|h[" .. tostring(spellNames[id]) .. "]|h" end
@@ -335,16 +337,25 @@ local function serve(msg)
 			"V,1,1,13,0,0,0", "V,101,1,6,0,0,0" })
 	elseif cmd == "A" then
 		list("A", req, args[3] .. ":" .. args[4] .. ":" .. args[5], {
-			"U,639,20,3,3500,0,Edwin VanCleef", "S,639,5145,97,1500", "S,639,9999,0,0",
-			"U,646,19,1,2000,1,Defias Companion", "S,646,6432,1024,0",
+			"U,639,20,3,3500,0,Edwin VanCleef", "E,639,7777,600", "S,639,5145,97,1500", "S,639,9999,0,0",
+			"S,639,7777,16,0,Increases attack speed by 150%25. Lasts 5 min.",
+			"S,639,8888,73728,0,Affects enemies within 28 yards.", "N,639,8888,Spread out%2C or else.",
+			"U,646,19,1,2000,1,Defias Companion", "E,646,7778,300", "S,646,6432,1024,0",
+			"R,Gives a Defias Coin to everyone in the group.",
 		})
 	elseif cmd == "L" then
 		list("L", req, args[3] .. ":" .. args[4] .. ":" .. args[5] .. ":3", {
-			"5191,1650,16,1,1,3,2,7,13,24,19,6,Cruel Barb",
-			"5193,2500,16,1,1,3,4,1,16,24,19,6,Cape of the Brotherhood",
-			"2874,10000,1,1,1,1,12,0,0,1,0,6,Unsent Letter",
-			"7230,800,0,1,1,3,4,4,5,24,19,6,Smite's Plate",
+			"5191,1650,16,1,1,3,2,7,13,24,19,6,Cruel Barb,0",
+			"5193,2500,16,1,1,3,4,1,16,24,19,6,Cape of the Brotherhood,0",
+			"2874,10000,1,1,1,1,12,0,0,1,0,6,Unsent Letter,0",
+			"7230,800,0,1,1,3,4,4,5,24,19,6,Smite's Plate,0",
+			-- a token for warriors, priests and druids; a sword only mages may use
+			"29767,1500,80,1,1,4,15,0,0,70,0,6,Leggings of the Fallen Defender,1041",
+			"50001,500,16,1,1,4,2,7,13,70,0,6,Mage Blade,128",
 		})
+	elseif cmd == "K" then
+		list("K", req, args[3] .. ":3", { "30116,1,Q,4,120,Warbringer Legguards", "30117,16,Q,4,120,Legwraps of the Avatar",
+			"30118,1024,V,4,120,Nordrassil Wrath-Kilt" })
 	elseif cmd == "Q" then
 		list("Q", req, args[3] .. ":3", {
 			"Q,166,0,22,14,8,2650,1800,C,234,The Defias Brotherhood,Gryan Stoutmantle,Westfall",
@@ -498,6 +509,21 @@ step("boss: overview, abilities", function ()
 	assert(not textShown("^Hidden Trigger$"), "a spell without description was listed")
 	assert(textShown("^Add: Defias Companion$") and textShown("Knockback"), "add missing")
 	assert(textShown("1.5 sec"), "cast time missing")
+	assert(textShown("^Berserk$") and textShown("Increases attack speed by 150%%"), "server description not shown")
+	assert(textShown("Enrage timer: 10 min"), "enrage timer not on its ability")
+	assert(textShown("^Hard Enrage$") and textShown("Cast 5 min into the fight"), "enrage row for an unlisted spell missing")
+	assert(textShown("^Shadow Prison$") and textShown("Spread out, or else."), "note missing")
+	assert(textShown("Important") and textShown("Tank"), "role flags missing")
+	local row = find(function (f) return f.__kind == "Button" and rawget(f, "spell") == 7777 and f:IsVisible() end)
+	row.__scripts.OnEnter(row)
+	local found = false
+	for _, l in ipairs(tipLines) do if l:find("attack speed") then found = true end end
+	assert(found, "server description not in the tooltip")
+	J.Show({ tab = "overview" })
+	tick(0.5)
+	assert(textShown("Berserk|r after 10 min"), "enrage timer not on the overview")
+	assert(textShown("Also rewards:|r Gives a Defias Coin"), "boss reward missing")
+	assert(buttonShown("Abilities (4)"), "ability count should include server-described ones")
 end)
 
 step("loot: warrior filter, slots, links", function ()
@@ -507,12 +533,21 @@ step("loot: warrior filter, slots, links", function ()
 	assert(textShown("^Smite's Plate$") == nil, "plate below level 40 shown to a warrior (wants mail)")
 	assert(textShown("^Cape of the Brotherhood$"), "cloak missing")
 	assert(textShown("^17%%$") and textShown("^100%%$"), "drop chance missing")
-	assert(textShown("of 4 items"), "filtered count missing")
+	assert(textShown("4 of 6 items"), "filtered count missing")
+	assert(textShown("^Leggings of the Fallen Defender$") and textShown("^Token$"), "warrior token missing")
+	assert(not textShown("^Mage Blade$"), "a mage-only sword shown to a warrior")
+	local token = find(function (f) return f.__kind == "Button" and rawget(f, "data") and f.data.item == 29767 and f:IsVisible() end)
+	token.__scripts.OnEnter(token)
+	tick(0.5)
+	local lines = table.concat(tipLines, "\n")
+	assert(counts.K == 1, "token results not asked")
+	assert(lines:find("Turns into:") and lines:find("Warbringer Legguards"), "token results missing: " .. lines)
+	assert(not lines:find("Legwraps of the Avatar"), "another class's token result shown")
 	JournalCharDB.lootClass = false
 	J.ctx.inst = J.Instance(6)
 	J.RefreshPage()
 	tick(0.5)
-	assert(textShown("^Smite's Plate$"), "All classes didn't show everything")
+	assert(textShown("^Smite's Plate$") and textShown("^Mage Blade$"), "All classes didn't show everything")
 	local row = find(function (f) return f.__kind == "Button" and rawget(f, "data") and f.data.item == 5191 and f:IsVisible() end)
 	modified.CHATLINK = true
 	row.__scripts.OnClick(row)

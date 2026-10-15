@@ -1,8 +1,10 @@
 -- The Abilities tab: per creature of the encounter (the boss, others fought with it, then adds it
 -- summons), each ability with its icon, cast time, tags (Magic, Interruptible, AoE...) and the
--- description from the spell's own tooltip. Abilities the server only knows because the boss was
--- seen casting them are marked "seen in combat". Hover an ability for its full tooltip;
--- Shift-click links it in chat.
+-- description from the spell's own tooltip, or for a spell whose tooltip has none the one the
+-- server wrote from its effects. The realm's notes and role flags (tank, healer, deadly...) and
+-- the enrage timer show with them. Abilities the server only knows because the boss was seen
+-- casting them are marked "seen in combat". Hover an ability for its full tooltip; Shift-click
+-- links it in chat.
 
 local J = Journal
 local setShown = J.SetShown
@@ -20,6 +22,11 @@ local c = scroll.content
 
 -- Tag text and colour, in the order they're shown.
 local TAGS = {
+	{ TAG.DEADLY, "Deadly", { 1, 0.2, 0.2 } },
+	{ TAG.IMPORTANT, "Important", { 1, 0.82, 0 } },
+	{ TAG.TANK, "Tank", { 0.6, 0.75, 1 } },
+	{ TAG.HEALER, "Healer", { 0.45, 1, 0.45 } },
+	{ TAG.DAMAGE, "Damage dealer", { 1, 0.6, 0.6 } },
 	{ TAG.INTERRUPT, "Interruptible", { 0.4, 0.8, 1 } },
 	{ TAG.MAGIC, "Magic", { 0.2, 0.6, 1 } },
 	{ TAG.CURSE, "Curse", { 0.6, 0, 1 } },
@@ -99,6 +106,8 @@ local function makeRow()
 	r:SetScript("OnEnter", function (self)
 		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 		GameTooltip:SetHyperlink("spell:" .. self.spell)
+		if self.serverText then GameTooltip:AddLine(self.serverText, 1, 0.82, 0, true) end
+		if self.note then GameTooltip:AddLine(self.note, 0.5, 0.75, 1, true) end
 		if self.learned then GameTooltip:AddLine("Seen in combat on this realm.", 0.6, 0.6, 0.6) end
 		GameTooltip:Show()
 	end)
@@ -119,6 +128,8 @@ empty:SetPoint("TOP", pane, "TOP", 0, -60)
 empty:SetWidth(380)
 
 local RANK_TEXT = { [1] = "Elite", [2] = "Rare Elite", [3] = "Boss", [4] = "Rare" }
+
+local ENRAGE_COLOR = "|cffff5020"
 
 local serial = 0
 
@@ -143,10 +154,26 @@ function pane:Refresh(ctx)
 		local addsHeader = false
 		for _, u in ipairs(units or {}) do
 			local spells = {}
+			local enrageListed = false
+			local enrageName = u.enrage and GetSpellInfo(u.enrage.spell)
 			for _, s in ipairs(u.spells) do
-				local desc = J.SpellDescription(s.spell)
+				local own = J.SpellDescription(s.spell)
+				local desc = own or s.text
 				local name, _, icon = GetSpellInfo(s.spell)
-				if desc and name then table.insert(spells, { s = s, desc = desc, name = name, icon = icon }) end
+				if (desc or s.note) and name then
+					table.insert(spells, { s = s, desc = desc or "", serverText = not own and s.text or nil, name = name, icon = icon })
+					if u.enrage and (u.enrage.spell == s.spell or name == enrageName) then
+						enrageListed = true
+						s.enrage = u.enrage
+					end
+				end
+			end
+			-- The enrage timer gets a row of its own when its spell isn't listed.
+			if u.enrage and not enrageListed then
+				local name, _, icon = GetSpellInfo(u.enrage.spell)
+				table.insert(spells, 1, { s = { spell = u.enrage.spell, tags = 0, castMs = 0 }, enrageOnly = true,
+					desc = "Cast " .. J.EnrageTime(u.enrage.seconds) .. " into the fight.", name = name or "Enrage",
+					icon = icon })
 			end
 			if #spells > 0 or not u.add then
 				if u.add and not addsHeader then
@@ -169,7 +196,7 @@ function pane:Refresh(ctx)
 					r:SetPoint("TOPLEFT", c, "TOPLEFT", 0, -y)
 					r:SetWidth(width)
 					r.spell = 6603 -- Auto Attack, for the tooltip
-					r.learned = nil
+					r.learned, r.serverText, r.note = nil, nil, nil
 					r.icon:SetTexture("Interface\\Icons\\INV_Sword_04")
 					r.name:SetText("Melee")
 					r.cast:SetText("")
@@ -189,15 +216,22 @@ function pane:Refresh(ctx)
 					r:SetWidth(width)
 					r.spell = sp.s.spell
 					r.learned = bit.band(sp.s.tags, TAG.LEARNED) ~= 0
+					r.serverText = sp.serverText
+					r.note = sp.s.note
 					r.icon:SetTexture(sp.icon or "Interface\\Icons\\INV_Misc_QuestionMark")
 					r.name:SetText(sp.name)
 					r.name:SetWidth(width - 130)
-					r.cast:SetText(castText(sp.s))
+					r.cast:SetText(sp.enrageOnly and "" or castText(sp.s))
 					local tags = tagText(sp.s.tags)
+					if sp.s.enrage then
+						tags = ENRAGE_COLOR .. "Enrage timer: " .. J.EnrageTime(sp.s.enrage.seconds) .. "|r" .. (tags ~= "" and ("  " .. tags) or "")
+					end
 					if r.learned then tags = (tags ~= "" and (tags .. "  ") or "") .. "|cff9d9d9dseen in combat|r" end
 					r.tags:SetText(tags)
 					r.desc:SetWidth(width - 48)
-					r.desc:SetText(sp.desc)
+					local desc = sp.desc
+					if sp.s.note then desc = (desc ~= "" and (desc .. "\n") or "") .. "|cff80c0ff" .. sp.s.note .. "|r" end
+					r.desc:SetText(desc)
 					local h = 6 + r.name:GetStringHeight() + 2 + (tags ~= "" and r.tags:GetStringHeight() or 0) + 4 + r.desc:GetStringHeight() + 8
 					r:SetHeight(math.max(40, h))
 					y = y + r:GetHeight() + 2

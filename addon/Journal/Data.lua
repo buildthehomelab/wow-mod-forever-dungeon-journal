@@ -1,7 +1,8 @@
 -- Journal data: asks the server for each part of the journal and keeps the answers.
 -- Instance lists, boss lists and loot are kept across sessions until the server's data stamp
--- changes; abilities for the session (bosses can be seen casting new ones); a player's status and
--- quests are always asked fresh, with a few seconds' grace for redraws.
+-- changes; abilities and what tokens turn into for the session (bosses can be seen casting new
+-- abilities); a player's status and quests are always asked fresh, with a few seconds' grace for
+-- redraws.
 
 local J = Journal
 
@@ -204,7 +205,8 @@ function J.LoadAbilities(inst, boss, variant, done)
 	local key = inst.id .. ":" .. boss.key .. ":" .. variant.id
 	if abilities[key] then done(abilities[key]) return end
 	fetch("A" .. key, "A", { tostring(inst.id), tostring(boss.key), tostring(variant.id) }, function (result)
-		local units, byEntry = {}, {}
+		-- units.rewards: lines on what the boss gives besides its loot.
+		local units, byEntry = { rewards = {} }, {}
 		for _, r in ipairs(result.rows) do
 			if r[1] == "U" then
 				local u = { entry = r[2], level = r[3], rank = r[4], health = r[5], add = r[6] == 1,
@@ -212,7 +214,17 @@ function J.LoadAbilities(inst, boss, variant, done)
 				byEntry[u.entry] = u
 				table.insert(units, u)
 			elseif r[1] == "S" and byEntry[r[2]] then
-				table.insert(byEntry[r[2]].spells, { spell = r[3], tags = r[4], castMs = r[5] })
+				-- r[6]: the server's description, for a spell whose tooltip has none
+				table.insert(byEntry[r[2]].spells, { spell = r[3], tags = r[4], castMs = r[5],
+					text = r[6] and Unescape(tostring(r[6])) or nil })
+			elseif r[1] == "N" and byEntry[r[2]] then
+				for _, s in ipairs(byEntry[r[2]].spells) do
+					if s.spell == r[3] then s.note = Unescape(tostring(r[4] or "-")) end
+				end
+			elseif r[1] == "E" and byEntry[r[2]] then
+				byEntry[r[2]].enrage = { spell = r[3], seconds = r[4] }
+			elseif r[1] == "R" then
+				table.insert(units.rewards, Unescape(tostring(r[2] or "-")))
 			end
 		end
 		return units
@@ -230,7 +242,7 @@ local function buildLoot(rows)
 	for _, r in ipairs(rows) do
 		table.insert(list, { item = r[1], chance = r[2], flags = r[3], minCount = r[4], maxCount = r[5], quality = r[6],
 			class = r[7], subclass = r[8], invType = r[9], ilvl = r[10], reqLevel = r[11], boss = r[12],
-			name = Unescape(tostring(r[13])) })
+			name = Unescape(tostring(r[13])), classes = r[14] or 0 })
 	end
 	return list
 end
@@ -256,6 +268,31 @@ function J.LoadLoot(inst, bossKey, variant, done)
 end
 
 J.On("CACHE_RESET", function () loot = {} ; abilities = {} end)
+
+-----------------------------------------
+-- tokens: what one turns into (this session)
+
+local tokens = {}
+J.On("CACHE_RESET", function () tokens = {} end)
+
+function J.TokenResults(item)
+	return tokens[item]
+end
+
+function J.LoadTokens(item, done)
+	if tokens[item] then done(tokens[item]) return end
+	fetch("K" .. item, "K", { tostring(item) }, function (result)
+		local list = {}
+		for _, r in ipairs(result.rows) do
+			table.insert(list, { item = r[1], classes = r[2], kind = r[3], quality = r[4], ilvl = r[5],
+				name = Unescape(tostring(r[6] or "-")) })
+		end
+		return list
+	end, function (list)
+		if list then tokens[item] = list end
+		done(list)
+	end)
+end
 
 -----------------------------------------
 -- quests (fresh)

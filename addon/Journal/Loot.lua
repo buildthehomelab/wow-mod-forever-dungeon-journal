@@ -1,7 +1,8 @@
 -- The Loot tab: what the boss (or, with no boss picked, every boss) drops on the chosen
 -- difficulty, with the chance one kill drops it. A class menu (your class first, as retail does)
--- and a slot menu narrow it down. Hover for the item's tooltip (Shift compares with what you
--- wear), Shift-click to link it, Ctrl-click to try it on.
+-- and a slot menu narrow it down; items for some classes only (tier tokens and pieces) follow
+-- the class menu. Hover for the item's tooltip (Shift compares with what you wear) and, for a
+-- token, what it turns into for the class; Shift-click to link it, Ctrl-click to try it on.
 
 local J = Journal
 local setShown = J.SetShown
@@ -48,6 +49,8 @@ local INVTYPE_CLOAK = 16
 
 local function usableBy(item, class)
 	if not class then return true end
+	-- Only for some classes (the item's own list, or for a token what it turns into).
+	if item.classes and item.classes > 0 and bit.band(item.classes, J.CLASS_BITS[class] or 0) == 0 then return false end
 	if item.class == 2 then
 		return weaponSets[class][item.subclass] or false
 	elseif item.class == 4 then
@@ -119,10 +122,38 @@ local function typeText(item)
 	return subType or CLASS_NAMES[item.class] or ""
 end
 
+local function isToken(item)
+	return bit.band(item.flags or 0, LOOT.TOKEN) ~= 0
+end
+
 -----------------------------------------
 -- filters
 
 local _, playerClass = UnitClass("player")
+
+local MAX_TOKEN_LINES = 10
+
+-- The tooltip lines for what a token turns into: for the class picked in the menu, or for every
+-- class with All classes.
+local function addTokenLines(results, class)
+	local bitOf = class and J.CLASS_BITS[class] or nil
+	local shown, more = 0, 0
+	for _, r in ipairs(results) do
+		if not bitOf or r.classes == 0 or bit.band(r.classes, bitOf) ~= 0 then
+			if shown < MAX_TOKEN_LINES then
+				if shown == 0 then GameTooltip:AddLine(" ") ; GameTooltip:AddLine("Turns into:", 1, 0.82, 0) end
+				local _, _, _, hex = J.QualityColor(r.quality)
+				local name = GetItemInfo(r.item) or r.name
+				GameTooltip:AddLine("  " .. hex .. name .. "|r" .. (r.kind == "V" and "  |cff9d9d9d(vendor)|r" or "  |cff9d9d9d(quest)|r"))
+				shown = shown + 1
+			else
+				more = more + 1
+			end
+		end
+	end
+	if more > 0 then GameTooltip:AddLine("  and " .. more .. " more", 0.8, 0.8, 0.8) end
+	if shown == 0 and #results > 0 then GameTooltip:AddLine("Turns into items for other classes.", 0.8, 0.8, 0.8, true) end
+end
 
 local function filterState()
 	local db = JournalCharDB
@@ -218,6 +249,17 @@ local function makeRow()
 		if bit.band(d.flags, LOOT.CONDITION) ~= 0 then GameTooltip:AddLine("Has extra conditions (a quest, reputation or event).", 0.8, 0.8, 0.8, true) end
 		if bit.band(d.flags, LOOT.SHARED) ~= 0 then GameTooltip:AddLine("A world drop: many creatures can drop it.", 0.8, 0.8, 0.8, true) end
 		if self.bossName then GameTooltip:AddLine("Dropped by " .. self.bossName, 0.8, 0.8, 0.8) end
+		if isToken(d) then
+			local results = J.TokenResults(d.item)
+			if results then
+				addTokenLines(results, filterState().lootClass or nil)
+			else
+				GameTooltip:AddLine("Turns into other items...", 0.8, 0.8, 0.8)
+				J.LoadTokens(d.item, function (list)
+					if list and GameTooltip:IsOwned(self) and self.data == d then self:GetScript("OnEnter")(self) end
+				end)
+			end
+		end
 		GameTooltip:Show()
 	end)
 	r:SetScript("OnLeave", function () GameTooltip:Hide() end)
@@ -306,7 +348,7 @@ function pane:Refresh(ctx)
 			r.name:SetText(name)
 			r.name:SetTextColor(cr, cg, cb)
 			r.name:SetWidth(width - 150)
-			local kind = typeText(d)
+			local kind = isToken(d) and "Token" or typeText(d)
 			if r.bossName then kind = (kind ~= "" and (kind .. "  -  ") or "") .. "|cffffd200" .. r.bossName .. "|r" end
 			r.type:SetText(kind)
 			r.type:SetWidth(width - 120)

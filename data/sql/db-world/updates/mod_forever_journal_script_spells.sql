@@ -4650,3 +4650,62 @@ INSERT INTO `mod_forever_journal_script_spell` (`ScriptName`, `Kind`, `Value`, `
 ('npc_zuljin_vortex', 0, 43120, 0),
 ('npc_zuljin_vortex', 0, 43119, 1),
 ('npcs_riverbreeze_and_silversky', 0, 15120, 0);
+
+-- Enrage timers: the spell a script casts after Seconds of combat.
+
+CREATE TABLE IF NOT EXISTS `mod_forever_journal_script_enrage` (
+  `ScriptName` VARCHAR(64) NOT NULL,
+  `Spell` INT UNSIGNED NOT NULL,
+  `Seconds` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`ScriptName`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='mod-forever-journal: enrage timers from C++ scripts';
+
+DELETE FROM `mod_forever_journal_script_enrage`;
+INSERT INTO `mod_forever_journal_script_enrage` (`ScriptName`, `Spell`, `Seconds`) VALUES
+('boss_alythess', 46587, 360),
+('boss_anubrekhan', 26662, 600),
+('boss_anubrekhan_40', 26662, 600),
+('boss_archavon', 47008, 300),
+('boss_auriaya', 47008, 600),
+('boss_blood_queen_lana_thel', 26662, 330),
+('boss_brutallus', 26662, 360),
+('boss_doomlord_kazzak', 32965, 180),
+('boss_eck', 55816, 90),
+('boss_emalon', 26662, 360),
+('boss_felmyst', 45078, 600),
+('boss_festergut', 47008, 300),
+('boss_freya', 47008, 600),
+('boss_gluth', 26662, 360),
+('boss_gluth_40', 26662, 360),
+('boss_grobbulus_40', 26662, 540),
+('boss_halion', 26662, 480),
+('boss_hodir', 26662, 480),
+('boss_kelthuzad', 28498, 900),
+('boss_kelthuzad_40', 28498, 900),
+('boss_lady_deathwhisper', 26662, 600),
+('boss_loatheb', 26662, 720),
+('boss_lord_marrowgar', 26662, 600),
+('boss_maiden_of_virtue', 26662, 600),
+('boss_mechano_lord_capacitus', 26662, 180),
+('boss_mekgineer_steamrigger', 26662, 300),
+('boss_moroes', 26662, 600),
+('boss_nalorakk', 45078, 600),
+('boss_patchwerk', 26662, 360),
+('boss_patchwerk_40', 26662, 420),
+('boss_prince_keleseth_icc', 26662, 600),
+('boss_prince_taldaram_icc', 26662, 600),
+('boss_prince_valanar_icc', 26662, 600),
+('boss_professor_putricide', 47008, 600),
+('boss_razorscale', 47008, 600),
+('boss_runemaster_molgeim', 47008, 900),
+('boss_sacrolash', 46587, 360),
+('boss_sapphiron', 26662, 900),
+('boss_sapphiron_40', 26662, 900),
+('boss_sartharion', 56916, 900),
+('boss_sartura', 27680, 600),
+('boss_sindragosa', 26662, 600),
+('boss_steelbreaker', 47008, 900),
+('boss_stormcaller_brundir', 47008, 900),
+('boss_terestian_illhoof', 32965, 600),
+('boss_the_lich_king', 47008, 900),
+('boss_xt002', 26662, 600);
