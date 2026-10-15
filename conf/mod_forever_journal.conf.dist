@@ -110,3 +110,58 @@ Journal.Collections.ShowUnobtainable = 0
 #
 
 Journal.Quests.Enable = 1
+
+#
+#    Journal.Directory.Enable
+#        Description: The Directory tab: every friendly trainer, flight master, innkeeper, bank,
+#                     auction house, mailbox, vendor and other service on the continents, nearest
+#                     first, flagged on the map. The Town Guide spell and .find open it, and show
+#                     a menu with the same search to characters without the addon. Replaces
+#                     mod-npc-finder: take that module out of the build.
+#        Default:     1
+#
+
+Journal.Directory.Enable = 1
+
+#
+#    Journal.Directory.SpellId
+#        Description: The Town Guide spell (see tools/build_town_guide_patch.py). 0 leaves the
+#                     spell out; .find still works.
+#        Default:     90050
+#
+
+Journal.Directory.SpellId = 90050
+
+#
+#    Journal.Directory.LearnSpell
+#        Description: Teach the Town Guide spell to every character at login (bots excepted).
+#        Default:     1
+#
+
+Journal.Directory.LearnSpell = 1
+
+#
+#    Journal.Directory.MaxResults
+#        Description: Most places one search or category lists (1-200).
+#        Default:     60
+#
+
+Journal.Directory.MaxResults = 60
+
+#
+#    Journal.Directory.ResultsPerPage
+#        Description: Places on one page of the gossip menu (1-25).
+#        Default:     10
+#
+
+Journal.Directory.ResultsPerPage = 10
+
+#
+#    Journal.Directory.SaveZoneData
+#        Description: Most spawns in a stock database have no zone. The first start works them
+#                     out from the map files; with this on they're saved to the creature and
+#                     gameobject tables so later starts read them back.
+#        Default:     1
+#
+
+Journal.Directory.SaveZoneData = 1

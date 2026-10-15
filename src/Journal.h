@@ -15,6 +15,8 @@
  *              profession and world event, as the quest log sorts them
  *   mounts,    every mount, companion pet and toy players can get, and where from: vendors,
  *   pets, toys drops, quests, achievements, crafting, trainers, containers and fishing
+ *   directory  every friendly trainer, flight master, bank, mailbox and other service on the
+ *              continents, nearest first (the Town Guide spell and .find open it)
  *
  * Per player it adds what only the server knows: lockouts, bosses killed this lockout, entry
  * requirements and, with mod-individual-progression, which instances the character's era has
@@ -57,6 +59,13 @@ namespace Journal
         HELLO_LEARNING    = 0x08, // boss abilities grow as bosses are seen casting
         HELLO_COLLECTIONS = 0x10, // C, W, O: mounts, pets and toys
         HELLO_QUESTS      = 0x20, // G, Z, X: every quest of the realm
+        HELLO_DIRECTORY   = 0x40, // N: the town directory, M:N flags a result
+    };
+
+    // What the addon can do, sent as HELLO's second field.
+    enum AddonFeatureFlags : uint32
+    {
+        ADDON_OPEN        = 0x01, // opens a tab when the server sends OPEN:0:<tab>[:<argument>]
     };
 
     // Ability tags (the T field of an A row).
@@ -127,6 +136,7 @@ namespace Journal
         bool collections = true;
         bool showUnobtainable = false;
         bool quests = true;
+        bool directory = true;
     };
 
     Config& GetConfig();
@@ -139,6 +149,10 @@ namespace Journal
     void SendRows(Player* player, std::string const& header, std::vector<std::string> const& rows);
 
     void SendError(Player* player, std::string const& req, std::string_view what);
+
+    // The AddonFeatureFlags the character's addon sent with its last HELLO; 0 before one, and for
+    // bots. Safe from map threads.
+    uint32 AddonFeatures(Player* player);
 
     bool ParseUInt(std::string_view text, uint32& out);
 
@@ -349,6 +363,29 @@ namespace Journal
 
         // A red flag on the quest's giver and "M:<req>:ok:<where>"; false when nobody known gives it.
         bool ShowGiver(Player* player, std::string const& req, uint32 questId);
+    }
+
+    // ---- JournalDirectory.cpp: the town directory ----------------------------------------------
+
+    namespace Directory
+    {
+        // Journal.Directory.*; at startup and on every config reload.
+        void LoadConfig();
+
+        // Reads every service NPC and object spawn. Only from OnStartup: zones the database
+        // doesn't have yet are worked out from the map files.
+        void Build();
+
+        // Turned on and built.
+        bool Ready();
+
+        // N:<req>:<C|P|S>:<value> -> NR, ND rows, NE.
+        void HandleList(Player* player, std::string const& req, std::vector<std::string_view> const& args);
+        // M:<req>:N:<place>:<entry>: a red flag on a result.
+        void HandleMapPin(Player* player, std::string const& req, std::vector<std::string_view> const& args);
+
+        // The Town Guide spell, .find and the menu that stands in for the tab without the addon.
+        void AddScripts();
     }
 }
 

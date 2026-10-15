@@ -8,6 +8,9 @@ An [AzerothCore](https://www.azerothcore.org/) (WotLK 3.3.5a) module and addon t
 - **Quests**: every quest on the realm, under the quest log's headings (zones by continent,
   dungeons, raids, battlegrounds, classes, professions, world events), with your progress on each
   zone, who gives each quest and where, and what it pays.
+- **Directory**: a town guide. Your class trainer, every profession's trainers and every service
+  (flight masters, innkeepers, banks, auction houses, mailboxes, repairs, vendors and more), nearest
+  first, flagged on your map with a click. The **Town Guide** spell and `.find` open it.
 - **Mounts**, **Pets** and **Toys**: everything there is to collect, what you already have, and
   where to get the rest: vendors and their prices, drops with their chances, quests,
   achievements, professions, trainers, containers and fishing.
@@ -15,14 +18,17 @@ An [AzerothCore](https://www.azerothcore.org/) (WotLK 3.3.5a) module and addon t
   hunter **Beasts** field guide and [mod-transmog-plus](https://github.com/buildthehomelab/wow-mod-transmog-plus)'s
   **Appearances** show up here when they're installed.
 
-Open it with **Shift-J**, the minimap button, `/journal`, `/quests`, `/mounts`, `/pets` or `/toys`.
+Open it with **Shift-J**, the minimap button, `/journal`, `/quests`, `/directory`, `/mounts`, `/pets`
+or `/toys`.
 
 Everything comes from your realm's own data, so custom loot, custom mounts and pets,
 mod-individual-progression's vanilla raids and other modules' changes show up as they are on your
 server.
 
 This module used to be **mod-forever-dungeon-journal** with the **DungeonJournal** addon. See
-[Upgrading from mod-forever-dungeon-journal](#upgrading-from-mod-forever-dungeon-journal).
+[Upgrading from mod-forever-dungeon-journal](#upgrading-from-mod-forever-dungeon-journal). The
+Directory replaces [mod-npc-finder](https://github.com/buildthehomelab/wow-mod-npc-finder); see
+[Upgrading from mod-npc-finder](#upgrading-from-mod-npc-finder).
 
 ## Patch Notes: Journal
 
@@ -99,6 +105,31 @@ when something hands it out (a creature or object, some only during their world 
 spell, a script, the Dungeon Finder or the quest before it); disabled quests and quests whose giver
 is never spawned are left out. With mod-individual-progression, quest givers its `npc_ipp_*` and
 `gobject_ipp_*` scripts show only from (or until) a stage lock their quests the same way.
+
+### Directory
+
+On the left: a search box, your class trainer, the everyday services (flight master, innkeeper,
+bank, auction house, mailbox, repairs), **Profession trainers** (every profession, with your own
+rank beside the ones you know) and **More** (riding trainer, weapon master, guild master, tabard
+designer, guild vault, battlemaster, barber, reagents, food and drink, general goods, and for
+hunters and rogues the pet trainer, stable master and poisons).
+
+On the right, everyone who fits: your own continent first, nearest first, each with the zone, map
+coordinates, distance and direction; places on other continents by continent and zone. Profession
+trainers say how far they teach ("up to Artisan"). Click one to flag it on your map and minimap and
+get its directions in chat. **Refresh** works the distances out again from where you stand now. The
+search box finds anyone by name, title or zone (`alchemy trainer`, `bank orgrimmar`, `thrall`):
+every word has to match.
+
+Only what your character can use is listed: nothing hostile to your faction or your reputation,
+holiday NPCs only during their event, phased NPCs only when you can see them, and with
+mod-individual-progression nothing in Outland, on the Isle of Quel'Danas or in Northrend before your
+stage opens it (the blood elf and draenei starting zones are always there). An NPC who stands in
+several spots in one zone (a wandering guard) shows once, at the nearest.
+
+**The Town Guide spell** (taught to every character, in the General tab of the spellbook) opens and
+closes the Directory; `.find` does the same, and `.find <words>` opens it on a search. Characters
+without the addon get a gossip menu with the same search, categories and map flags instead.
 
 ### Mounts, Pets and Toys
 
@@ -185,6 +216,16 @@ raids and dungeons, quests, levels and skills of their criteria and of the achie
 made of). A mount, pet or toy is locked while every source is, and a mount that only flies is never
 open before the Burning Crusade stage.
 
+The **directory** comes from every creature and object spawn on the continents: creatures with a
+service npc flag (vendor, trainer, flight master, innkeeper, banker...), mailboxes, barber chairs
+and guild vaults. Trainers are recognised from the trainer tables: class trainers by the class they
+teach, profession trainers by the skills their spells belong to (and the highest rank they teach),
+weapon masters, riding and pet trainers by theirs. Spawns of holiday events, triggers and
+placeholder creatures are left out. A stock database has no zone for most spawns, so the first
+start works them out from the map files and saves them to `creature` and `gameobject`
+(`Journal.Directory.SaveZoneData`); later starts read them back. Spawns added later with `.npc add`
+show up after a restart.
+
 The addon keeps instance lists, boss lists, loot and the mount, pet and toy lists across sessions
 until the server's data stamp changes; abilities and sources for the session; status, quests and
 toys are asked fresh.
@@ -259,8 +300,9 @@ mod-individual-progression 723c510.
   does nothing without it.
 - [mod-individual-progression](https://github.com/ZhengPeiRu21/mod-individual-progression) is
   optional. With it the journal shows era locks and the 40 player Onyxia and Naxxramas tabs.
-- No client patch. [Portalkeeper](https://github.com/Hisha/Portalkeeper) is optional
-  (`sql/portalkeeper_addon.sql` makes the addon required for players).
+- No client patch, except for the Town Guide spell (see [The Town Guide spell](#the-town-guide-spell)).
+  [Portalkeeper](https://github.com/Hisha/Portalkeeper) is optional (`sql/portalkeeper_addon.sql`
+  makes the addon required for players).
 
 ## Installation
 
@@ -283,7 +325,35 @@ To remove the module, take it out of the build and run
 See `conf/mod_forever_journal.conf.dist`: master switch, rares, learning abilities, era locks,
 the world drop threshold, showing world drops or grey and white items, the quest cap, the
 collections (`Journal.Collections.Enable`), listing unobtainable mounts, pets and toys
-(`Journal.Collections.ShowUnobtainable`) and the Quests tab (`Journal.Quests.Enable`).
+(`Journal.Collections.ShowUnobtainable`), the Quests tab (`Journal.Quests.Enable`) and the
+Directory (`Journal.Directory.*`: on or off, the Town Guide spell and whether it's taught at login,
+how many places a list shows, the gossip menu's page size, saving worked-out zones).
+
+### The Town Guide spell
+
+Town Guide (90050) is a new spell, and the 3.3.5 client only knows spells in its own `Spell.dbc`.
+A patch MPQ replaces the whole file, so the spell has to go into the `Spell.dbc` your realm patch
+already ships. `tools/build_town_guide_patch.py` adds it (Python 3 and
+[StormLib](https://github.com/ladislav-zezula/StormLib)); `patch-P.MPQ` is an example name:
+
+```bash
+python3 tools/build_town_guide_patch.py --from-mpq patch-P.MPQ --out patch-P.MPQ.new
+```
+
+That keeps everything else in the patch and adds spell 90050. If your realm has no patch with a
+`Spell.dbc` yet, start from the client's own (`DBFilesClient\Spell.dbc` from
+`Data/enUS/patch-enUS-3.MPQ`) with `--dbc Spell.dbc --out patch-P.MPQ`. Until players have the
+patch the spell shows up blank in their spellbook; `.find`, `/directory` and the tab work without
+it. If you change the spell in the script, `--from-mpq <patch> --sql` prints the server's row for
+the SQL file.
+
+The spell is instant, targets yourself, costs nothing and has no cooldown beyond the global one.
+It works while mounted, sitting, shapeshifted or stealthed. It's a copy of Blizzard's unused
+"Dummy Spell" (18282) with the INV_Misc_Map_01 icon; casting it does nothing but open the
+Directory. Bots aren't taught it.
+
+IDs: spell 90050 (`spell_dbc` and the client patch), `npc_text` 9500500-9500502 and gossip menu
+9500500 (in code only) for the menu without the addon. They're the ones mod-npc-finder used.
 
 ## Upgrading from mod-forever-dungeon-journal
 
@@ -297,6 +367,15 @@ collections (`Journal.Collections.Enable`), listing unobtainable mounts, pets an
   `DungeonJournal` addon off and moves Shift-J over; delete `Interface/AddOns/DungeonJournal` when
   you like. On Portalkeeper realms, replace the `DungeonJournal` row with the one in
   `sql/portalkeeper_addon.sql`.
+
+## Upgrading from mod-npc-finder
+
+The Directory is mod-npc-finder's town guide, moved into the journal. Take mod-npc-finder out of
+the build (delete `modules/mod-npc-finder` and its `mod_npc_finder.conf`) before you rebuild with
+this version: both register `.find` and the Town Guide spell. Its rows (spell 90050 and the menu
+text) and the zones it saved to `creature` and `gameobject` stay as they are, so there's nothing to
+run against the database and no client patch to change. Its `NpcFinder.*` settings are now
+`Journal.Directory.*`; `NpcFinder.HideLockedContinents` follows `Journal.EraLocks`.
 
 ## Tabs from other addons
 
@@ -325,7 +404,9 @@ interface (1). `Journal.IsTabShown(key)` tells whether the journal is open on a 
 | Command | |
 | --- | --- |
 | `/journal` or `/dj` (Shift-J) | open or close the journal |
-| `/quests`, `/mounts`, `/pets`, `/toys` | open or close the journal on that tab (key bindings too) |
+| `/quests`, `/directory`, `/mounts`, `/pets`, `/toys` | open or close the journal on that tab (key bindings too) |
+| `.find`, the Town Guide spell | open or close the Directory (a gossip menu without the addon) |
+| `.find <words>` | search the Directory by name, title or zone |
 | `/journal <tab>` | open a tab by its key: `dungeons`, `raids`, `quests`, `mounts`, `beasts`... |
 | `/journal <name>` | search dungeons, bosses and loot |
 | `/journal minimap` | show or hide the minimap button |
@@ -339,7 +420,8 @@ and a fake server and walks the home page, era locks, an instance, a boss's abil
 server-written descriptions, notes, role flags, enrage timers and boss rewards), loot and its
 filters (class-only items, tokens and what they turn into), quests, search, the 40 player tab,
 opening inside an instance, the Quests tab (headings, where you are, chains, era locks, search,
-filters), the Mounts, Pets and Toys tabs (sources, map flags, boss links, Summon, filters) and a
+filters), the Directory (categories, professions with your rank, search, map flags, the Town
+Guide's OPEN message and `.find <words>`), the Mounts, Pets and Toys tabs (sources, map flags, boss links, Summon, filters) and a
 tab registered by another addon.
 `DRAGON=1` runs it with a DragonUI stand-in.
 
@@ -358,6 +440,14 @@ tab registered by another addon.
 - **A boss with a C++ script shows no abilities:** run `tools/extract_script_spells.py` against
   your core and modules to regenerate the script spell SQL. Abilities are also learned as bosses
   are seen casting them.
+- **The Town Guide spell is blank in the spellbook:** the client only knows spells in its own
+  `Spell.dbc`, so players need the client patch (see [The Town Guide spell](#the-town-guide-spell)).
+  `.find` and `/directory` work without it.
+- **The Town Guide opens a menu instead of the Directory:** the addon tells the server it can open
+  the tab a few seconds after login; until then, and without the addon, you get the menu.
+- **An NPC is missing from the Directory:** the spawn list is read once at startup (restart after
+  `.npc add`), and the Directory leaves out anyone hostile to you, holiday NPCs outside their event
+  and places your progression stage hasn't opened.
 - **No 40 player tabs or era locks:** they need mod-individual-progression with
   `IndividualProgression.Enable = 1`.
 

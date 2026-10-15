@@ -6,7 +6,7 @@
  * prefix and a tab. Rows inside a field are separated by ';' and their values by ','. List
  * answers come as "<X>R" (meta), any number of "<X>D" (rows) and "<X>E" (end).
  *
- *   HELLO:<req>:<protocol>            -> HELLO:<req>:<version>:<flags>:<stamp>:<era state>
+ *   HELLO:<req>:<protocol>[:<addon features>] -> HELLO:<req>:<version>:<flags>:<stamp>:<era state>
  *   D:<req>                           -> DR:<req>:<instances>, DD rows (I/W/V), DE
  *   B:<req>:<instance>                -> BR, BD rows, BE        bosses
  *   S:<req>:<instance>                -> SR, SD rows (V/R), SE   lockouts, era locks, requirements
@@ -25,10 +25,15 @@
  *   G:<req>                           -> GR, GD rows, GE        quest headings, with the player's counts
  *   Z:<req>:<heading>                 -> ZR, ZD rows (Q/R), ZE  every quest under a heading
  *   X:<req>:<text>                    -> XR, XD rows (C/Q/R), XE  quests by name
+ *   N:<req>:<C|P|S>:<value>           -> NR, ND rows, NE        the town directory
+ *   M:<req>:N:<place>:<entry>         -> M:<req>:ok:<where>     flags a directory result
+ *
+ * The server sends one message unasked: OPEN:0:<tab>[:<argument>] opens one of the addon's tabs
+ * (the Town Guide spell and .find), only to addons whose HELLO said they can (ADDON_OPEN).
  *
  * Addon messages arrive as CMSG_MESSAGECHAT on the world thread, so requests are answered
  * straight from the hook. The rows are documented beside their handlers (JournalIndex.cpp,
- * JournalCollections.cpp and JournalQuests.cpp).
+ * JournalCollections.cpp, JournalQuests.cpp and JournalDirectory.cpp).
  */
 
 #include "Journal.h"
@@ -45,6 +50,7 @@
 #include "WorldSession.h"
 #include <algorithm>
 #include <charconv>
+#include <mutex>
 #include <unordered_map>
 
 namespace Journal
@@ -66,6 +72,10 @@ namespace Journal
 
         std::unordered_map<ObjectGuid::LowType, SessionState> sSessions;
 
+        // Written from HELLO (world thread), read when the Town Guide is cast (map threads).
+        std::mutex sFeaturesLock;
+        std::unordered_map<ObjectGuid::LowType, uint32> sFeatures;
+
         constexpr uint32 IP_PROGRESSION_QUEST_BASE = 66000;
         constexpr uint8 IP_STATE_MAX = 18;
     }
@@ -73,6 +83,13 @@ namespace Journal
     Config& GetConfig()
     {
         return sConfig;
+    }
+
+    uint32 AddonFeatures(Player* player)
+    {
+        std::lock_guard<std::mutex> lock(sFeaturesLock);
+        auto itr = sFeatures.find(player->GetGUID().GetCounter());
+        return itr != sFeatures.end() ? itr->second : 0;
     }
 
     void Send(Player* player, std::string const& payload)
@@ -174,6 +191,7 @@ namespace Journal
             sConfig.enabled = sConfigMgr->GetOption<bool>("Journal.Enable", true);
             sConfig.learnAbilities = sConfigMgr->GetOption<bool>("Journal.LearnAbilities", true);
             sConfig.maxQuestsPerInstance = std::clamp<uint32>(sConfigMgr->GetOption<uint32>("Journal.MaxQuestsPerInstance", 60), 5, 200);
+            Directory::LoadConfig();
             if (reload)
                 return;
             sConfig.collections = sConfigMgr->GetOption<bool>("Journal.Collections.Enable", true);
@@ -201,8 +219,17 @@ namespace Journal
             return true;
         }
 
-        void HandleHello(Player* player, std::string const& req)
+        void HandleHello(Player* player, std::string const& req, std::vector<std::string_view> const& args)
         {
+            // Older addons send no features; a later HELLO (a UI reload) replaces what was sent.
+            uint32 features = 0;
+            if (args.size() > 3)
+                ParseUInt(args[3], features);
+            {
+                std::lock_guard<std::mutex> lock(sFeaturesLock);
+                sFeatures[player->GetGUID().GetCounter()] = features;
+            }
+
             uint32 flags = HELLO_JOURNAL | HELLO_MAP_PINS;
             if (sConfig.progressionEnabled && sConfig.eraLocks)
                 flags |= HELLO_PROGRESSION;
@@ -212,6 +239,8 @@ namespace Journal
                 flags |= HELLO_COLLECTIONS;
             if (sConfig.quests)
                 flags |= HELLO_QUESTS;
+            if (Directory::Ready())
+                flags |= HELLO_DIRECTORY;
             Send(player, "HELLO:" + req + ":" + std::to_string(PROTOCOL_VERSION) + ":" + std::to_string(flags)
                 + ":" + std::to_string(Index::Stamp()) + ":" + std::to_string(ProgressionState(player)));
         }
@@ -244,7 +273,7 @@ namespace Journal
             // Every heading, and the longest headings' quests.
             if (command == "G" || command == "Z")
                 return 4.0f;
-            if (command == "L" || command == "Q" || command == "F" || command == "K" || command == "X")
+            if (command == "L" || command == "Q" || command == "F" || command == "K" || command == "X" || command == "N")
                 return 2.0f;
             return 1.0f;
         }
@@ -260,7 +289,7 @@ namespace Journal
 
             if (command == "HELLO")
             {
-                HandleHello(player, req);
+                HandleHello(player, req, args);
                 return;
             }
 
@@ -288,6 +317,8 @@ namespace Journal
                 Index::HandleQuestDetail(player, req, args);
             else if (command == "H")
                 Index::HandleHere(player, req);
+            else if (command == "M" && args.size() > 2 && args[2] == "N")
+                Directory::HandleMapPin(player, req, args);
             else if (command == "M")
                 Index::HandleMapPin(player, req, args);
             else if (command == "F")
@@ -304,6 +335,8 @@ namespace Journal
                 Quests::HandleCategory(player, req, args);
             else if (command == "X" && sConfig.quests)
                 Quests::HandleSearch(player, req, args);
+            else if (command == "N" && Directory::Ready())
+                Directory::HandleList(player, req, args);
             else
                 SendError(player, req, "unknown");
         }
@@ -344,6 +377,8 @@ public:
     void OnPlayerLogout(Player* player) override
     {
         sSessions.erase(player->GetGUID().GetCounter());
+        std::lock_guard<std::mutex> lock(sFeaturesLock);
+        sFeatures.erase(player->GetGUID().GetCounter());
     }
 };
 
@@ -367,6 +402,8 @@ public:
         Index::Build();
         if (GetConfig().quests)
             Quests::Build();
+        if (GetConfig().directory)
+            Directory::Build();
     }
 };
 
@@ -390,4 +427,5 @@ void AddJournalScripts()
     new JournalPlayerScript();
     new JournalWorldScript();
     new JournalSpellScript();
+    Directory::AddScripts();
 }
