@@ -179,16 +179,30 @@ namespace Journal
         {
             uint32 instance = 0;  // journal instance id
             uint32 boss = 0;      // boss key, 0 = the instance itself
-            uint8 reqState = 0;   // the era state the instance opens at
+            uint8 reqState = 0;   // the era state it opens at: the most open of its tabs
+            uint8 variant = 255;  // the first difficulty tab it is on, 255 = no particular one
+            std::string label;    // those tabs ("Heroic", "25 Player"), empty when it is on all of them
             std::string name;     // the instance's name
         };
 
-        // The journal boss a creature (any difficulty entry) is, or the boss whose chest an object is.
+        // The journal boss a creature is, and the difficulty tabs on which the boss is fought as
+        // exactly this creature entry (a heroic entry is only on the heroic tabs; 40 player
+        // Onyxia's own creature only on its tab), or the boss whose chest an object is, and the
+        // tabs the chest is opened on.
         bool FindBossOf(uint32 creatureEntry, Place& out);
         bool FindBossOfChest(uint32 objectEntry, Place& out);
 
         // The journal instance on a map.
         bool FindInstanceOnMap(uint32 map, Place& out);
+
+        // The era state a map opens at, by the map alone: Outland (without the blood elf and
+        // draenei zones, which need a spot) and Northrend, and instances by their own expansion
+        // and mod-individual-progression's raid stages. 0 without era locks.
+        uint8 MapEra(uint32 map);
+
+        // A boss of the journal, or a creature anything summons (spells, SmartAI, boss scripts,
+        // summon groups, scripts): a creature that can be met without a spawn of its own.
+        bool IsSummonable(uint32 creatureEntry);
     }
 
     // ---- JournalLoot.cpp: loot tables and drop chances ------------------------------------------
@@ -268,6 +282,7 @@ namespace Journal
 
         void HandleCatalog(Player* player, std::string const& req, std::vector<std::string_view> const& args);
         void HandleSources(Player* player, std::string const& req, std::vector<std::string_view> const& args);
+        // O:<req> -> OR, OD rows "<item>,<in bags 0/1>", OE: toys in the bags (usable) or bank.
         void HandleOwnedToys(Player* player, std::string const& req);
         // M:<req>:S:<kind>:<id>:<source>: a red flag on a source.
         void HandleMapPin(Player* player, std::string const& req, std::vector<std::string_view> const& args);

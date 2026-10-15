@@ -33,6 +33,7 @@
 #include "QuestDef.h"
 #include "ScriptMgr.h"
 #include "SpellInfo.h"
+#include "SpellMgr.h"
 #include "StringFormat.h"
 #include "World.h"
 #include "WorldPacket.h"
@@ -185,6 +186,12 @@ namespace Journal::Index
             std::unordered_set<uint32> learnable;                // base entries whose casts are remembered
             std::unordered_set<uint32> journalMaps;
             std::vector<SearchItem> search;
+            std::unordered_set<uint32> summonable;               // filled on first IsSummonable
+            bool summonableRead = false;
+            // creature entry -> (instance, boss) indexes of the bosses fought as it on some tab,
+            // and base entry -> the bosses it is one of; filled on first FindBossOf
+            std::unordered_map<uint32, std::vector<std::pair<std::size_t, std::size_t>>> fought, members;
+            bool foughtRead = false;
             uint32 stamp = 0;
         };
 
@@ -1191,19 +1198,102 @@ namespace Journal::Index
         return out.empty() ? "-" : out;
     }
 
+    namespace
+    {
+        // Fills a place with the boss and the tabs `on` picks out of the ones the boss is on.
+        template <class On>
+        bool PlaceOnTabs(Instance const& inst, Boss const& b, On&& on, Place& out)
+        {
+            uint8 need = 255;
+            uint8 first = 255;
+            std::size_t matched = 0;
+            std::size_t total = 0;
+            std::string labels;
+            for (Variant const& v : inst.variants)
+            {
+                if (!BossOnVariant(b, v))
+                    continue;
+                ++total;
+                if (!on(v))
+                    continue;
+                ++matched;
+                need = std::min(need, v.reqState);
+                if (first == 255)
+                    first = v.id;
+                if (!labels.empty())
+                    labels += ", ";
+                labels += v.label;
+            }
+            if (!matched)
+                return false;
+            out.instance = inst.id;
+            out.boss = b.key;
+            out.name = inst.name;
+            out.reqState = need;
+            out.variant = first;
+            out.label = matched < total ? labels : std::string();
+            return true;
+        }
+    }
+
     bool FindBossOf(uint32 creatureEntry, Place& out)
     {
-        uint32 base = BaseEntry(creatureEntry);
-        for (Instance const& inst : sData.instances)
-            for (Boss const& b : inst.bosses)
-                if (std::find(b.creatures.begin(), b.creatures.end(), base) != b.creatures.end())
+        // creature entry -> (instance, boss) whose tabs fight it, and base entry -> its bosses;
+        // worked out on the first call (the collections ask for thousands of creatures).
+        auto& fought = sData.fought;
+        auto& members = sData.members;
+        if (!sData.foughtRead)
+        {
+            sData.foughtRead = true;
+            for (std::size_t i = 0; i < sData.instances.size(); ++i)
+            {
+                Instance const& inst = sData.instances[i];
+                bool raid = IsRaidMap(inst.map);
+                for (std::size_t bi = 0; bi < inst.bosses.size(); ++bi)
                 {
-                    FindInstanceOnMap(inst.map, out);
-                    out.instance = inst.id;
-                    out.boss = b.key;
-                    return true;
+                    Boss const& b = inst.bosses[bi];
+                    std::unordered_set<uint32> entries;
+                    for (Variant const& v : inst.variants)
+                        for (uint32 c : b.creatures)
+                            if (CreatureTemplate const* t = TemplateFor(SwapOf(v, c), v.difficulty, raid))
+                                entries.insert(t->Entry);
+                    for (uint32 e : entries)
+                        fought[e].emplace_back(i, bi);
+                    for (uint32 c : b.creatures)
+                        members[c].emplace_back(i, bi);
                 }
-        return false;
+            }
+        }
+
+        // The tabs on which the boss is fought as exactly this creature, the way the loot tab
+        // picks the creature (variant swaps, difficulty entries, heroic fallbacks).
+        if (auto itr = fought.find(creatureEntry); itr != fought.end())
+            for (auto const& [i, bi] : itr->second)
+            {
+                Instance const& inst = sData.instances[i];
+                Boss const& b = inst.bosses[bi];
+                bool raid = IsRaidMap(inst.map);
+                bool placed = PlaceOnTabs(inst, b, [&](Variant const& v)
+                {
+                    for (uint32 c : b.creatures)
+                        if (CreatureTemplate const* t = TemplateFor(SwapOf(v, c), v.difficulty, raid))
+                            if (t->Entry == creatureEntry)
+                                return true;
+                    return false;
+                }, out);
+                if (placed)
+                    return true;
+            }
+
+        // One of a boss's creatures, but no tab fights it as this entry: the instance's era.
+        auto itr = members.find(BaseEntry(creatureEntry));
+        if (itr == members.end() || itr->second.empty())
+            return false;
+        Instance const& inst = sData.instances[itr->second.front().first];
+        FindInstanceOnMap(inst.map, out);
+        out.instance = inst.id;
+        out.boss = inst.bosses[itr->second.front().second].key;
+        return true;
     }
 
     bool FindBossOfChest(uint32 objectEntry, Place& out)
@@ -1213,12 +1303,67 @@ namespace Journal::Index
                 for (Chest const& c : b.chests)
                     if (c.entry == objectEntry)
                     {
-                        FindInstanceOnMap(inst.map, out);
-                        out.instance = inst.id;
-                        out.boss = b.key;
-                        return true;
+                        // As the loot tab opens it: on its difficulty, or on every tab.
+                        bool placed = PlaceOnTabs(inst, b, [&](Variant const& v)
+                        {
+                            return c.difficulty == DIFFICULTY_ANY || c.difficulty == v.difficulty;
+                        }, out);
+                        if (placed)
+                            return true;
                     }
         return false;
+    }
+
+    uint8 MapEra(uint32 map)
+    {
+        Config const& config = GetConfig();
+        if (!config.progressionEnabled || !config.eraLocks)
+            return 0;
+        if (map == 530)
+            return IP_TBC;
+        if (map == 571 || map == 609)
+            return IP_WOTLK;
+        MapEntry const* entry = sMapStore.LookupEntry(map);
+        if (!entry || !entry->Instanceable())
+            return 0;
+        return EraRequirement(map, uint8(std::min<uint32>(entry->Expansion(), 2)));
+    }
+
+    bool IsSummonable(uint32 creatureEntry)
+    {
+        if (!sData.summonableRead)
+        {
+            sData.summonableRead = true;
+            std::unordered_set<uint32>& set = sData.summonable;
+            for (Instance const& inst : sData.instances)
+                for (Boss const& b : inst.bosses)
+                    for (uint32 c : b.creatures)
+                    {
+                        set.insert(c);
+                        for (Variant const& v : inst.variants)
+                            set.insert(SwapOf(v, c));
+                        for (uint32 s : Abilities::Summons(c))
+                            set.insert(s);
+                    }
+            for (uint32 i = 0; i < sSpellMgr->GetSpellInfoStoreSize(); ++i)
+                if (SpellInfo const* spell = sSpellMgr->GetSpellInfo(i))
+                    for (SpellEffectInfo const& eff : spell->Effects)
+                        if ((eff.Effect == SPELL_EFFECT_SUMMON || eff.Effect == SPELL_EFFECT_SUMMON_PET) && eff.MiscValue > 0)
+                            set.insert(uint32(eff.MiscValue));
+            // SmartAI summons (action 12), boss script summons, summon groups and script commands.
+            for (char const* query : {
+                "SELECT CAST(action_param1 AS UNSIGNED) FROM smart_scripts WHERE action_type = 12",
+                "SELECT CAST(Value AS UNSIGNED) FROM mod_forever_journal_script_spell WHERE Kind = 1",
+                "SELECT CAST(entry AS UNSIGNED) FROM creature_summon_groups",
+                "SELECT CAST(datalong AS UNSIGNED) FROM event_scripts WHERE command = 10",
+                "SELECT CAST(datalong AS UNSIGNED) FROM waypoint_scripts WHERE command = 10" })
+                if (QueryResult result = WorldDatabase.Query(query))
+                    do
+                    {
+                        set.insert(uint32(result->Fetch()[0].Get<uint64>()));
+                    } while (result->NextRow());
+        }
+        return sData.summonable.count(creatureEntry) || sData.summonable.count(BaseEntry(creatureEntry));
     }
 
     bool FindInstanceOnMap(uint32 map, Place& out)

@@ -79,10 +79,12 @@ local function describe(s)
 		title = (s.instance and s.instance > 0 and s.boss and s.boss > 0 and "Boss: " or "Drop: ") .. s.name
 			.. (s.rare and " |cffc0c0c0(Rare)|r" or "")
 		if s.instance and s.instance > 0 then icon = BOSS_ICON end
-		detail = (s.where ~= "" and (s.where .. " - ") or "") .. (chance or "")
+		detail = (s.where ~= "" and (s.where .. " - ") or "") .. (s.tabs and s.tabs ~= "" and ("|cffffd200" .. s.tabs .. "|r - ") or "")
+			.. (chance or "")
 	elseif s.kind == "G" then
 		title = "Chest: " .. s.name
-		detail = (s.where ~= "" and (s.where .. " - ") or "") .. (chance or "")
+		detail = (s.where ~= "" and (s.where .. " - ") or "") .. (s.tabs and s.tabs ~= "" and ("|cffffd200" .. s.tabs .. "|r - ") or "")
+			.. (chance or "")
 	elseif s.kind == "P" then
 		title = "Pickpocket: " .. s.name
 		detail = (s.where ~= "" and (s.where .. " - ") or "") .. (chance or "")
@@ -115,7 +117,19 @@ local function describe(s)
 	elseif s.kind == "C" then
 		local recipe, _, spellIcon = GetSpellInfo(s.spell)
 		title = "Profession: " .. s.name .. (s.rank and s.rank > 0 and (" (" .. s.rank .. ")") or "")
-		detail = recipe
+		local bits = { recipe }
+		if s.recipe then
+			local name = GetItemInfo(s.recipe)
+			if not name then J.QueryItem(s.recipe) end
+			table.insert(bits, "from " .. (name or "a recipe"))
+		elseif recipe then
+			table.insert(bits, "from a trainer")
+		end
+		if s.reqSpell then
+			local spec = GetSpellInfo(s.reqSpell)
+			if spec then table.insert(bits, "|cffff8020needs " .. spec .. "|r") end
+		end
+		detail = table.concat(bits, " - ")
 		icon = spellIcon or "Interface\\Icons\\Trade_Engineering"
 	elseif s.kind == "T" then
 		local cls = className(s.class)
@@ -423,13 +437,17 @@ local function buildTab(kind, panel)
 	local function syncUse()
 		if not use or InCombatLockdown() then return end
 		local e = state.selected
-		if e and e.mine and panel:IsVisible() and right:IsVisible() then
+		if e and e.mine and J.ToyInBags(e) and panel:IsVisible() and right:IsVisible() then
 			use:SetAttribute("item", "item:" .. e.id)
+			-- A trinket (Orb of Deception) is put on first: using it from the bags equips it.
+			local equip = IsEquippableItem and IsEquippableItem(e.id) and not (IsEquippedItem and IsEquippedItem(e.id))
+			use:SetText(equip and "Equip" or "Use")
 			use:ClearAllPoints()
 			use:SetPoint("BOTTOMRIGHT", model, "BOTTOMRIGHT", -6, 6)
 			use:Show()
 		else
 			use:Hide()
+			use:ClearAllPoints()
 		end
 	end
 	if kind == "toys" then
@@ -444,8 +462,15 @@ local function buildTab(kind, panel)
 		combat:RegisterEvent("PLAYER_REGEN_DISABLED")
 		combat:RegisterEvent("PLAYER_REGEN_ENABLED")
 		combat:SetScript("OnEvent", function (self, event)
-			-- REGEN_DISABLED comes just before the lockdown starts: the last chance to hide it.
-			if event == "PLAYER_REGEN_DISABLED" then use:Hide() else syncUse() end
+			-- REGEN_DISABLED comes just before the lockdown starts: the last chance to hide it,
+			-- and to let go of the model, so the journal never has a protected frame anchored
+			-- to it while in combat.
+			if event == "PLAYER_REGEN_DISABLED" then
+				use:Hide()
+				use:ClearAllPoints()
+			else
+				syncUse()
+			end
 		end)
 		panel:HookScript("OnHide", syncUse)
 		J.frame:HookScript("OnHide", syncUse)
@@ -492,7 +517,7 @@ local function buildTab(kind, panel)
 			if s.kind == "I" then
 				if J.HandleItemClick(s.item) then return end
 			elseif (s.kind == "D" or s.kind == "G") and s.instance and s.instance > 0 then
-				J.OpenInstance(s.instance, { boss = s.boss and s.boss > 0 and s.boss or nil, tab = "loot" })
+				J.OpenInstance(s.instance, { boss = s.boss and s.boss > 0 and s.boss or nil, tab = "loot", variant = s.variant })
 				return
 			elseif s.kind == "A" then
 				if not AchievementFrame and AchievementFrame_LoadUI then AchievementFrame_LoadUI() end
@@ -515,9 +540,13 @@ local function buildTab(kind, panel)
 			if s.kind == "I" then
 				J.ShowItemTooltip(self, s.item)
 			elseif s.kind == "C" then
-				GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-				GameTooltip:SetHyperlink("spell:" .. s.spell)
-				GameTooltip:Show()
+				if s.recipe then
+					J.ShowItemTooltip(self, s.recipe)
+				else
+					GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+					GameTooltip:SetHyperlink("spell:" .. s.spell)
+					GameTooltip:Show()
+				end
 			elseif s.placed or (s.instance and s.instance > 0) then
 				GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 				GameTooltip:SetText(self.title:GetText() or "")
@@ -578,7 +607,10 @@ local function buildTab(kind, panel)
 		local r, g, b = J.QualityColor(e.quality)
 		title:SetTextColor(r, g, b)
 		local bits = {}
-		if kind == "mounts" then table.insert(bits, band(e.flags, J.ENTRY.FLYING) ~= 0 and "Flying mount" or "Mount") end
+		if kind == "mounts" then
+			local flying, scaling = band(e.flags, J.ENTRY.FLYING) ~= 0, band(e.flags, J.ENTRY.SCALING) ~= 0
+			table.insert(bits, scaling and "Ground and flying mount" or flying and "Flying mount" or "Mount")
+		end
 		if band(e.flags, J.ENTRY.ALLIANCE) ~= 0 then table.insert(bits, "|cff4080ffAlliance only|r") end
 		if band(e.flags, J.ENTRY.HORDE) ~= 0 then table.insert(bits, "|cffff4040Horde only|r") end
 		if band(e.flags, J.ENTRY.CLASS) ~= 0 and e.classMask ~= 0 then
@@ -588,7 +620,11 @@ local function buildTab(kind, panel)
 			end
 			if #names > 0 then table.insert(bits, table.concat(names, ", ") .. " only") end
 		end
-		table.insert(bits, e.mine and "|cff66ff66Collected|r" or "|cff9d9d9dNot collected|r")
+		if e.mine and kind == "toys" and not J.ToyInBags(e) then
+			table.insert(bits, "|cff66ff66Collected|r (in your bank)")
+		else
+			table.insert(bits, e.mine and "|cff66ff66Collected|r" or "|cff9d9d9dNot collected|r")
+		end
 		if J.EntryLocked(e) then table.insert(bits, lockText(e.reqState)) end
 		subtitle:SetText(table.concat(bits, " - "))
 

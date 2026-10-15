@@ -54,6 +54,9 @@ function methods:IsVisible()
 	return true
 end
 function methods:SetText(t) self.__text = t == nil and "" or tostring(t) end
+function methods:SetPoint() self.__points = (rawget(self, "__points") or 0) + 1 end
+function methods:ClearAllPoints() self.__points = 0 end
+function methods:GetNumPoints() return rawget(self, "__points") or 0 end
 function methods:GetText() return self.__text end
 function methods:SetChecked(c) self.__checked = c and 1 or nil end
 function methods:GetChecked() return rawget(self, "__checked") end
@@ -164,6 +167,9 @@ local called
 function CallCompanion(kind, i) called = kind .. ":" .. i; companions[kind][i][5] = true end
 function DismissCompanion(kind) called = "dismiss:" .. kind end
 function IsMounted() return false end
+-- Orb of Deception (1973) is a trinket, not worn.
+function IsEquippableItem(id) return id == 1973 end
+function IsEquippedItem() return false end
 function Dismount() end
 function GetAchievementInfo(id) return id, "Leeroy!", 10, false, nil, nil, nil, "Defeat 50 whelps.", 0, "Interface\\Icons\\A" end
 function GetAddOnInfo(name) if name == "DungeonJournal" then return "DungeonJournal", "Dungeon Journal", "", 1 end end
@@ -368,13 +374,15 @@ local function serve(msg)
 	elseif cmd == "W" then
 		list("W", req, args[3] .. ":" .. args[4] .. ":3", {
 			"V,0,384,1000000,0,0,-,0,1,Katie Hunter,Elwynn Forest,-",
-			"D,1,639,150,6,6,0,1,0,Edwin VanCleef,The Deadmines",
+			"D,1,639,150,6,6,0,1,0,Edwin VanCleef,The Deadmines,0,-",
+			"D,8,15954,100,159,3,0,1,0,Noth the Plaguebringer,Naxxramas,101,40 Player",
 			"Q,2,166,22,9,1,1,The Defias Brotherhood,Gryan Stoutmantle,Westfall",
-			"A,3,1234", "C,4,9999,202,250,Engineering", "T,5,2,20,0,0,1,12,Lord Grayson,Stormwind City",
+			"A,3,1234", "C,4,9999,202,250,Engineering,0,0,0", "T,5,2,20,0,0,1,12,Lord Grayson,Stormwind City",
 			"N,6,Ask a GM%2C nicely.", "+,7,V,3",
 		})
 	elseif cmd == "O" then
-		list("O", req, "1", { "1973" })
+		-- Orb of Deception in the bags, Piccolo of the Flaming Fire only in the bank.
+		list("O", req, "2", { "1973,1", "13379,0" })
 	else
 		print("  !! unknown command " .. cmd)
 	end
@@ -624,6 +632,8 @@ end)
 
 step("mount sources: cost, boss link, quest, achievement, trainer, note, more", function ()
 	assert(textShown("Boss: Edwin VanCleef"), "boss source missing")
+	assert(textShown("40 Player"), "the difficulty a boss drops it on is missing")
+	assert(textShown("from a trainer"), "where a crafted one's recipe comes from is missing")
 	assert(textShown("Quest: The Defias Brotherhood"), "quest source missing")
 	assert(textShown("Achievement: Leeroy!"), "achievement source missing")
 	assert(textShown("Trainer: Paladin trainers") or textShown("Trainer: "), "trainer source missing")
@@ -637,8 +647,8 @@ step("mount sources: cost, boss link, quest, achievement, trainer, note, more", 
 	local boss = find(function (f) return f.__kind == "Button" and rawget(f, "source") and f.source.kind == "D" and f:IsVisible() end)
 	boss.__scripts.OnClick(boss)
 	tick(1)
-	assert(J.view.section == "dungeons" and J.view.instance == 6 and J.view.boss == 6 and J.view.tab == "loot",
-		"boss source didn't open the dungeon journal on its loot")
+	assert(J.view.section == "dungeons" and J.view.instance == 6 and J.view.boss == 6 and J.view.tab == "loot"
+		and J.view.variant == 0, "boss source didn't open the dungeon journal on its loot and difficulty")
 end)
 
 step("mounts: summon, filters, search", function ()
@@ -672,14 +682,23 @@ step("pets and toys tabs", function ()
 	tick(1)
 	assert(counts.O and counts.O >= 1, "owned toys not asked")
 	assert(textShown("^Orb of Deception$") and textShown("^Piccolo of the Flaming Fire$"), "toy rows missing")
-	assert(textShown("Collected: |cffffffff1|r / 2"), "toy count wrong")
-	assert(buttonShown("Use"), "no Use button for an owned toy")
-	local use = buttonShown("Use")
+	assert(textShown("Collected: |cffffffff2|r / 2"), "toy count wrong (a toy in the bank is collected too)")
+	local orb = find(function (f) return f.__kind == "Button" and type(rawget(f, "entry")) == "table" and f.entry.id == 1973 and f:IsVisible() end)
+	orb.__scripts.OnClick(orb)
+	tick(0.2)
+	assert(buttonShown("Equip"), "no Equip button for a trinket toy in the bags")
+	local use = buttonShown("Equip")
 	assert(use:GetParent() == UIParent, "the secure Use button must not sit inside the journal")
 	fire("PLAYER_REGEN_DISABLED")
-	assert(not buttonShown("Use"), "Use button not hidden going into combat")
+	assert(not buttonShown("Equip"), "Use button not hidden going into combat")
+	assert(use:GetNumPoints() == 0, "the hidden Use button still anchored to the journal in combat")
 	fire("PLAYER_REGEN_ENABLED")
-	assert(buttonShown("Use"), "Use button not back after combat")
+	assert(buttonShown("Equip"), "Use button not back after combat")
+	local piccolo = find(function (f) return f.__kind == "Button" and type(rawget(f, "entry")) == "table" and f.entry.id == 13379 and f:IsVisible() end)
+	piccolo.__scripts.OnClick(piccolo)
+	tick(0.2)
+	assert(not buttonShown("Use") and not buttonShown("Equip"), "a Use button for a toy in the bank")
+	assert(textShown("in your bank"), "a toy in the bank isn't said to be there")
 end)
 
 step("another addon's tab", function ()
