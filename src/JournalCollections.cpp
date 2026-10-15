@@ -1696,6 +1696,11 @@ namespace Journal::Collections
         return Fnv(seed, sData.hash);
     }
 
+    uint8 ZoneEra(uint32 map, uint32 zone)
+    {
+        return WorldEra(map, zone);
+    }
+
     // ---- requests -------------------------------------------------------------------------------
 
     namespace

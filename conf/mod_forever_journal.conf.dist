@@ -6,10 +6,11 @@
 # Server half of the retail-style Journal addon. Its Dungeons and Raids tabs show every dungeon
 # and raid with its bosses, their abilities, loot with drop chances and the instance's quests,
 # plus the player's lockouts and entry requirements. Its Mounts, Pets and Toys tabs show every
-# collectible and where it comes from. All of it is read from this realm's own data.
+# collectible and where it comes from. Its Quests tab lists every quest of the realm by zone,
+# class, profession and world event. All of it is read from this realm's own data.
 #
-# The journal is built once at startup. Changes to Rares, EraLocks, the Loot.* and the
-# Collections.* options take effect after a restart, not after .reload config.
+# The journal is built once at startup. Changes to Rares, EraLocks, the Loot.*, Collections.*
+# and Quests.* options take effect after a restart, not after .reload config.
 ########################################
 
 #
@@ -100,3 +101,12 @@ Journal.Collections.Enable = 1
 #
 
 Journal.Collections.ShowUnobtainable = 0
+
+#
+#    Journal.Quests.Enable
+#        Description: The Quests tab: every quest characters can be given, under the quest log's
+#                     headings, with each character's progress and who gives the quest where.
+#        Default:     1
+#
+
+Journal.Quests.Enable = 1

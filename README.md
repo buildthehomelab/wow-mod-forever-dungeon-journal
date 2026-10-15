@@ -5,6 +5,9 @@ An [AzerothCore](https://www.azerothcore.org/) (WotLK 3.3.5a) module and addon t
 
 - **Dungeons** and **Raids**: every instance with its bosses, their abilities, the loot they drop
   with drop chances, and the instance's quests with your own progress on them.
+- **Quests**: every quest on the realm, under the quest log's headings (zones by continent,
+  dungeons, raids, battlegrounds, classes, professions, world events), with your progress on each
+  zone, who gives each quest and where, and what it pays.
 - **Mounts**, **Pets** and **Toys**: everything there is to collect, what you already have, and
   where to get the rest: vendors and their prices, drops with their chances, quests,
   achievements, professions, trainers, containers and fishing.
@@ -12,7 +15,7 @@ An [AzerothCore](https://www.azerothcore.org/) (WotLK 3.3.5a) module and addon t
   hunter **Beasts** field guide and [mod-transmog-plus](https://github.com/buildthehomelab/wow-mod-transmog-plus)'s
   **Appearances** show up here when they're installed.
 
-Open it with **Shift-J**, the minimap button, `/journal`, `/mounts`, `/pets` or `/toys`.
+Open it with **Shift-J**, the minimap button, `/journal`, `/quests`, `/mounts`, `/pets` or `/toys`.
 
 Everything comes from your realm's own data, so custom loot, custom mounts and pets,
 mod-individual-progression's vanilla raids and other modules' changes show up as they are on your
@@ -68,6 +71,30 @@ rares come last. On the right, the difficulty menu and four tabs:
 mod-individual-progression, **40 player Onyxia and Naxxramas** get tabs of their own under the
 classic raids, while the 10 and 25 player versions stay under Wrath.
 
+### Quests
+
+On the left, every heading the realm's quests are under, grouped like the quest log: Eastern
+Kingdoms, Kalimdor, Outland and Northrend zones (in levelling order, with their level range),
+Dungeons, Raids, Battlegrounds, Classes, Professions, World Events and Other. Each shows how many
+of its quests you've done and the groups add them up. Repeatable quests aren't counted, a choice
+between alternatives counts once, and breadcrumbs you've gone past and quests your stage no longer
+offers drop out of the count. Headings
+your progression stage hasn't opened carry a lock. The journal opens on the zone you're in.
+
+On the right, the heading's quests, chains together in the order they're done ("Part 3"), with
+the same rows as an instance's Quests tab: your status (available, in your log, ready to turn in,
+done, level too low, needs an earlier quest, later progression stage), who gives it and where when
+that's somewhere else, XP and money for your character, and reward items. Click a quest for its
+objectives and a map flag on its giver; Shift-click links it in chat. The search box finds quests
+by name anywhere, each with the heading it's under. The Filter menu hides done quests, quests you
+can't take now, or headings you've finished.
+
+Only quests your race and class can take are listed (game masters see all of them). A quest counts
+when something hands it out (a creature or object, some only during their world event, an item, a
+spell, a script, the Dungeon Finder or the quest before it); disabled quests and quests whose giver
+is never spawned are left out. With mod-individual-progression, quest givers its `npc_ipp_*` and
+`gobject_ipp_*` scripts show only from (or until) a stage lock their quests the same way.
+
 ### Mounts, Pets and Toys
 
 On the left, the list: collected ones first in their quality colour, then the rest greyed out,
@@ -115,6 +142,11 @@ At startup the module builds an index:
 - **quests** sorted under the instance's zone, or asking for creatures or quest drops found only
   there; status per player from the core's own checks, XP including other modules' changes
   (such as mod-forever-dungeon-xp);
+- **every quest** with a giver (`creature_queststarter`, `gameobject_queststarter`, their
+  `game_event_*_quest` holiday versions, quest-starting items, spells, SmartAI, Dungeon Finder
+  rewards, chain follow-ups) under its `QuestSortID` heading: a zone (subzones go to their zone),
+  a sort (class, profession, holiday), or the giver's zone for quests with neither. Chains follow
+  `PrevQuestId` and `RewardNextQuest`;
 - **mounts** from the Mounts skill line (`SkillLineAbility.dbc` 777) plus any mount spell an item,
   trainer or quest teaches; **pets** from the Companion Pets skill line (778) plus any companion
   an item teaches, so custom mounts and pets count too; **toys** from `mod_forever_journal_toy`;
@@ -206,8 +238,8 @@ To remove the module, take it out of the build and run
 
 See `conf/mod_forever_journal.conf.dist`: master switch, rares, learning abilities, era locks,
 the world drop threshold, showing world drops or grey and white items, the quest cap, the
-collections (`Journal.Collections.Enable`) and listing unobtainable mounts, pets and toys
-(`Journal.Collections.ShowUnobtainable`).
+collections (`Journal.Collections.Enable`), listing unobtainable mounts, pets and toys
+(`Journal.Collections.ShowUnobtainable`) and the Quests tab (`Journal.Quests.Enable`).
 
 ## Upgrading from mod-forever-dungeon-journal
 
@@ -249,8 +281,8 @@ interface (1). `Journal.IsTabShown(key)` tells whether the journal is open on a 
 | Command | |
 | --- | --- |
 | `/journal` or `/dj` (Shift-J) | open or close the journal |
-| `/mounts`, `/pets`, `/toys` | open or close the journal on that tab (key bindings too) |
-| `/journal <tab>` | open a tab by its key: `dungeons`, `raids`, `mounts`, `beasts`... |
+| `/quests`, `/mounts`, `/pets`, `/toys` | open or close the journal on that tab (key bindings too) |
+| `/journal <tab>` | open a tab by its key: `dungeons`, `raids`, `quests`, `mounts`, `beasts`... |
 | `/journal <name>` | search dungeons, bosses and loot |
 | `/journal minimap` | show or hide the minimap button |
 | `/journal reset` | move the window back to the middle |
@@ -260,8 +292,9 @@ interface (1). `Journal.IsTabShown(key)` tells whether the journal is open on a 
 
 `lua tools/addon_smoke_test.lua addon/Journal` loads the addon against a stubbed 3.3.5a API
 and a fake server and walks the home page, era locks, an instance, a boss's abilities, loot and
-its filters, quests, search, the 40 player tab, opening inside an instance, the Mounts, Pets and
-Toys tabs (sources, map flags, boss links, Summon, filters) and a tab registered by another addon.
+its filters, quests, search, the 40 player tab, opening inside an instance, the Quests tab
+(headings, where you are, chains, era locks, search, filters), the Mounts, Pets and Toys tabs
+(sources, map flags, boss links, Summon, filters) and a tab registered by another addon.
 `DRAGON=1` runs it with a DragonUI stand-in.
 
 ## Troubleshooting

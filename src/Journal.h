@@ -11,7 +11,8 @@
  *              what bosses are seen casting
  *   loot       creature, gameobject (boss chests) and reference loot templates, with drop chances
  *   quests     quests sorted under the dungeon or asking for its creatures and drops, with the
- *              player's own status and rewards
+ *              player's own status and rewards; and every quest of the realm by zone, class,
+ *              profession and world event, as the quest log sorts them
  *   mounts,    every mount, companion pet and toy players can get, and where from: vendors,
  *   pets, toys drops, quests, achievements, crafting, trainers, containers and fishing
  *
@@ -32,6 +33,7 @@
 #include <vector>
 
 class Player;
+class Quest;
 class Unit;
 class SpellInfo;
 
@@ -54,6 +56,7 @@ namespace Journal
         HELLO_PROGRESSION = 0x04, // mod-individual-progression is on: eras lock instances
         HELLO_LEARNING    = 0x08, // boss abilities grow as bosses are seen casting
         HELLO_COLLECTIONS = 0x10, // C, W, O: mounts, pets and toys
+        HELLO_QUESTS      = 0x20, // G, Z, K: every quest of the realm
     };
 
     // Ability tags (the T field of an A row).
@@ -95,6 +98,7 @@ namespace Journal
         QSTATE_LOW_LEVEL  = 4, // level too low
         QSTATE_PREREQ     = 5, // an earlier quest of the chain first
         QSTATE_LOCKED     = 6, // anything else: reputation, skill, exclusive group, daily done...
+        QSTATE_ERA        = 7, // the character's mod-individual-progression era hasn't reached it
     };
 
     struct Config
@@ -112,6 +116,7 @@ namespace Journal
         uint32 maxQuestsPerInstance = 60;
         bool collections = true;
         bool showUnobtainable = false;
+        bool quests = true;
     };
 
     Config& GetConfig();
@@ -286,6 +291,33 @@ namespace Journal
         void HandleOwnedToys(Player* player, std::string const& req);
         // M:<req>:S:<kind>:<id>:<source>: a red flag on a source.
         void HandleMapPin(Player* player, std::string const& req, std::vector<std::string_view> const& args);
+
+        // The era state a spot on a map opens at: Outland and Northrend by zone (the blood elf
+        // and draenei zones are classic's), instances by their journal tabs. 0 without era locks.
+        uint8 ZoneEra(uint32 map, uint32 zone);
+    }
+
+    // ---- JournalQuests.cpp: every quest, as the quest log sorts them ----------------------------
+
+    namespace Quests
+    {
+        // After the dungeon index: who gives every quest, where, and under which heading.
+        void Build();
+
+        // G:<req> -> GR, GD rows, GE: the headings, with the player's counts.
+        void HandleCategories(Player* player, std::string const& req);
+        // Z:<req>:<category> -> ZR, ZD rows (Q/R), ZE: a heading's quests.
+        void HandleCategory(Player* player, std::string const& req, std::vector<std::string_view> const& args);
+        // K:<req>:<text> -> KR, KD rows (C/Q/R), KE: quests by name.
+        void HandleSearch(Player* player, std::string const& req, std::vector<std::string_view> const& args);
+
+        // The Q and R rows of a quest for the player (see Index::HandleQuests for their fields).
+        // The caller has checked the player's race and class.
+        void AppendRows(Player* player, Quest const* quest, char giverKind, uint32 giverEntry, std::string_view giver,
+            std::string_view where, std::vector<std::string>& rows);
+
+        // A red flag on the quest's giver and "M:<req>:ok:<where>"; false when nobody known gives it.
+        bool ShowGiver(Player* player, std::string const& req, uint32 questId);
     }
 }
 

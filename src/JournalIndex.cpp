@@ -1722,7 +1722,8 @@ namespace Journal::Index
     // ---- Q: quests for an instance, with the player's status ------------------------------------
     //
     // QR:<req>:<instance>:<quests>, then QD rows:
-    //   Q,<quest>,<state>,<level>,<min level>,<flags>,<xp>,<money>,<giver kind C/G/I/->,<giver entry>,<name>,<giver>,<where>
+    //   Q,<quest>,<state>,<level>,<min level>,<flags>,<xp>,<money>,<giver kind C/G/I/->,<giver entry>,<name>,<giver>,<where>,
+    //     <step of its chain, 0 = the first>,<era state>
     //   R,<quest>,<rewards id*n/...>,<choices id*n/...>
     // flags: 1 daily, 2 weekly, 4 repeatable, 8 group/elite, 16 heroic, 32 raid
     void HandleQuests(Player* player, std::string const& req, std::vector<std::string_view> const& args)
@@ -1735,7 +1736,6 @@ namespace Journal::Index
         }
 
         bool gm = player->IsGameMaster();
-        uint32 maxLevel = sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL);
         std::vector<std::string> rows;
         uint32 count = 0;
         for (uint32 questId : inst->quests)
@@ -1748,68 +1748,10 @@ namespace Journal::Index
             if (!gm && (!player->SatisfyQuestRace(q, false) || !player->SatisfyQuestClass(q, false)))
                 continue;
 
-            QuestState state;
-            QuestStatus status = player->GetQuestStatus(questId);
-            if (status == QUEST_STATUS_COMPLETE)
-                state = QSTATE_COMPLETE;
-            else if (status == QUEST_STATUS_INCOMPLETE || status == QUEST_STATUS_FAILED)
-                state = QSTATE_ACTIVE;
-            else if (!q->IsRepeatable() && player->IsQuestRewarded(questId))
-                state = QSTATE_DONE;
-            else if (!player->SatisfyQuestLevel(q, false))
-                state = QSTATE_LOW_LEVEL;
-            else if (!player->SatisfyQuestPreviousQuest(q, false) || !player->SatisfyQuestPrevChain(q, false))
-                state = QSTATE_PREREQ;
-            else if (player->CanTakeQuest(q, false))
-                state = QSTATE_AVAILABLE;
-            else
-                state = QSTATE_LOCKED;
-
-            uint32 flags = 0;
-            if (q->IsDaily())
-                flags |= 1;
-            if (q->IsWeekly())
-                flags |= 2;
-            if (q->IsRepeatable())
-                flags |= 4;
-            switch (q->GetType())
-            {
-                case QUEST_TYPE_ELITE:
-                case QUEST_TYPE_DUNGEON:
-                    flags |= 8;
-                    break;
-                case QUEST_TYPE_HEROIC:
-                    flags |= 8 | 16;
-                    break;
-                case QUEST_TYPE_RAID:
-                case QUEST_TYPE_RAID_10:
-                case QUEST_TYPE_RAID_25:
-                    flags |= 32;
-                    break;
-                default:
-                    break;
-            }
-
-            uint32 xp = 0;
-            int64 money = q->GetRewOrReqMoney(player->GetLevel());
-            if (player->GetLevel() < maxLevel)
-            {
-                xp = player->CalculateQuestRewardXP(q);
-                sScriptMgr->OnPlayerQuestComputeXP(player, q, xp);
-            }
-            else
-                money += q->GetRewMoneyMaxLevel();
-
             Giver giver;
             if (auto g = sData.givers.find(questId); g != sData.givers.end())
                 giver = g->second;
-
-            rows.push_back(Acore::StringFormat("Q,{},{},{},{},{},{},{},{},{},{},{},{}", questId, uint32(state),
-                q->GetQuestLevel() > 0 ? q->GetQuestLevel() : 0, q->GetMinLevel(), flags, xp, money > 0 ? money : 0,
-                giver.kind, giver.entry, Escape(q->GetTitle(), 48), Escape(giver.name, 30), Escape(GiverPlace(giver), 30)));
-            rows.push_back(Acore::StringFormat("R,{},{},{}", questId,
-                ItemList(q->RewardItemId, q->RewardItemIdCount, QUEST_REWARDS_COUNT),
-                ItemList(q->RewardChoiceItemId, q->RewardChoiceItemCount, QUEST_REWARD_CHOICES_COUNT)));
+            Quests::AppendRows(player, q, giver.kind, giver.entry, giver.name, GiverPlace(giver), rows);
             ++count;
         }
         Send(player, "QR:" + req + ":" + std::to_string(inst->id) + ":" + std::to_string(count));
@@ -1957,7 +1899,9 @@ namespace Journal::Index
             auto itr = sData.givers.find(id);
             if (itr == sData.givers.end() || !itr->second.placed)
             {
-                SendError(player, req, "none");
+                // A quest of the Quests tab, outside the dungeon journal.
+                if (!Quests::ShowGiver(player, req, id))
+                    SendError(player, req, "none");
                 return;
             }
             Giver const& g = itr->second;

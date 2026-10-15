@@ -2,6 +2,9 @@
 	<Binding name="JOURNAL_TOGGLE" header="JOURNAL">
 		Journal.Toggle()
 	</Binding>
+	<Binding name="JOURNAL_QUESTS">
+		Journal.ToggleSection("quests")
+	</Binding>
 	<Binding name="JOURNAL_MOUNTS">
 		Journal.ToggleSection("mounts")
 	</Binding>

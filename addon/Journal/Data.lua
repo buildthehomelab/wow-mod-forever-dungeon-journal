@@ -260,35 +260,96 @@ J.On("CACHE_RESET", function () loot = {} ; abilities = {} end)
 -----------------------------------------
 -- quests (fresh)
 
+-- Q and R rows (and the Quests tab's C rows, the heading a search result is under) into quests,
+-- in the order the server sent them.
+local function parseQuests(rows)
+	local list, byId, headingOf = {}, {}, {}
+	local function items(text, into)
+		if type(text) ~= "string" then return end
+		for id, n in text:gmatch("(%d+)%*(%d+)") do table.insert(into, { id = tonumber(id), n = tonumber(n) }) end
+	end
+	for _, r in ipairs(rows) do
+		if r[1] == "Q" then
+			local q = { id = r[2], state = r[3], level = r[4], minLevel = r[5], flags = r[6], xp = r[7], money = r[8],
+				giverKind = r[9], giverEntry = r[10], name = Unescape(tostring(r[11])), giver = Unescape(tostring(r[12] or "-")),
+				where = Unescape(tostring(r[13] or "-")), step = tonumber(r[14]) or 0, era = tonumber(r[15]) or 0,
+				heading = headingOf[r[2]], rewards = {}, choices = {} }
+			byId[q.id] = q
+			table.insert(list, q)
+		elseif r[1] == "R" and byId[r[2]] then
+			items(r[3], byId[r[2]].rewards)
+			items(r[4], byId[r[2]].choices)
+		elseif r[1] == "C" then
+			headingOf[r[2]] = r[3]
+		end
+	end
+	return list
+end
+
 local quests, questsAt = {}, {}
 function J.LoadQuests(inst, done, force)
 	if not force and quests[inst.id] and GetTime() - questsAt[inst.id] < 5 then done(quests[inst.id]) return end
 	fetch("Q" .. inst.id, "Q", { tostring(inst.id) }, function (result)
-		local list, byId = {}, {}
-		for _, r in ipairs(result.rows) do
-			if r[1] == "Q" then
-				local q = { id = r[2], state = r[3], level = r[4], minLevel = r[5], flags = r[6], xp = r[7], money = r[8],
-					giverKind = r[9], giverEntry = r[10], name = Unescape(tostring(r[11])), giver = Unescape(tostring(r[12] or "-")),
-					where = Unescape(tostring(r[13] or "-")), rewards = {}, choices = {} }
-				byId[q.id] = q
-				table.insert(list, q)
-			elseif r[1] == "R" and byId[r[2]] then
-				local function items(text, into)
-					if type(text) ~= "string" then return end
-					for id, n in text:gmatch("(%d+)%*(%d+)") do table.insert(into, { id = tonumber(id), n = tonumber(n) }) end
-				end
-				items(r[3], byId[r[2]].rewards)
-				items(r[4], byId[r[2]].choices)
-			end
-		end
-		return list
+		return parseQuests(result.rows)
 	end, function (list)
 		if list then quests[inst.id], questsAt[inst.id] = list, GetTime() end
 		done(list)
 	end)
 end
 
-J.On("QUESTS_CHANGED", function () for k in pairs(questsAt) do questsAt[k] = 0 end J.Fire("QUESTS_STALE") end)
+-- The Quests tab's headings: { list = { { group, id, total, countable, done, era, low, high, name } }, here = id }.
+local headings, headingsAt
+function J.LoadQuestHeadings(done, force)
+	if not J.Has(J.HELLO_QUESTS) then done(nil) return end
+	if not force and headings and GetTime() - headingsAt < 5 then done(headings) return end
+	fetch("G", "G", nil, function (result)
+		local out = { list = {}, byId = {}, here = tonumber(result.meta[2]) or 0 }
+		for _, r in ipairs(result.rows) do
+			if r[1] == "G" then
+				local h = { group = tostring(r[2]), id = r[3], total = r[4], countable = r[5], done = r[6], era = r[7],
+					low = r[8], high = r[9], name = Unescape(tostring(r[10] or "-")) }
+				table.insert(out.list, h)
+				out.byId[h.id] = h
+			end
+		end
+		return out
+	end, function (out)
+		if out then headings, headingsAt = out, GetTime() end
+		done(out)
+	end)
+end
+
+-- Every quest under a heading (list.total: how many there are, when the server sent fewer).
+local headingQuests, headingQuestsAt = {}, {}
+function J.LoadHeadingQuests(id, done, force)
+	if not J.Has(J.HELLO_QUESTS) then done(nil) return end
+	if not force and headingQuests[id] and GetTime() - headingQuestsAt[id] < 5 then done(headingQuests[id]) return end
+	fetch("Z" .. id, "Z", { tostring(id) }, function (result)
+		local list = parseQuests(result.rows)
+		-- A very long heading is cut short: how many it has.
+		list.total = tonumber(result.meta[3]) or #list
+		return list
+	end, function (list)
+		if list then headingQuests[id], headingQuestsAt[id] = list, GetTime() end
+		done(list)
+	end)
+end
+
+-- Quests by name, each with the heading it's under.
+function J.SearchQuests(text, done)
+	text = (text or ""):gsub("[:;|]", " "):match("^%s*(.-)%s*$")
+	if #text < 3 or not J.Has(J.HELLO_QUESTS) then done(nil) return end
+	fetch("K" .. text:lower(), "K", { text }, function (result)
+		return parseQuests(result.rows)
+	end, done)
+end
+
+J.On("QUESTS_CHANGED", function ()
+	for k in pairs(questsAt) do questsAt[k] = 0 end
+	for k in pairs(headingQuestsAt) do headingQuestsAt[k] = 0 end
+	headingsAt = 0
+	J.Fire("QUESTS_STALE")
+end)
 
 local questDetail = {}
 function J.LoadQuestDetail(quest, done)
