@@ -1783,11 +1783,13 @@ namespace Journal::Index
         for (Pick const& p : picks)
         {
             ItemTemplate const* proto = sObjectMgr->GetItemTemplate(p.drop.item);
-            uint32 flags = p.drop.flags | (Loot::IsToken(p.drop.item) ? uint32(LOOT_TOKEN) : 0u);
+            // A drop only there for a quest is that quest's objective, not a token to trade in.
+            bool token = !(p.drop.flags & LOOT_QUEST) && Loot::IsToken(p.drop.item);
+            uint32 flags = p.drop.flags | (token ? uint32(LOOT_TOKEN) : 0u);
             rows.push_back(Acore::StringFormat("{},{},{},{},{},{},{},{},{},{},{},{},{},{}", p.drop.item,
                 uint32(std::lround(p.drop.chance * 100.0f)), flags, p.drop.minCount, p.drop.maxCount, proto->Quality,
                 proto->Class, proto->SubClass, proto->InventoryType, proto->ItemLevel, proto->RequiredLevel, p.boss,
-                Escape(proto->Name1, 60), Loot::ClassesOf(p.drop.item)));
+                Escape(proto->Name1, 60), Loot::ClassesOf(p.drop.item, token)));
         }
         Send(player, Acore::StringFormat("LR:{}:{}:{}:{}:{}", req, inst->id, all ? std::string("all") : std::to_string(bossKey), v->id, rows.size()));
         SendRows(player, "LD:" + req, rows);

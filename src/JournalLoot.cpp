@@ -579,13 +579,15 @@ namespace Journal::Loot
         return sTokens.count(item) != 0;
     }
 
-    uint32 ClassesOf(uint32 item)
+    uint32 ClassesOf(uint32 item, bool asToken)
     {
         ItemTemplate const* proto = sObjectMgr->GetItemTemplate(item);
         if (!proto)
             return 0;
         if (uint32 own = PlayableClasses(proto->AllowableClass))
             return own;
+        if (!asToken)
+            return 0;
         auto itr = sTokens.find(item);
         if (itr == sTokens.end())
             return 0;

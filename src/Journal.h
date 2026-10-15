@@ -255,9 +255,9 @@ namespace Journal
 
         bool IsToken(uint32 item);
 
-        // The classes (CLASSMASK bits) an item is for: its AllowableClass, or for a token every
-        // class one of its items is for; 0 when any class can use it.
-        uint32 ClassesOf(uint32 item);
+        // The classes (CLASSMASK bits) an item is for: its AllowableClass, or when it is shown as
+        // a token every class one of its items is for; 0 when any class can use it.
+        uint32 ClassesOf(uint32 item, bool asToken);
 
         // K:<req>:<item> -> KR, KD rows, KE: what a token turns into.
         void HandleTokens(Player* player, std::string const& req, std::vector<std::string_view> const& args);

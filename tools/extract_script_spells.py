@@ -26,7 +26,9 @@ It is a heuristic reader, not a C++ parser:
     case casts a spell, or a scheduler Schedule(time, ...) whose task casts one, where the event or
     the spell is called BERSERK or ENRAGE, the time is one fixed value of a minute or more, the
     call is made when the boss is engaged (JustEngagedWith, EnterCombat, Reset or a function they
-    call) and not under an if (heroic only, a hard mode), and the event doesn't repeat. A script with two different timers (a hard mode, a phase) gets
+    call) and not under an if (heroic only, a hard mode), the event doesn't repeat, and nothing
+    outside those functions (or the evade, death and reset hooks) resets, cancels, delays or
+    reschedules it. A script with two different timers (a hard mode, a phase) gets
     none: the journal leaves out what it isn't sure of.
 Spells the server finds to be passive or hidden are dropped again at load time, and the addon
 skips spells without a client description, so a stray hit costs little.
@@ -59,6 +61,13 @@ FUNCTION = re.compile(r"\b(\w+)\s*\([^;{}()]*(?:\([^;{}()]*\)[^;{}()]*)*\)\s*(?:
 NOT_FUNCTIONS = {"if", "for", "while", "switch", "catch", "return", "sizeof"}
 # Events scheduled in Reset only start counting in combat, like those of JustEngagedWith.
 ENGAGE = {"JustEngagedWith", "EnterCombat", "JustEngaged", "Reset"}
+# Where clearing the events can't touch a running enrage timer.
+OUT_OF_FIGHT = {"EnterEvadeMode", "JustDied", "JustReachedHome", "InitializeAI", "Initialize"}
+EVENTS_CLEARED = re.compile(r"\b\w*[eE]vents\s*\.\s*Reset\s*\(\s*\)|\bscheduler\s*\.\s*(?:CancelAll|DelayAll)\s*\(")
+DELAY_EVENTS = re.compile(r"\bDelayEvents\s*\(")
+# Code that ends the fight (the boss is beaten or plays its outro): clearing events there is fine.
+FIGHT_OVER = re.compile(r"damage\s*>=\s*me->GetHealth\(\)|BossState\s*\(\s*\w+\s*,\s*DONE\s*\)|PHASE_OUTRO|"
+                        r"CombatStop\s*\(|FACTION_FRIENDLY|SetIsCombatDisallowed\s*\(\s*true")
 MIN_ENRAGE_SECONDS = 60
 
 REGISTER_AI = re.compile(r"\bRegister\w*CreatureAI\s*\(\s*(\w+)")
@@ -224,12 +233,38 @@ def scan_enrage(body, consts):
                     depth -= 1
         return False
 
-    def on_engage(pos):
+    def function_at(pos):
         inner = None
         for name, (lo, hi) in functions:
             if lo < pos < hi and (inner is None or lo > inner[1]):
                 inner = (name, lo)
+        return inner
+
+    def on_engage(pos):
+        inner = function_at(pos)
         return inner is not None and inner[0] in engage and not conditional(pos, inner[1])
+
+    def in_fight(pos):
+        """Is pos somewhere that runs during the fight (UpdateAI, DoAction, a hook...) and not
+        where it ends?"""
+        inner = function_at(pos)
+        if inner is None:
+            return True
+        return inner[0] not in engage | OUT_OF_FIGHT and not FIGHT_OVER.search(body[inner[1]:pos])
+
+    # Event and task timers go when the fight clears or delays them all: events.Reset() at a phase
+    # change cancels an enrage that never fires (Kel'Thuzad's). ScheduleEnrageTimer's runs on the
+    # creature's own event list, which neither touches.
+    cleared = any(in_fight(m.start()) for m in EVENTS_CLEARED.finditer(body))
+    for m in DELAY_EVENTS.finditer(body):
+        args, _ = call_args(body, m.end() - 1)
+        if in_fight(m.start()) and (len(args) < 2 or args[1] == "0"):
+            cleared = True
+
+    def touched(name, calls):
+        """Does the fight cancel, delay or reschedule this event, task group or event group?"""
+        pattern = r"\b(?:" + calls + r")\s*\(\s*" + re.escape(name) + r"\b"
+        return any(in_fight(m.start()) for m in re.finditer(pattern, body))
 
     def spell_of(arg):
         arg = arg.strip()
@@ -261,14 +296,22 @@ def scan_enrage(body, consts):
             seconds = seconds_of(args[1])
             if spell and seconds and on_engage(m.start()):
                 found.add((spell, seconds))
+        elif cleared:
+            continue
         elif kind == "ScheduleEvent" and len(args) >= 2 and re.match(r"^\w+$", args[0]):
             # A second time is a random range: not one fixed timer.
             fixed = len(args) < 3 or seconds_of(args[2]) is None
+            group = args[2] if len(args) >= 3 and fixed else ""
+            if group and touched(group, "CancelEventGroup|DelayEvents|DelayEventsToMax"):
+                fixed = False
             events.setdefault(args[0], []).append((seconds_of(args[1]) if fixed else None, on_engage(m.start())))
         elif kind == "Schedule" and len(args) >= 2:
             seconds = seconds_of(args[0])
             task = args[-1]
             if seconds is None or "{" not in task or re.search(r"\bRepeat\s*\(", task):
+                continue
+            if len(args) >= 3 and re.match(r"^\w+$", args[1]) and seconds_of(args[1]) is None \
+                    and touched(args[1], "CancelGroup|DelayGroup|RescheduleGroup"):
                 continue
             spells = []
             for line in task.split("\n"):
@@ -281,6 +324,8 @@ def scan_enrage(body, consts):
     for event, sites in events.items():
         delays = set(seconds for seconds, _ in sites)
         if len(delays) != 1 or None in delays or not any(engaged for _, engaged in sites):
+            continue
+        if touched(event, "CancelEvent|RescheduleEvent|DelayEvent"):
             continue
         spells = case_spells(event)
         if not spells:

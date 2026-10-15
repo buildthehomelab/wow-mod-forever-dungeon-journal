@@ -98,6 +98,8 @@ namespace Journal::Abilities
         // Spells whose client tooltip has a description. Read once; when Spell.dbc can't be read
         // every spell counts as described and nothing is written for any.
         std::unordered_set<uint32> sDescribed;
+        // What the server wrote for the others, as requests ask for them.
+        std::unordered_map<uint32, std::string> sTexts;
         bool sDescriptionsRead = false;
         bool sDescriptionsTried = false;
 
@@ -279,19 +281,22 @@ namespace Journal::Abilities
 
         // ---- descriptions for spells the client has none for -----------------------------------
 
-        // Internal helpers, by name: spells without a tooltip named like these are never listed.
+        // Internal helpers, by name: spells without a tooltip with one of these words or phrases
+        // in their name are never listed.
         char const* const HELPER_NAMES[] = { "teleport", "visual", "dummy", "anchor", "ride vehicle", "trigger", "bunny",
-            "clearalldebuffs", "clear all", "clear debuffs", "cosmetic", "freeze anim", "credit", "achievement",
-            "camera shake", "spawn-in", "despawn", "stalker", "dnd", "submerge", "emerge", "transform", "synch health",
-            "sync health", "kill self", "suicide" };
+            "clearall", "clearalldebuffs", "clear all", "clear debuffs", "cosmetic", "freeze anim", "credit", "achievement",
+            "camera shake", "spawn-in", "despawn", "stalker", "dnd", "submerge", "submerged", "emerge", "transform",
+            "synch health", "sync health", "kill self", "suicide" };
 
         bool IsHelperName(std::string_view name)
         {
             std::string lower(name);
             std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c) { return char(std::tolower(c)); });
-            for (char const* helper : HELPER_NAMES)
-                if (lower.find(helper) != std::string::npos)
-                    return true;
+            auto letter = [&](std::size_t at) { return at < lower.size() && std::isalnum(static_cast<unsigned char>(lower[at])); };
+            for (std::string_view helper : HELPER_NAMES)
+                for (std::size_t at = lower.find(helper); at != std::string::npos; at = lower.find(helper, at + 1))
+                    if ((at == 0 || !letter(at - 1)) && !letter(at + helper.size()))
+                        return true; // a whole word: "Kill Credit", not "Discredit"
             return false;
         }
 
@@ -374,6 +379,50 @@ namespace Journal::Abilities
         }
 
         std::string Describe(SpellInfo const* spell, uint32 depth);
+
+        // Harm that a spell aimed at the caster alone does to it (a scripted kill or stun between
+        // phases) says nothing about the fight; its own buffs do.
+        bool IsSelfHarm(SpellEffectInfo const& effect)
+        {
+            if (effect.TargetA.GetTarget() != TARGET_UNIT_CASTER || effect.IsTargetingArea() || effect.IsAreaAuraEffect())
+                return false;
+            switch (effect.Effect)
+            {
+                case SPELL_EFFECT_INSTAKILL:
+                case SPELL_EFFECT_SCHOOL_DAMAGE:
+                case SPELL_EFFECT_ENVIRONMENTAL_DAMAGE:
+                case SPELL_EFFECT_HEALTH_LEECH:
+                case SPELL_EFFECT_POWER_DRAIN:
+                case SPELL_EFFECT_POWER_BURN:
+                case SPELL_EFFECT_KNOCK_BACK:
+                case SPELL_EFFECT_INTERRUPT_CAST:
+                    return true;
+                default:
+                    break;
+            }
+            switch (effect.IsAura() ? effect.ApplyAuraName : SPELL_AURA_NONE)
+            {
+                case SPELL_AURA_PERIODIC_DAMAGE:
+                case SPELL_AURA_PERIODIC_DAMAGE_PERCENT:
+                case SPELL_AURA_PERIODIC_LEECH:
+                case SPELL_AURA_PERIODIC_MANA_LEECH:
+                case SPELL_AURA_POWER_BURN:
+                case SPELL_AURA_MOD_STUN:
+                case SPELL_AURA_MOD_FEAR:
+                case SPELL_AURA_MOD_CONFUSE:
+                case SPELL_AURA_MOD_CHARM:
+                case SPELL_AURA_MOD_POSSESS:
+                case SPELL_AURA_MOD_ROOT:
+                case SPELL_AURA_MOD_SILENCE:
+                case SPELL_AURA_MOD_PACIFY:
+                case SPELL_AURA_MOD_PACIFY_SILENCE:
+                case SPELL_AURA_MOD_DISARM:
+                case SPELL_AURA_MOD_TAUNT:
+                    return true;
+                default:
+                    return false;
+            }
+        }
 
         // What an aura does, without its duration.
         std::string AuraText(SpellInfo const* spell, SpellEffectInfo const& effect, uint32 depth)
@@ -480,6 +529,8 @@ namespace Journal::Abilities
             std::string school = SchoolName(spell->SchoolMask);
             for (SpellEffectInfo const& effect : spell->GetEffects())
             {
+                if (IsSelfHarm(effect))
+                    continue;
                 std::string area = AreaText(effect);
                 switch (effect.Effect)
                 {
@@ -622,10 +673,13 @@ namespace Journal::Abilities
             return mask ? uint8(mask & ALL_DIFFICULTIES) : ALL_DIFFICULTIES;
         }
 
-        // An in-combat timer that fires once, at a fixed time, and casts a Berserk or Enrage.
+        // An in-combat timer of every phase that fires once, at a fixed time, and casts a Berserk
+        // or Enrage.
         void ReadSmartEnrage(CreatureSpells& into, SmartScriptHolder const& holder, uint32 spellId)
         {
-            if (holder.GetEventType() != SMART_EVENT_UPDATE_IC || EventDifficulties(holder) != ALL_DIFFICULTIES)
+            // An event of some phases only counts while the boss is in them, not from the pull.
+            if (holder.GetEventType() != SMART_EVENT_UPDATE_IC || EventDifficulties(holder) != ALL_DIFFICULTIES
+                || holder.event.event_phase_mask)
                 return;
             auto const& timer = holder.event.minMaxRepeat;
             if (timer.min != timer.max || timer.min < MIN_ENRAGE_MS || timer.repeatMin || timer.repeatMax)
@@ -802,6 +856,7 @@ namespace Journal::Abilities
     {
         std::lock_guard<std::mutex> guard(sLock);
         sCreatures.clear();
+        sTexts.clear();
         if (!sDescriptionsTried)
             ReadDescriptions();
 
@@ -824,11 +879,12 @@ namespace Journal::Abilities
                 ++learned;
             } while (result->NextRow());
 
-        // Hand-made additions, after the automatic list.
+        // Hand-made additions, after the automatic list. A spell the creature already has keeps
+        // its difficulties; the row only changes how it shows.
         ReadOverrides();
         for (auto const& [key, o] : sOverrides)
             if (key.first && !o.hide)
-                if (auto itr = sCreatures.find(key.first); itr != sCreatures.end())
+                if (auto itr = sCreatures.find(key.first); itr != sCreatures.end() && !itr->second.seen.count(key.second))
                     AddSpell(itr->second, key.second, ALL_DIFFICULTIES, false, true);
 
         LOG_INFO("server.loading", ">> mod-forever-journal: abilities of {} creatures ({} script names, {} learned, {} overrides)",
@@ -843,8 +899,10 @@ namespace Journal::Abilities
         if (itr == sCreatures.end())
             return out;
 
-        std::unordered_map<std::string, std::size_t> names; // name -> its entry in out
-        std::vector<uint32> order; // Sort, or after every sorted one in list order
+        // Each with its place: its Sort, or after every sorted one in list order.
+        constexpr uint32 UNSORTED = 0x10000;
+        std::vector<std::pair<uint32, Ability>> ranked;
+        std::unordered_map<std::string, std::size_t> names; // name -> its entry in ranked
         for (Known const& k : itr->second.spells)
         {
             if (difficulty < MAX_DIFFICULTY && !(k.difficulties & (1 << difficulty)))
@@ -863,23 +921,26 @@ namespace Journal::Abilities
                 // The client has nothing to show: a helper, or a mechanic it gets a line for.
                 if (!k.forced && IsHelperName(info->SpellName[LOCALE_enUS]))
                     continue;
-                a.text = Describe(info, 0);
+                auto [text, fresh] = sTexts.try_emplace(spellId);
+                if (fresh)
+                    text->second = Describe(info, 0);
+                a.text = text->second;
                 if (a.text.empty() && !k.forced && !(o && !o->note.empty()))
                     continue;
             }
             // Ranks and copies of one ability under the same name show once, with the hand-made
             // changes made to any of them.
-            auto [named, added] = names.emplace(info->SpellName[LOCALE_enUS], out.size());
+            auto [named, added] = names.emplace(info->SpellName[LOCALE_enUS], ranked.size());
             if (!added)
             {
                 if (o)
                 {
-                    Ability& kept = out[named->second];
+                    auto& [rank, kept] = ranked[named->second];
                     kept.tags |= (o->flags << ABILITY_FLAG_SHIFT) & TAG_OVERRIDE_MASK;
                     if (kept.note.empty())
                         kept.note = o->note;
-                    if (o->sort && order[named->second] >= 0x10000u)
-                        order[named->second] = o->sort;
+                    if (o->sort && rank >= UNSORTED)
+                        rank = o->sort;
                 }
                 continue;
             }
@@ -893,19 +954,14 @@ namespace Journal::Abilities
                 a.castMs = uint32(std::max<int32>(0, info->GetMaxDuration()));
             else if (info->CastTimeEntry && info->CastTimeEntry->CastTime > 0)
                 a.castMs = uint32(info->CastTimeEntry->CastTime);
-            order.push_back(o && o->sort ? o->sort : 0x10000u + uint32(out.size()));
-            out.push_back(std::move(a));
+            ranked.emplace_back(o && o->sort ? o->sort : UNSORTED + uint32(ranked.size()), std::move(a));
         }
 
-        std::vector<std::size_t> index(out.size());
-        for (std::size_t i = 0; i < index.size(); ++i)
-            index[i] = i;
-        std::stable_sort(index.begin(), index.end(), [&](std::size_t a, std::size_t b) { return order[a] < order[b]; });
-        std::vector<Ability> sorted;
-        sorted.reserve(out.size());
-        for (std::size_t i : index)
-            sorted.push_back(std::move(out[i]));
-        return sorted;
+        std::stable_sort(ranked.begin(), ranked.end(), [](auto const& a, auto const& b) { return a.first < b.first; });
+        out.reserve(ranked.size());
+        for (auto& [rank, a] : ranked)
+            out.push_back(std::move(a));
+        return out;
     }
 
     bool EnrageOf(uint32 baseEntry, uint8 difficulty, uint32& spell, uint32& seconds)

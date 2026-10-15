@@ -213,8 +213,9 @@ python3 tools/extract_script_spells.py \
 It also writes each script's **enrage timer** to `mod_forever_journal_script_enrage`: a
 `ScheduleEnrageTimer`, a `ScheduleEvent` whose event casts the spell, or a scheduler task that
 casts it, where the event or the spell is called Berserk or Enrage, the time is one fixed value of
-a minute or more, set when the boss is engaged and not under an `if` (heroic only, hard mode), and
-the event doesn't repeat. Scripts with two different timers get none.
+a minute or more, set when the boss is engaged and not under an `if` (heroic only, hard mode), the
+event doesn't repeat, and nothing during the fight resets, cancels, delays or reschedules it.
+Scripts with two different timers get none.
 
 The checked-in file was made from mod-playerbots/azerothcore-wotlk f19a187 and
 mod-individual-progression 723c510.
