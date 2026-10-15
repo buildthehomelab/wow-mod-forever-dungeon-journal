@@ -290,6 +290,12 @@ function J.Unescape(text)
 	return (text:gsub("%%(%x%x)", function (h) return string.char(tonumber(h, 16)) end))
 end
 
+-- A text, or nil when it is empty.
+function J.NonEmpty(text)
+	if text == nil or text == "" then return nil end
+	return text
+end
+
 local function parseRows(text, into)
 	for row in text:gmatch("[^;]+") do
 		local values = {}

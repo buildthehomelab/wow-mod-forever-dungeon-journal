@@ -216,15 +216,15 @@ function J.LoadAbilities(inst, boss, variant, done)
 			elseif r[1] == "S" and byEntry[r[2]] then
 				-- r[6]: the server's description, for a spell whose tooltip has none
 				table.insert(byEntry[r[2]].spells, { spell = r[3], tags = r[4], castMs = r[5],
-					text = r[6] and Unescape(tostring(r[6])) or nil })
+					text = J.NonEmpty(r[6] and Unescape(tostring(r[6]))) })
 			elseif r[1] == "N" and byEntry[r[2]] then
 				for _, s in ipairs(byEntry[r[2]].spells) do
-					if s.spell == r[3] then s.note = Unescape(tostring(r[4] or "-")) end
+					if s.spell == r[3] then s.note = J.NonEmpty(Unescape(tostring(r[4] or "-"))) end
 				end
 			elseif r[1] == "E" and byEntry[r[2]] then
 				byEntry[r[2]].enrage = { spell = r[3], seconds = r[4] }
-			elseif r[1] == "R" then
-				table.insert(units.rewards, Unescape(tostring(r[2] or "-")))
+			elseif r[1] == "R" and J.NonEmpty(Unescape(tostring(r[2] or "-"))) then
+				table.insert(units.rewards, Unescape(tostring(r[2])))
 			end
 		end
 		return units

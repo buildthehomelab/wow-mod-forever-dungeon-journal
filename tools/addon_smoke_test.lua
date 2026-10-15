@@ -252,7 +252,7 @@ function GetItemInfo(item)
 end
 -- 7777 and 8888 have no description in the client: the server writes one.
 local spellNames = { [5145] = "Arcane Explosion", [6432] = "Smite Stomp", [9999] = "Hidden Trigger", [6603] = "Attack",
-	[7777] = "Berserk", [8888] = "Shadow Prison", [7778] = "Hard Enrage",
+	[7777] = "Berserk", [8888] = "Shadow Prison", [7778] = "Hard Enrage", [7779] = "Blank Mechanic",
 	[470] = "Black Stallion", [458] = "Brown Horse", [32244] = "Blue Wind Rider", [10673] = "Bombay Cat", [10674] = "Cornish Rex Cat" }
 function GetSpellInfo(id) return spellNames[id], nil, "Interface\\Icons\\S" end
 function GetSpellLink(id) return "|Hspell:" .. id .. "|h[" .. tostring(spellNames[id]) .. "]|h" end
@@ -340,6 +340,7 @@ local function serve(msg)
 			"U,639,20,3,3500,0,Edwin VanCleef", "E,639,7777,600", "S,639,5145,97,1500", "S,639,9999,0,0",
 			"S,639,7777,16,0,Increases attack speed by 150%25. Lasts 5 min.",
 			"S,639,8888,73728,0,Affects enemies within 28 yards.", "N,639,8888,Spread out%2C or else.",
+			"S,639,7779,0,0,-", "R,-",
 			"U,646,19,1,2000,1,Defias Companion", "E,646,7778,300", "S,646,6432,1024,0",
 			"R,Gives a Defias Coin to everyone in the group.",
 		})
@@ -514,6 +515,7 @@ step("boss: overview, abilities", function ()
 	assert(textShown("^Hard Enrage$") and textShown("Cast 5 min into the fight"), "enrage row for an unlisted spell missing")
 	assert(textShown("^Shadow Prison$") and textShown("Spread out, or else."), "note missing")
 	assert(textShown("Important") and textShown("Tank"), "role flags missing")
+	assert(not textShown("^Blank Mechanic$"), "a spell with an empty server text was listed")
 	local row = find(function (f) return f.__kind == "Button" and rawget(f, "spell") == 7777 and f:IsVisible() end)
 	row.__scripts.OnEnter(row)
 	local found = false

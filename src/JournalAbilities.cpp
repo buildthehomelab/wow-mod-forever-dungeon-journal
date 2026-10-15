@@ -317,9 +317,10 @@ namespace Journal::Abilities
             return trim(ms / 60000.0f) + " min";
         }
 
-        // What an effect's points come to: "500", "6125 to 7875". No thousands separator: the
-        // text travels inside comma separated rows.
-        std::string AmountText(SpellEffectInfo const& effect, bool absolute = false)
+        // What an effect's points come to: "500", "6125 to 7875", or nothing for the 1 point a
+        // scripted spell keeps in its data. No thousands separator: the text travels inside comma
+        // separated rows.
+        std::string AmountText(SpellEffectInfo const& effect)
         {
             int32 lo = effect.BasePoints;
             int32 hi = effect.BasePoints;
@@ -328,14 +329,27 @@ namespace Journal::Abilities
                 lo += std::min(1, effect.DieSides);
                 hi += std::max(1, effect.DieSides);
             }
-            if (absolute)
-            {
-                lo = std::abs(lo);
-                hi = std::abs(hi);
-                if (lo > hi)
-                    std::swap(lo, hi);
-            }
+            if (std::max(std::abs(lo), std::abs(hi)) <= 1)
+                return "";
             return lo == hi ? std::to_string(lo) : Acore::StringFormat("{} to {}", lo, hi);
+        }
+
+        // "Inflicts 500 Fire damage", "Inflicts Fire damage": the words around an amount that may
+        // be missing.
+        std::string AmountPhrase(std::string_view before, SpellEffectInfo const& effect, std::string_view after)
+        {
+            std::string amount = AmountText(effect);
+            std::string out(before);
+            if (!amount.empty())
+                out += " " + amount;
+            if (!after.empty())
+                out += " " + std::string(after);
+            return out;
+        }
+
+        std::string SchoolDamage(std::string const& school)
+        {
+            return school.empty() ? "damage" : school + " damage";
         }
 
         int32 AmountOf(SpellEffectInfo const& effect)
@@ -371,17 +385,17 @@ namespace Journal::Abilities
             switch (effect.ApplyAuraName)
             {
                 case SPELL_AURA_PERIODIC_DAMAGE:
-                    return "Inflicts " + AmountText(effect) + (school.empty() ? "" : " " + school) + " damage" + every + area;
+                    return AmountPhrase("Inflicts", effect, SchoolDamage(school)) + every + area;
                 case SPELL_AURA_PERIODIC_DAMAGE_PERCENT:
                     return Acore::StringFormat("Inflicts {}% of maximum health as{} damage{}{}", amount,
                         school.empty() ? "" : " " + school, every, area);
                 case SPELL_AURA_PERIODIC_LEECH:
-                    return "Drains " + AmountText(effect) + " health" + every + area;
+                    return AmountPhrase("Drains", effect, "health") + every + area;
                 case SPELL_AURA_PERIODIC_MANA_LEECH:
                 case SPELL_AURA_POWER_BURN:
-                    return "Drains " + AmountText(effect) + " mana" + every + area;
+                    return AmountPhrase("Drains", effect, "mana") + every + area;
                 case SPELL_AURA_PERIODIC_HEAL:
-                    return "Heals " + AmountText(effect) + every + area;
+                    return AmountPhrase("Heals", effect, "") + every + area;
                 case SPELL_AURA_PERIODIC_TRIGGER_SPELL:
                 case SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE:
                 {
@@ -432,9 +446,9 @@ namespace Journal::Abilities
                 case SPELL_AURA_MOD_HIT_CHANCE:
                     return amount ? ChangeText(amount, "chance to hit") + area : "";
                 case SPELL_AURA_SCHOOL_ABSORB:
-                    return "Absorbs " + AmountText(effect) + " damage";
+                    return AmountPhrase("Absorbs", effect, "damage");
                 case SPELL_AURA_DAMAGE_SHIELD:
-                    return "Inflicts " + AmountText(effect) + (school.empty() ? "" : " " + school) + " damage on melee attackers";
+                    return AmountPhrase("Inflicts", effect, SchoolDamage(school) + " on melee attackers");
                 case SPELL_AURA_SPLIT_DAMAGE_PCT:
                     return Acore::StringFormat("Redirects {}% of the damage taken", amount);
                 case SPELL_AURA_SCHOOL_IMMUNITY:
@@ -471,26 +485,26 @@ namespace Journal::Abilities
                 {
                     case SPELL_EFFECT_SCHOOL_DAMAGE:
                     case SPELL_EFFECT_ENVIRONMENTAL_DAMAGE:
-                        add("Inflicts " + AmountText(effect) + (school.empty() ? "" : " " + school) + " damage" + area);
+                        add(AmountPhrase("Inflicts", effect, SchoolDamage(school)) + area);
                         break;
                     case SPELL_EFFECT_WEAPON_DAMAGE:
                     case SPELL_EFFECT_WEAPON_DAMAGE_NOSCHOOL:
                     case SPELL_EFFECT_NORMALIZED_WEAPON_DMG:
-                        add(AmountOf(effect) > 0 ? "Weapon damage plus " + AmountText(effect) + area : "Weapon damage" + area);
+                        add(AmountText(effect).empty() ? "Weapon damage" + area : "Weapon damage plus " + AmountText(effect) + area);
                         break;
                     case SPELL_EFFECT_WEAPON_PERCENT_DAMAGE:
                         add(Acore::StringFormat("{}% weapon damage{}", AmountOf(effect), area));
                         break;
                     case SPELL_EFFECT_HEALTH_LEECH:
-                        add("Drains " + AmountText(effect) + " health" + area);
+                        add(AmountPhrase("Drains", effect, "health") + area);
                         break;
                     case SPELL_EFFECT_POWER_DRAIN:
                     case SPELL_EFFECT_POWER_BURN:
                         if (effect.MiscValue == POWER_MANA)
-                            add("Drains " + AmountText(effect) + " mana" + area);
+                            add(AmountPhrase("Drains", effect, "mana") + area);
                         break;
                     case SPELL_EFFECT_HEAL:
-                        add("Heals " + AmountText(effect) + area);
+                        add(AmountPhrase("Heals", effect, "") + area);
                         break;
                     case SPELL_EFFECT_HEAL_PCT:
                         add(Acore::StringFormat("Heals {}% of maximum health{}", AmountOf(effect), area));
@@ -829,7 +843,7 @@ namespace Journal::Abilities
         if (itr == sCreatures.end())
             return out;
 
-        std::unordered_set<std::string> names;
+        std::unordered_map<std::string, std::size_t> names; // name -> its entry in out
         std::vector<uint32> order; // Sort, or after every sorted one in list order
         for (Known const& k : itr->second.spells)
         {
@@ -853,9 +867,22 @@ namespace Journal::Abilities
                 if (a.text.empty() && !k.forced && !(o && !o->note.empty()))
                     continue;
             }
-            // Ranks and copies of one ability under the same name show once.
-            if (!names.insert(info->SpellName[LOCALE_enUS]).second)
+            // Ranks and copies of one ability under the same name show once, with the hand-made
+            // changes made to any of them.
+            auto [named, added] = names.emplace(info->SpellName[LOCALE_enUS], out.size());
+            if (!added)
+            {
+                if (o)
+                {
+                    Ability& kept = out[named->second];
+                    kept.tags |= (o->flags << ABILITY_FLAG_SHIFT) & TAG_OVERRIDE_MASK;
+                    if (kept.note.empty())
+                        kept.note = o->note;
+                    if (o->sort && order[named->second] >= 0x10000u)
+                        order[named->second] = o->sort;
+                }
                 continue;
+            }
             a.tags = TagsOf(info) | (k.learned ? uint32(TAG_LEARNED) : 0u);
             if (o)
             {

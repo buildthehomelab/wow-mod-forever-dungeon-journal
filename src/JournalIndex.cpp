@@ -682,7 +682,7 @@ namespace Journal::Index
         {
             constexpr std::size_t ROW_BUDGET = MAX_PAYLOAD - 20; // after "AD:<request id>:"
             std::size_t cap = std::min<std::size_t>(text.size(), 200);
-            while (cap >= 10)
+            while (cap > 0)
             {
                 std::string row = head + Escape(text, cap);
                 if (row.size() <= ROW_BUDGET)
