@@ -10,7 +10,7 @@
  *   G:<req>              -> GR:<req>:<headings>:<the player's heading>, then GD rows:
  *                           G,<group>,<heading>,<quests>,<countable>,<done>,<era state>,<low level>,<high level>,<name>
  *   Z:<req>:<heading>    -> ZR:<req>:<heading>:<quests sent>:<quests>, ZD rows (Q/R, as Index::HandleQuests), ZE
- *   K:<req>:<text>       -> KR:<req>:<quests>, KD rows: C,<quest>,<heading> before its Q/R rows, KE
+ *   X:<req>:<text>       -> XR:<req>:<quests>, XD rows: C,<quest>,<heading> before its Q/R rows, XE
  *
  * groups: E Eastern Kingdoms, K Kalimdor, O Outland, N Northrend, D dungeons, R raids,
  * B battlegrounds, C classes, P professions, W world events, X the rest. Headings are a zone's
@@ -941,9 +941,9 @@ namespace Journal::Quests
                 AppendEntry(player, q, e, &h, rows);
                 ++count;
             }
-        Send(player, "KR:" + req + ":" + std::to_string(count));
-        SendRows(player, "KD:" + req, rows);
-        Send(player, "KE:" + req);
+        Send(player, "XR:" + req + ":" + std::to_string(count));
+        SendRows(player, "XD:" + req, rows);
+        Send(player, "XE:" + req);
     }
 
     bool ShowGiver(Player* player, std::string const& req, uint32 questId)

@@ -7,3 +7,6 @@ DROP TABLE IF EXISTS `mod_forever_journal_learned`;
 DROP TABLE IF EXISTS `mod_forever_journal_script_spell`;
 DROP TABLE IF EXISTS `mod_forever_journal_toy`;
 DROP TABLE IF EXISTS `mod_forever_journal_collection_note`;
+DROP TABLE IF EXISTS `mod_forever_journal_script_enrage`;
+DROP TABLE IF EXISTS `mod_forever_journal_ability`;
+DROP TABLE IF EXISTS `mod_forever_journal_boss_reward`;

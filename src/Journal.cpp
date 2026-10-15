@@ -10,8 +10,9 @@
  *   D:<req>                           -> DR:<req>:<instances>, DD rows (I/W/V), DE
  *   B:<req>:<instance>                -> BR, BD rows, BE        bosses
  *   S:<req>:<instance>                -> SR, SD rows (V/R), SE   lockouts, era locks, requirements
- *   A:<req>:<instance>:<boss>:<var>   -> AR, AD rows (U/S), AE   abilities
+ *   A:<req>:<instance>:<boss>:<var>   -> AR, AD rows (U/S/N/E/R), AE  abilities, enrage, rewards
  *   L:<req>:<instance>:<boss>:<var>   -> LR, LD rows, LE        loot (boss "all" = every boss)
+ *   K:<req>:<item>                    -> KR, KD rows, KE        what a token turns into
  *   Q:<req>:<instance>                -> QR, QD rows, QE        quests with the player's status
  *   QD:<req>:<quest>                  -> TR, TD rows (O/K/I), TE quest objectives
  *   H:<req>                           -> H:<req>:<instance>:<variant>   the instance you're in
@@ -23,7 +24,7 @@
  *   M:<req>:S:<M|P|T>:<id>:<source>   -> M:<req>:ok:<where>     flags a source
  *   G:<req>                           -> GR, GD rows, GE        quest headings, with the player's counts
  *   Z:<req>:<heading>                 -> ZR, ZD rows (Q/R), ZE  every quest under a heading
- *   K:<req>:<text>                    -> KR, KD rows (C/Q/R), KE  quests by name
+ *   X:<req>:<text>                    -> XR, XD rows (C/Q/R), XE  quests by name
  *
  * Addon messages arrive as CMSG_MESSAGECHAT on the world thread, so requests are answered
  * straight from the hook. The rows are documented beside their handlers (JournalIndex.cpp,
@@ -243,7 +244,7 @@ namespace Journal
             // Every heading, and the longest headings' quests.
             if (command == "G" || command == "Z")
                 return 4.0f;
-            if (command == "L" || command == "Q" || command == "F" || command == "K")
+            if (command == "L" || command == "Q" || command == "F" || command == "K" || command == "X")
                 return 2.0f;
             return 1.0f;
         }
@@ -279,6 +280,8 @@ namespace Journal
                 Index::HandleAbilities(player, req, args);
             else if (command == "L")
                 Index::HandleLoot(player, req, args);
+            else if (command == "K")
+                Loot::HandleTokens(player, req, args);
             else if (command == "Q")
                 Index::HandleQuests(player, req, args);
             else if (command == "QD")
@@ -299,7 +302,7 @@ namespace Journal
                 Quests::HandleCategories(player, req);
             else if (command == "Z" && sConfig.quests)
                 Quests::HandleCategory(player, req, args);
-            else if (command == "K" && sConfig.quests)
+            else if (command == "X" && sConfig.quests)
                 Quests::HandleSearch(player, req, args);
             else
                 SendError(player, req, "unknown");

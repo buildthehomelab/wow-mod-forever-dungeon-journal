@@ -56,7 +56,7 @@ namespace Journal
         HELLO_PROGRESSION = 0x04, // mod-individual-progression is on: eras lock instances
         HELLO_LEARNING    = 0x08, // boss abilities grow as bosses are seen casting
         HELLO_COLLECTIONS = 0x10, // C, W, O: mounts, pets and toys
-        HELLO_QUESTS      = 0x20, // G, Z, K: every quest of the realm
+        HELLO_QUESTS      = 0x20, // G, Z, X: every quest of the realm
     };
 
     // Ability tags (the T field of an A row).
@@ -75,7 +75,16 @@ namespace Journal
         TAG_KNOCKBACK     = 0x0400,
         TAG_BUFF          = 0x0800, // a positive spell on itself or its allies
         TAG_LEARNED       = 0x1000, // only known because the boss was seen casting it
+        // From mod_forever_journal_ability's Flags (shifted by ABILITY_FLAG_SHIFT):
+        TAG_TANK          = 0x2000, // tanks need to know
+        TAG_HEALER        = 0x4000, // healers need to know
+        TAG_DAMAGE        = 0x8000, // damage dealers need to know
+        TAG_IMPORTANT     = 0x10000,
+        TAG_DEADLY        = 0x20000,
     };
+
+    constexpr uint32 ABILITY_FLAG_SHIFT = 13;
+    constexpr uint32 TAG_OVERRIDE_MASK = TAG_TANK | TAG_HEALER | TAG_DAMAGE | TAG_IMPORTANT | TAG_DEADLY;
 
     // Loot row flags.
     enum LootFlags : uint32
@@ -86,6 +95,7 @@ namespace Journal
         LOOT_CHEST        = 0x08, // comes from the encounter's chest
         LOOT_BOP          = 0x10, // binds when picked up
         LOOT_SHARED       = 0x20, // a shared table (many creatures drop it)
+        LOOT_TOKEN        = 0x40, // turned in for other items (K lists them)
     };
 
     // Quest status for the player (the S field of a Q row).
@@ -241,6 +251,21 @@ namespace Journal
 
         // Folds the data into a hash, for the journal stamp.
         uint32 Hash(uint32 seed);
+
+        // ---- tokens -----------------------------------------------------------------------------
+
+        // Reads the items a token is turned in for: quests that take it (one of it) and reward
+        // items, and vendors whose extended cost takes it. After the quests are loaded.
+        void BuildTokens();
+
+        bool IsToken(uint32 item);
+
+        // The classes (CLASSMASK bits) an item is for: its AllowableClass, or when it is shown as
+        // a token every class one of its items is for; 0 when any class can use it.
+        uint32 ClassesOf(uint32 item, bool asToken);
+
+        // K:<req>:<item> -> KR, KD rows, KE: what a token turns into.
+        void HandleTokens(Player* player, std::string const& req, std::vector<std::string_view> const& args);
     }
 
     // ---- JournalAbilities.cpp: what a creature casts --------------------------------------------
@@ -252,6 +277,8 @@ namespace Journal
             uint32 spell = 0;
             uint32 tags = 0;     // AbilityTags
             uint32 castMs = 0;
+            std::string text;    // written from the spell's effects when the client has no description
+            std::string note;    // mod_forever_journal_ability's note
         };
 
         // Reads the script table, the learned spells and the SmartAI scripts of these creatures.
@@ -263,8 +290,12 @@ namespace Journal
         // Creatures the creature summons, from its script and SmartAI.
         std::vector<uint32> const& Summons(uint32 baseEntry);
 
-        // A creature was seen casting a spell; true when it was new.
-        bool Learn(uint32 baseEntry, uint32 spell);
+        // The spell a creature casts a fixed time into the fight (its enrage timer), when known, in
+        // its version for a map difficulty.
+        bool EnrageOf(uint32 baseEntry, uint8 difficulty, uint32& spell, uint32& seconds);
+
+        // A creature was seen casting a spell on a map difficulty; true when it was new there.
+        bool Learn(uint32 baseEntry, uint32 spell, uint8 difficulty);
 
         // Tags the client shows beside an ability; 0 for spells the journal shouldn't list.
         bool IsListable(SpellInfo const* spell);
@@ -308,7 +339,7 @@ namespace Journal
         void HandleCategories(Player* player, std::string const& req);
         // Z:<req>:<category> -> ZR, ZD rows (Q/R), ZE: a heading's quests.
         void HandleCategory(Player* player, std::string const& req, std::vector<std::string_view> const& args);
-        // K:<req>:<text> -> KR, KD rows (C/Q/R), KE: quests by name.
+        // X:<req>:<text> -> XR, XD rows (C/Q/R), XE: quests by name.
         void HandleSearch(Player* player, std::string const& req, std::vector<std::string_view> const& args);
 
         // The Q and R rows of a quest for the player (see Index::HandleQuests for their fields).

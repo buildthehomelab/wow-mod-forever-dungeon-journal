@@ -20,10 +20,16 @@ J.TAG = {
 	MAGIC = 0x0001, CURSE = 0x0002, DISEASE = 0x0004, POISON = 0x0008, ENRAGE = 0x0010,
 	INTERRUPT = 0x0020, AOE = 0x0040, HEAL = 0x0080, SUMMON = 0x0100, CC = 0x0200,
 	KNOCKBACK = 0x0400, BUFF = 0x0800, LEARNED = 0x1000,
+	-- set by hand on the server
+	TANK = 0x2000, HEALER = 0x4000, DAMAGE = 0x8000, IMPORTANT = 0x10000, DEADLY = 0x20000,
 }
 
 -- Loot flags.
-J.LOOT = { QUEST = 0x01, HARD_MODE = 0x02, CONDITION = 0x04, CHEST = 0x08, BOP = 0x10, SHARED = 0x20 }
+J.LOOT = { QUEST = 0x01, HARD_MODE = 0x02, CONDITION = 0x04, CHEST = 0x08, BOP = 0x10, SHARED = 0x20, TOKEN = 0x40 }
+
+-- Class bits, as item and quest class masks use them.
+J.CLASS_BITS = { WARRIOR = 1, PALADIN = 2, HUNTER = 4, ROGUE = 8, PRIEST = 16, DEATHKNIGHT = 32, SHAMAN = 64, MAGE = 128,
+	WARLOCK = 256, DRUID = 1024 }
 
 -- Quest states.
 J.QUEST = { AVAILABLE = 0, ACTIVE = 1, COMPLETE = 2, DONE = 3, LOW_LEVEL = 4, PREREQ = 5, LOCKED = 6, ERA = 7 }
@@ -230,6 +236,19 @@ function J.SpellDescription(spell)
 	return text
 end
 
+-- An ability's description: its tooltip's, else the one the server wrote from its effects for a
+-- spell whose tooltip has none.
+function J.AbilityDescription(s)
+	return J.SpellDescription(s.spell) or s.text
+end
+
+-- An enrage timer: "10 min", "5.5 min", "45 sec".
+function J.EnrageTime(seconds)
+	seconds = tonumber(seconds) or 0
+	if seconds < 60 then return seconds .. " sec" end
+	return (string.format("%.1f", seconds / 60):gsub("%.0$", "")) .. " min"
+end
+
 -----------------------------------------
 -- server protocol: "<command>:<request id>:<field>..." whispered to yourself under the JNL prefix
 
@@ -240,8 +259,8 @@ J.state = 18
 local nextReq = 0
 local pending = {}
 -- list answers: first letter of the R/D/E codes per command
-local LISTS = { D = true, B = true, S = true, A = true, L = true, Q = true, T = true, F = true, C = true, W = true, O = true,
-	G = true, Z = true, K = true }
+local LISTS = { D = true, B = true, S = true, A = true, L = true, K = true, Q = true, T = true, F = true, C = true, W = true, O = true,
+	G = true, Z = true, X = true }
 
 local function send(msg)
 	SendAddonMessage(J.PREFIX, msg, "WHISPER", UnitName("player"))
@@ -271,6 +290,12 @@ function J.Unescape(text)
 	if type(text) ~= "string" then return text end
 	if text == "-" then return "" end
 	return (text:gsub("%%(%x%x)", function (h) return string.char(tonumber(h, 16)) end))
+end
+
+-- A text, or nil when it is empty.
+function J.NonEmpty(text)
+	if text == nil or text == "" then return nil end
+	return text
 end
 
 local function parseRows(text, into)
