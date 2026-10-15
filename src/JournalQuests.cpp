@@ -371,15 +371,6 @@ namespace Journal::Quests
             return h;
         }
 
-        std::string Lower(std::string_view text)
-        {
-            std::string out(text);
-            for (char& c : out)
-                if (c >= 'A' && c <= 'Z')
-                    c = char(c - 'A' + 'a');
-            return out;
-        }
-
         // The zone a spot on an open map is in; 0 in instances. A first start may load terrain
         // here, before the world loop runs: keep the freeze detector from taking it for a hang.
         uint32 ZoneAt(uint32 map, float x, float y, float z)

@@ -74,10 +74,21 @@ end
 function J.DirectoryCategory(id, done) fetch({ "C", tostring(id) }, done) end
 function J.DirectoryProfession(skill, done) fetch({ "P", tostring(skill) }, done) end
 
+-- The first n bytes of a text, never ending inside a UTF-8 character.
+local function cut(text, n)
+	if #text <= n then return text end
+	while n > 0 do
+		local nextByte = text:byte(n + 1)
+		if nextByte < 128 or nextByte >= 192 then break end
+		n = n - 1
+	end
+	return text:sub(1, n)
+end
+
 -- The words the server matches (every one, against name, title and zone); nil when there's
 -- nothing worth asking for.
 local function searchText(text)
-	text = (text or ""):gsub("[:;|]", " "):match("^%s*(.-)%s*$"):sub(1, 64)
+	text = cut((text or ""):gsub("[:;|]", " "):match("^%s*(.-)%s*$"), 64):match("^(.-)%s*$")
 	for word in text:gmatch("%S+") do
 		if #word > 1 then return text end
 	end
@@ -90,6 +101,21 @@ function J.DirectorySearch(text, done)
 	fetch({ "S", text }, done)
 end
 
+-- done({ [skill] = rank name }) for the professions the character knows; the server reads the
+-- skills, so the names don't have to match the client's language.
+function J.DirectoryRanks(done)
+	if not J.Has(J.HELLO_DIRECTORY) then done(nil) return end
+	J.Request("N", { "R" }, function (result)
+		if not result then done(nil) return end
+		local out = {}
+		for _, r in ipairs(result.rows) do
+			local skill, max = tonumber(r[1]), tonumber(r[2])
+			if skill and max and max > 0 then out[skill] = RANKS[math.max(1, math.min(6, math.floor(max / 75)))] end
+		end
+		done(out)
+	end)
+end
+
 -- A red flag on the map; done(the server's line) or done(nil).
 function J.ShowDirectoryPlace(p, done)
 	J.Request("M", { "N", tostring(p.place), tostring(p.id) }, function (result)
@@ -98,19 +124,6 @@ function J.ShowDirectoryPlace(p, done)
 end
 
 -----------------------------------------
-
--- Your rank in each profession you know, by its (English) name.
-local function professionRanks()
-	local out = {}
-	if not GetNumSkillLines then return out end
-	for i = 1, GetNumSkillLines() do
-		local name, header, _, _, _, _, max = GetSkillLineInfo(i)
-		if name and not header and max and max > 0 then
-			out[name] = RANKS[math.max(1, math.min(6, math.floor(max / 75)))]
-		end
-	end
-	return out
-end
 
 local function whereText(p)
 	local where = p.zone
@@ -133,7 +146,7 @@ local function build(panel)
 
 	local _, playerClass = UnitClass("player")
 	local className = (UnitClass("player"))
-	local state = { selected = nil, entries = {}, places = {}, picked = nil }
+	local state = { selected = nil, entries = {}, places = {}, picked = nil, ranks = {} }
 	local lastText = "" -- the search text last acted on
 
 	local status = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
@@ -281,7 +294,7 @@ local function build(panel)
 
 	local function renderRows()
 		local offset = FauxScrollFrame_GetOffset(scroll)
-		local ranks = professionRanks()
+		local ranks = state.ranks
 		local searching = search:GetText() ~= ""
 		for i = 1, ROWS do
 			local b = rows[i]
@@ -303,7 +316,7 @@ local function build(panel)
 					b.expand:Hide()
 					b.name:SetFontObject(GameFontHighlightSmall)
 					b.name:SetTextColor(1, 1, 1)
-					b.right:SetText(e.skill and ranks[e.name] and ("|cff808080" .. ranks[e.name] .. "|r") or "")
+					b.right:SetText(e.skill and ranks[e.skill] and ("|cff808080" .. ranks[e.skill] .. "|r") or "")
 					setShown(b.selectedBg, e == state.selected and not searching)
 				end
 				b.name:SetText(e.name)
@@ -491,7 +504,17 @@ local function build(panel)
 		statusSub:Show()
 	end
 
-	local function load()
+	-- Puts a text in the search box and searches it (.find <words>).
+	local function searchFor(text)
+		lastText = text
+		search:SetText(text)
+		setShown(search.hint, false)
+		renderRows()
+		renderRight()
+	end
+
+	-- pending: .find's words, searched instead of the remembered pick.
+	local function load(pending)
 		local problem, sub = J.ServerStatus()
 		if not problem and not J.Has(J.HELLO_DIRECTORY) then
 			problem, sub = "This realm has no directory yet",
@@ -501,11 +524,21 @@ local function build(panel)
 		status:Hide()
 		statusSub:Hide()
 		body:Show()
-		if not state.selected and not searchText(search:GetText()) then
+		if not state.selected then
 			state.selected = byKey[db.selected or ""] or byKey["c" .. CLASS_TRAINER]
 		end
+		J.DirectoryRanks(function (ranks)
+			if ranks then
+				state.ranks = ranks
+				renderRows()
+			end
+		end)
 		renderList()
-		renderRight()
+		if pending then
+			searchFor(pending)
+		else
+			renderRight()
+		end
 	end
 
 	search:SetScript("OnTextChanged", function (self)
@@ -533,14 +566,7 @@ local function build(panel)
 
 	return {
 		load = load,
-		-- .find <words>: straight to a search.
-		search = function (text)
-			lastText = text
-			search:SetText(text)
-			setShown(search.hint, false)
-			renderRows()
-			renderRight()
-		end,
+		search = searchFor,
 	}
 end
 
@@ -551,16 +577,13 @@ J.AddSection({
 	build = function (panel) tab = build(panel) end,
 	onShow = function ()
 		if not tab then return end
-		tab.load()
-		if pendingSearch then
-			local text = pendingSearch
-			pendingSearch = nil
-			if J.Has(J.HELLO_DIRECTORY) then tab.search(text) end
-		end
+		local text = pendingSearch
+		pendingSearch = nil
+		tab.load(text)
 	end,
 })
 
--- The Town Guide spell (OPEN:0:directory) toggles the tab; .find <words> opens it on a search.
+-- The Town Guide spell (OPEN:<token>:directory) toggles the tab; .find <words> opens it on a search.
 J.On("OPEN", function (key, argument)
 	if key ~= "directory" then
 		if J.OpenSection then J.OpenSection(key) end

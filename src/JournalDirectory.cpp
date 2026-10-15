@@ -15,6 +15,7 @@
  *   N:<req>:C:<category>   -> NR, ND rows, NE    a category (CATEGORY_* below; 1 = your class trainer)
  *   N:<req>:P:<skill>      -> NR, ND rows, NE    a profession's trainers
  *   N:<req>:S:<text>       -> NR, ND rows, NE    by name, title or zone; every word must match
+ *   N:<req>:R              -> NR, ND rows "<skill>,<max skill>", NE   the character's professions
  *   M:<req>:N:<place>:<id> -> M:<req>:ok:<where>  flags a result
  *
  *   NR:<req>:<rows>:<found>
@@ -23,7 +24,10 @@
  *     player's own map, yards is -1 elsewhere, direction 0-7 is north, north-east... (8 = none),
  *     rank is the highest profession rank a trainer teaches (0, or 1 Apprentice to 6 Grand Master).
  *
- * Pushed by the server: OPEN:0:directory[:<search text>] opens the tab.
+ * Pushed by the server: OPEN:<token>:directory[:<search text>] opens the tab. The addon answers
+ * OPENED:<token>. When that doesn't come within OPEN_ACK_MS (the addon was turned off with a
+ * /reload since its HELLO) the gossip menu opens instead, and the server stops sending OPEN to
+ * the character until the addon says HELLO again.
  */
 
 #include "Journal.h"
@@ -38,6 +42,7 @@
 #include "GossipDef.h"
 #include "Log.h"
 #include "MapMgr.h"
+#include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Player.h"
 #include "ScriptMgr.h"
@@ -55,6 +60,7 @@
 #include <cctype>
 #include <cmath>
 #include <map>
+#include <mutex>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -88,6 +94,23 @@ namespace Journal::Directory
         constexpr std::size_t MAX_SEARCH_LENGTH = 64;
         constexpr std::size_t MAX_SEARCH_WORDS = 6;
         constexpr uint32 SEARCH_COOLDOWN_MS = 1000;
+
+        // How long the addon has to answer an OPEN, and how often the unanswered ones are looked at.
+        constexpr uint32 OPEN_ACK_MS = 2000;
+        constexpr uint32 OPEN_CHECK_MS = 250;
+
+        // OPENs waiting for the addon's answer, by character. Written from map threads (the spell)
+        // and the world thread (.find, the answer, the timeout).
+        struct PendingOpen
+        {
+            uint32 token = 0;
+            uint32 sentAt = 0;
+            std::string text;
+        };
+
+        std::mutex sOpensLock;
+        std::unordered_map<ObjectGuid::LowType, PendingOpen> sOpens;
+        uint32 sNextToken = 0;
 
         struct DirectoryConfig
         {
@@ -325,13 +348,6 @@ namespace Journal::Directory
             return GetConfig().enabled && GetConfig().directory && sData.built;
         }
 
-        std::string Lower(std::string_view text)
-        {
-            std::string out(text);
-            std::transform(out.begin(), out.end(), out.begin(), [](unsigned char c) { return char(std::tolower(c)); });
-            return out;
-        }
-
         // Single letters match nearly everything, so they're dropped; so are repeats.
         std::vector<std::string> Words(std::string_view text)
         {
@@ -497,13 +513,8 @@ namespace Journal::Directory
         std::string SkillName(uint32 skill)
         {
             if (SkillLineEntry const* line = sSkillLineStore.LookupEntry(skill))
-            {
-                char const* name = line->name[sWorld->GetDefaultDbcLocale()];
-                if (!name || !*name)
-                    name = line->name[LOCALE_enUS];
-                if (name && *name)
+                if (char const* name = DbcString(line->name); name && *name)
                     return name;
-            }
             return "Profession";
         }
 
@@ -1097,6 +1108,15 @@ namespace Journal::Directory
             }
         }
 
+        // The gossip menu, on its first page or on a search.
+        void ShowMenu(Player* player, std::string_view text)
+        {
+            if (text.find_first_not_of(" \t\r\n") == std::string_view::npos)
+                ShowMainMenu(player);
+            else
+                SearchText(player, text);
+        }
+
         // The Town Guide spell and .find: the addon's tab when it can open it, else the menu.
         void Open(Player* player, std::string_view text)
         {
@@ -1106,19 +1126,23 @@ namespace Journal::Directory
                 return;
             }
 
-            if (AddonFeatures(player) & ADDON_OPEN)
+            if (!(AddonFeatures(player) & ADDON_OPEN))
             {
-                std::string message = "OPEN:0:directory";
-                if (text.find_first_not_of(" \t\r\n") != std::string_view::npos)
-                    message += ":" + Escape(text, MAX_SEARCH_LENGTH);
-                Send(player, message);
+                ShowMenu(player, text);
                 return;
             }
 
-            if (text.empty())
-                ShowMainMenu(player);
-            else
-                SearchText(player, text);
+            uint32 token = 0;
+            {
+                std::lock_guard<std::mutex> lock(sOpensLock);
+                token = ++sNextToken ? sNextToken : ++sNextToken;
+                sOpens[player->GetGUID().GetCounter()] = { token, getMSTime(), std::string(text) };
+            }
+
+            std::string message = "OPEN:" + std::to_string(token) + ":directory";
+            if (text.find_first_not_of(" \t\r\n") != std::string_view::npos)
+                message += ":" + Escape(text, MAX_SEARCH_LENGTH);
+            Send(player, message);
         }
     }
 
@@ -1225,9 +1249,22 @@ namespace Journal::Directory
             sData.places.size(), sData.entries.size(), computed, GetMSTimeDiffToNow(start));
     }
 
-    // N:<req>:C:<category>, N:<req>:P:<skill> or N:<req>:S:<text>
+    // N:<req>:C:<category>, N:<req>:P:<skill>, N:<req>:S:<text> or N:<req>:R
     void HandleList(Player* player, std::string const& req, std::vector<std::string_view> const& args)
     {
+        // The professions the character knows, with their skill cap, for the ranks beside them.
+        if (sData.built && args.size() >= 3 && args[2] == "R")
+        {
+            std::vector<std::string> rows;
+            for (uint32 skill : PROFESSIONS)
+                if (uint16 max = player->GetMaxSkillValue(skill))
+                    rows.push_back(Acore::StringFormat("{},{}", skill, max));
+            Send(player, Acore::StringFormat("NR:{}:{}:{}", req, rows.size(), rows.size()));
+            SendRows(player, "ND:" + req, rows);
+            Send(player, "NE:" + req);
+            return;
+        }
+
         if (!sData.built || args.size() < 4)
         {
             SendError(player, req, "bad");
@@ -1283,6 +1320,72 @@ namespace Journal::Directory
         Send(player, "NE:" + req);
     }
 
+    void HandleOpenAck(Player* player, std::string const& token)
+    {
+        uint32 value = 0;
+        if (!ParseUInt(token, value))
+            return;
+
+        bool late = true;
+        {
+            std::lock_guard<std::mutex> lock(sOpensLock);
+            auto itr = sOpens.find(player->GetGUID().GetCounter());
+            if (itr != sOpens.end() && itr->second.token == value)
+            {
+                sOpens.erase(itr);
+                late = false;
+            }
+        }
+
+        // The menu stood in already: the addon is there after all, only slow to answer.
+        if (late)
+            SetAddonFeature(player, ADDON_OPEN, true);
+    }
+
+    // The OPENs nobody answered: the gossip menu instead. On the world thread, after the maps
+    // have updated, so the players can be touched.
+    void CheckOpens(uint32 diff)
+    {
+        static uint32 sinceCheck = 0;
+        sinceCheck += diff;
+        if (sinceCheck < OPEN_CHECK_MS)
+            return;
+        sinceCheck = 0;
+
+        std::vector<std::pair<ObjectGuid::LowType, std::string>> expired;
+        {
+            std::lock_guard<std::mutex> lock(sOpensLock);
+            if (sOpens.empty())
+                return;
+            uint32 now = getMSTime();
+            for (auto itr = sOpens.begin(); itr != sOpens.end();)
+            {
+                if (getMSTimeDiff(itr->second.sentAt, now) >= OPEN_ACK_MS)
+                {
+                    expired.emplace_back(itr->first, std::move(itr->second.text));
+                    itr = sOpens.erase(itr);
+                }
+                else
+                    ++itr;
+            }
+        }
+
+        for (auto const& [guid, text] : expired)
+        {
+            Player* player = ObjectAccessor::FindPlayerByLowGUID(guid);
+            if (!player || !player->IsInWorld())
+                continue;
+            SetAddonFeature(player, ADDON_OPEN, false);
+            ShowMenu(player, text);
+        }
+    }
+
+    void ForgetOpen(Player* player)
+    {
+        std::lock_guard<std::mutex> lock(sOpensLock);
+        sOpens.erase(player->GetGUID().GetCounter());
+    }
+
     // M:<req>:N:<place>:<id>: the id is the creature or object entry the row showed, so a place
     // number from before a restart can't flag someone else.
     void HandleMapPin(Player* player, std::string const& req, std::vector<std::string_view> const& args)
@@ -1319,7 +1422,13 @@ public:
         PLAYERHOOK_ON_SPELL_CAST,
         PLAYERHOOK_ON_GOSSIP_SELECT,
         PLAYERHOOK_ON_GOSSIP_SELECT_CODE,
+        PLAYERHOOK_ON_LOGOUT,
     }) { }
+
+    void OnPlayerLogout(Player* player) override
+    {
+        Directory::ForgetOpen(player);
+    }
 
     void OnPlayerLogin(Player* player) override
     {
@@ -1333,8 +1442,9 @@ public:
 
     void OnPlayerSpellCast(Player* player, Spell* spell, bool /*skipCheck*/) override
     {
+        // Open says so when the Directory is off.
         uint32 id = Directory::sDirectoryConfig.spellId;
-        if (id && spell->GetSpellInfo()->Id == id && GetConfig().enabled && GetConfig().directory)
+        if (id && spell->GetSpellInfo()->Id == id)
             Directory::Open(player, {});
     }
 
@@ -1385,11 +1495,23 @@ public:
     }
 };
 
+class JournalDirectoryWorldScript : public WorldScript
+{
+public:
+    JournalDirectoryWorldScript() : WorldScript("JournalDirectoryWorldScript", { WORLDHOOK_ON_UPDATE }) { }
+
+    void OnUpdate(uint32 diff) override
+    {
+        Directory::CheckOpens(diff);
+    }
+};
+
 namespace Journal::Directory
 {
     void AddScripts()
     {
         new JournalDirectoryPlayerScript();
         new JournalDirectoryCommandScript();
+        new JournalDirectoryWorldScript();
     }
 }

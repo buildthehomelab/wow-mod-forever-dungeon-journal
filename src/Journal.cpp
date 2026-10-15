@@ -28,8 +28,10 @@
  *   N:<req>:<C|P|S>:<value>           -> NR, ND rows, NE        the town directory
  *   M:<req>:N:<place>:<entry>         -> M:<req>:ok:<where>     flags a directory result
  *
- * The server sends one message unasked: OPEN:0:<tab>[:<argument>] opens one of the addon's tabs
- * (the Town Guide spell and .find), only to addons whose HELLO said they can (ADDON_OPEN).
+ * The server sends one message unasked: OPEN:<token>:<tab>[:<argument>] opens one of the addon's
+ * tabs (the Town Guide spell and .find), only to addons whose HELLO said they can (ADDON_OPEN).
+ * The addon answers OPENED:<token>; without that answer the server shows its gossip menu instead
+ * and stops sending OPEN until the addon's next HELLO.
  *
  * Addon messages arrive as CMSG_MESSAGECHAT on the world thread, so requests are answered
  * straight from the hook. The rows are documented beside their handlers (JournalIndex.cpp,
@@ -92,6 +94,18 @@ namespace Journal
         return itr != sFeatures.end() ? itr->second : 0;
     }
 
+    void SetAddonFeature(Player* player, uint32 feature, bool on)
+    {
+        std::lock_guard<std::mutex> lock(sFeaturesLock);
+        auto itr = sFeatures.find(player->GetGUID().GetCounter());
+        if (itr == sFeatures.end())
+            return;
+        if (on)
+            itr->second |= feature;
+        else
+            itr->second &= ~feature;
+    }
+
     void Send(Player* player, std::string const& payload)
     {
         if (!player || !player->GetSession())
@@ -127,6 +141,27 @@ namespace Journal
     void SendError(Player* player, std::string const& req, std::string_view what)
     {
         Send(player, "ERR:" + req + ":" + std::string(what));
+    }
+
+    char const* DbcString(char const* const (&names)[16])
+    {
+        char const* name = names[sWorld->GetDefaultDbcLocale()];
+        return name && *name ? name : names[LOCALE_enUS];
+    }
+
+    char const* DbcString(std::array<char const*, 16> const& names)
+    {
+        char const* name = names[sWorld->GetDefaultDbcLocale()];
+        return name && *name ? name : names[LOCALE_enUS];
+    }
+
+    std::string Lower(std::string_view text)
+    {
+        std::string out(text);
+        for (char& c : out)
+            if (c >= 'A' && c <= 'Z')
+                c = char(c - 'A' + 'a');
+        return out;
     }
 
     bool ParseUInt(std::string_view text, uint32& out)
@@ -292,6 +327,13 @@ namespace Journal
             if (command == "HELLO")
             {
                 HandleHello(player, req, args);
+                return;
+            }
+
+            // Free like HELLO: one answer per Town Guide cast.
+            if (command == "OPENED")
+            {
+                Directory::HandleOpenAck(player, req);
                 return;
             }
 

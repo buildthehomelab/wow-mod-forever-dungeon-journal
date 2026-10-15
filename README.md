@@ -422,7 +422,7 @@ server-written descriptions, notes, role flags, enrage timers and boss rewards),
 filters (class-only items, tokens and what they turn into), quests, search, the 40 player tab,
 opening inside an instance, the Quests tab (headings, where you are, chains, era locks, search,
 filters), the Directory (categories, professions with your rank, search, map flags, the Town
-Guide's OPEN message and `.find <words>`), the Mounts, Pets and Toys tabs (sources, map flags, boss links, Summon, filters) and a
+Guide's OPEN message and its answer, `.find <words>`, one request per pick), the Mounts, Pets and Toys tabs (sources, map flags, boss links, Summon, filters) and a
 tab registered by another addon.
 `DRAGON=1` runs it with a DragonUI stand-in.
 
@@ -446,8 +446,9 @@ tab registered by another addon.
   `.find` and `/directory` work without it.
 - **The Town Guide opens a menu instead of the Directory:** the addon tells the server it can open
   the tab a few seconds after login; until then, and without the addon, you get the menu.
-- **The Town Guide does nothing:** the Journal addon was turned off with a `/reload` after it had
-  told the server it was there. Log out and back in, or turn the addon back on.
+- **The Town Guide menu opens two seconds late:** the Journal addon was turned off with a `/reload`
+  after it had told the server it was there. The server waits for the addon to answer, opens the
+  menu instead, and sends the menu straight away from then on until the addon is back.
 - **An NPC is missing from the Directory:** the spawn list is read once at startup (restart after
   `.npc add`), and the Directory leaves out anyone hostile to you, holiday NPCs outside their event
   and places your progression stage hasn't opened.

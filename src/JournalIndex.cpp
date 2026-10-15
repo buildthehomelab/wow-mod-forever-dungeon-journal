@@ -211,18 +211,6 @@ namespace Journal::Index
 
         // ---- helpers ----------------------------------------------------------------------------
 
-        char const* DbcString(char const* const (&names)[16])
-        {
-            char const* name = names[sWorld->GetDefaultDbcLocale()];
-            return name && *name ? name : names[LOCALE_enUS];
-        }
-
-        char const* DbcString(std::array<char const*, 16> const& names)
-        {
-            char const* name = names[sWorld->GetDefaultDbcLocale()];
-            return name && *name ? name : names[LOCALE_enUS];
-        }
-
         uint32 Fnv(uint32 h, std::string_view text)
         {
             for (char c : text)
@@ -1158,14 +1146,6 @@ namespace Journal::Index
             return picks;
         }
 
-        std::string Lower(std::string_view text)
-        {
-            std::string out(text);
-            for (char& c : out)
-                if (c >= 'A' && c <= 'Z')
-                    c = char(c - 'A' + 'a');
-            return out;
-        }
 
         // Every item the journal lists, for F: lower-case name -> where it drops.
         void BuildSearch()

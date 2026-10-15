@@ -17,7 +17,7 @@ J.HELLO_QUESTS = 32
 J.HELLO_DIRECTORY = 64
 
 -- What this addon can do, sent with HELLO (AddonFeatureFlags in src/Journal.h): open a tab when
--- the server says OPEN (the Town Guide spell and .find).
+-- the server says OPEN (the Town Guide spell and .find), and answer OPENED.
 J.ADDON_FEATURES = 1
 
 -- Ability tags.
@@ -355,9 +355,13 @@ local function onAddonMessage(message)
 		finish(req, fields)
 		return
 	elseif code == "OPEN" then
-		-- Sent unasked (request 0): "OPEN:0:<tab>[:<argument>]".
+		-- Sent unasked: "OPEN:<token>:<tab>[:<argument>]". The answer tells the server the addon is
+		-- still here; without it the server opens its menu instead.
 		local fields = splitFields(rest)
-		if fields[1] and fields[1] ~= "" then J.Fire("OPEN", fields[1], J.NonEmpty(J.Unescape(fields[2]))) end
+		if fields[1] and fields[1] ~= "" then
+			send("OPENED:" .. req)
+			J.Fire("OPEN", fields[1], J.NonEmpty(J.Unescape(fields[2])))
+		end
 		return
 	elseif code == "OFF" then
 		J.serverReady = false

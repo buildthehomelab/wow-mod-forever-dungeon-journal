@@ -154,7 +154,17 @@ namespace Journal
     // bots. Safe from map threads.
     uint32 AddonFeatures(Player* player);
 
+    // Turns one feature off (an addon that stopped answering) or back on. Safe from map threads.
+    void SetAddonFeature(Player* player, uint32 feature, bool on);
+
     bool ParseUInt(std::string_view text, uint32& out);
+
+    // A DBC string in the server's DBC locale, or its enUS text when that one is empty.
+    char const* DbcString(char const* const (&names)[16]);
+    char const* DbcString(std::array<char const*, 16> const& names);
+
+    // ASCII lower case, for searches.
+    std::string Lower(std::string_view text);
 
     // Names travel inside ','/';'/':' separated fields: those, '|' and '%' become %XX, and an
     // empty string becomes "-" (the addon's row parser drops empty values).
@@ -380,8 +390,10 @@ namespace Journal
         // Turned on and built.
         bool Ready();
 
-        // N:<req>:<C|P|S>:<value> -> NR, ND rows, NE.
+        // N:<req>:<C|P|S>:<value> -> NR, ND rows, NE; N:<req>:R -> the character's profession skills.
         void HandleList(Player* player, std::string const& req, std::vector<std::string_view> const& args);
+        // OPENED:<token>: the addon opened the tab an OPEN asked for.
+        void HandleOpenAck(Player* player, std::string const& token);
         // M:<req>:N:<place>:<entry>: a red flag on a result.
         void HandleMapPin(Player* player, std::string const& req, std::vector<std::string_view> const& args);
 
