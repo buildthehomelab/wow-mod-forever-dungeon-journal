@@ -121,6 +121,7 @@ namespace Journal::Quests
             // npc_ipp_* / gobject_ipp_* scripts: from eraMin, until eraEnd (255: for good).
             uint8 eraMin = 0;
             uint8 eraEnd = 255;
+            uint32 phases = 0;    // every phase its spawns are in
         };
 
         // mod-individual-progression's awareness scripts: the states a creature or object
@@ -145,6 +146,10 @@ namespace Journal::Quests
             { "npc_ipp_pre_tbc", 0, 8 }, { "gobject_ipp_pre_tbc", 0, 8 },
             { "npc_ipp_tbc", 8, 255 }, { "gobject_ipp_tbc", 8, 255 },
             { "npc_ipp_tbc_pre_t3", 0, 10 },
+            { "npc_ipp_tbc_pvp", 8, 13 },
+            { "npc_ipp_tbc_S1", 8, 13 }, { "npc_ipp_tbc_S2", 8, 13 }, { "npc_ipp_tbc_S3", 8, 13 }, { "npc_ipp_tbc_S4", 8, 13 },
+            { "npc_ipp_wotlk_S5", 13, 255 }, { "npc_ipp_wotlk_S6", 13, 255 }, { "npc_ipp_wotlk_S7", 13, 255 },
+            { "npc_ipp_wotlk_S8", 13, 255 },
             { "npc_ipp_tbc_t3", 10, 255 },
             { "gobject_ipp_tbc_t4", 12, 255 },
             { "npc_ipp_pre_wotlk", 0, 13 },
@@ -153,6 +158,55 @@ namespace Journal::Quests
             { "npc_ipp_wotlk_totc", 15, 255 },
             { "npc_ipp_wotlk_icc", 16, 255 },
         };
+
+        // mod-individual-progression's phases (an aura it puts on players by area and stage,
+        // checkIPPhasing): the states a giver seen only in one of them is there for, by its zone.
+        constexpr uint32 IPP_PHASE = 65536;
+        constexpr uint32 IPP_PHASE_II = 131072;
+        constexpr uint32 IPP_PHASE_III = 262144;
+        constexpr uint32 IPP_PHASE_IV = 524288;
+
+        struct EraPhase
+        {
+            uint32 phase;
+            uint32 zone;
+            uint8 min;
+            uint8 end;
+        };
+
+        constexpr EraPhase ERA_PHASES[] =
+        {
+            // The AQ war in Silithus and its camps in Darkshore.
+            { IPP_PHASE, 1377, 4, 5 }, { IPP_PHASE, 148, 4, 5 }, { IPP_PHASE_II, 1377, 5, 255 },
+            // The Emerald Dragons' portals.
+            { IPP_PHASE, 331, 2, 255 }, { IPP_PHASE, 47, 2, 255 }, { IPP_PHASE, 357, 2, 255 }, { IPP_PHASE, 10, 2, 255 },
+            // The Scourge Invasion.
+            { IPP_PHASE, 14, 6, 7 }, { IPP_PHASE, 85, 6, 7 }, { IPP_PHASE, 215, 6, 7 }, { IPP_PHASE, 12, 6, 7 },
+            { IPP_PHASE, 1, 6, 7 }, { IPP_PHASE, 141, 6, 7 }, { IPP_PHASE, 139, 6, 7 }, { IPP_PHASE, 4, 6, 7 },
+            { IPP_PHASE, 440, 6, 7 }, { IPP_PHASE, 618, 6, 7 }, { IPP_PHASE, 16, 6, 7 }, { IPP_PHASE, 46, 6, 7 },
+            { IPP_PHASE, 25, 6, 7 }, { IPP_PHASE, 51, 6, 7 }, { IPP_PHASE, 1519, 6, 7 }, { IPP_PHASE, 1637, 6, 7 },
+            // The Argent Tournament.
+            { IPP_PHASE, 210, 15, 255 },
+            // Silvermoon before the Sunwell, and the Isle of Quel'Danas's offensive.
+            { IPP_PHASE_II, 3487, 0, 12 }, { IPP_PHASE_II, 4080, 12, 255 }, { IPP_PHASE_III, 4080, 12, 255 },
+            { IPP_PHASE_IV, 4080, 12, 255 },
+        };
+
+        // Narrows a spot's era window when every spawn of it is in one of
+        // mod-individual-progression's phases.
+        void ApplyEraPhase(Spot& spot)
+        {
+            Config const& config = GetConfig();
+            if (!config.progressionEnabled || !config.eraLocks || (spot.phases & PHASEMASK_NORMAL) || !spot.zone)
+                return;
+            for (EraPhase const& e : ERA_PHASES)
+                if ((spot.phases & e.phase) && e.zone == spot.zone)
+                {
+                    spot.eraMin = std::max(spot.eraMin, e.min);
+                    spot.eraEnd = std::min(spot.eraEnd, e.end);
+                    return;
+                }
+        }
 
         // The states a script id shows its creature or object to; [0, 255) for everything else.
         std::pair<uint8, uint8> EraWindow(uint32 scriptId)
@@ -364,6 +418,7 @@ namespace Journal::Quests
                 auto [eraMin, eraEnd] = EraWindow(data.ScriptId ? data.ScriptId : templateScript(data.id));
                 uint32 s = score(data.mapid, data.phaseMask);
                 auto [b, inserted] = best.emplace(data.id, s);
+                itr->second.phases |= data.phaseMask;
                 if (!inserted)
                 {
                     itr->second.eraMin = std::min(itr->second.eraMin, eraMin);
@@ -386,7 +441,10 @@ namespace Journal::Quests
             }
             for (auto& [entry, spot] : wanted)
                 if (spot.placed)
+                {
                     spot.zone = ZoneAt(spot.map, spot.x, spot.y, spot.z);
+                    ApplyEraPhase(spot);
+                }
         }
 
         // The quest before this one: the one it asks for, or the one that offers it on turn-in.
@@ -773,7 +831,7 @@ namespace Journal::Quests
 
         rows.push_back(Acore::StringFormat("Q,{},{},{},{},{},{},{},{},{},{},{},{},{},{}", questId, uint32(state),
             q->GetQuestLevel() > 0 ? q->GetQuestLevel() : 0, q->GetMinLevel(), flags, xp, money > 0 ? money : 0,
-            giverKind, giverEntry, Escape(q->GetTitle(), 48), Escape(giver, 30), Escape(where, 30), uint32(step), uint32(era)));
+            giverKind, giverEntry, Escape(q->GetTitle(), 60), Escape(giver, 30), Escape(where, 30), uint32(step), uint32(era)));
         rows.push_back(Acore::StringFormat("R,{},{},{}", questId,
             Index::ItemList(q->RewardItemId, q->RewardItemIdCount, QUEST_REWARDS_COUNT),
             Index::ItemList(q->RewardChoiceItemId, q->RewardChoiceItemCount, QUEST_REWARD_CHOICES_COUNT)));
