@@ -53,7 +53,14 @@ function methods:IsVisible()
 	end
 	return true
 end
-function methods:SetText(t) self.__text = t == nil and "" or tostring(t) end
+function methods:SetText(t)
+	local old = self.__text
+	self.__text = t == nil and "" or tostring(t)
+	-- Like the client: an edit box's OnTextChanged runs at once, also for text set from code.
+	if self.__kind == "EditBox" and old ~= self.__text and self.__scripts.OnTextChanged then
+		self.__scripts.OnTextChanged(self)
+	end
+end
 function methods:SetPoint() self.__points = (rawget(self, "__points") or 0) + 1 end
 function methods:ClearAllPoints() self.__points = 0 end
 function methods:GetNumPoints() return rawget(self, "__points") or 0 end
@@ -191,7 +198,12 @@ function GameTooltip:SetOwner(owner) tipLines = {} self.__owner = owner end
 function GameTooltip:IsOwned(f) return self.__owner == f end
 function GameTooltip:AddLine(text) table.insert(tipLines, tostring(text)) end
 function GameTooltip:AddDoubleLine(a, b) table.insert(tipLines, tostring(a) .. " | " .. tostring(b)) end
-DEFAULT_CHAT_FRAME = { AddMessage = function (_, m) print("  [chat] " .. m) end }
+local chatLines = {}
+DEFAULT_CHAT_FRAME = { AddMessage = function (_, m) print("  [chat] " .. m); table.insert(chatLines, m) end }
+local function chatShown(pattern)
+	for _, m in ipairs(chatLines) do if m:find(pattern) then return true end end
+	return false
+end
 GameFontHighlightSmall, GameFontNormal, GameFontHighlight = {}, {}, {}
 SlashCmdList, UISpecialFrames = {}, {}
 
@@ -313,7 +325,8 @@ local function serve(msg)
 	table.insert(sent, msg)
 	print("  -> " .. msg)
 	if cmd == "HELLO" then
-		reply("HELLO:" .. req .. ":2:63:4242:3")
+		assert(args[4] == "1", "HELLO without the addon's features: " .. msg)
+		reply("HELLO:" .. req .. ":2:127:4242:3")
 	elseif cmd == "D" then
 		list("D", req, "3", {
 			"I,6,36,0,0,15,25,19,6,Deadmines,Westfall",
@@ -371,6 +384,23 @@ local function serve(msg)
 			"I,3637,1,Head of VanCleef", "P,155,1,The Defias Brotherhood" })
 	elseif cmd == "H" then
 		reply("H:" .. req .. ":159:101")
+	elseif cmd == "OPENED" then
+		-- the addon's answer to OPEN; nothing comes back
+	elseif cmd == "N" then
+		if args[3] == "R" then
+			list("N", req, "1:1", { "197,225" })
+		elseif args[3] == "S" then
+			list("N", req, "1:1", { "3,C,4974,Aldwin Laughlin,Guard,Stormwind City,Trade District,-1,-1,-,-1,8,0" })
+		elseif args[3] == "P" then
+			list("N", req, "1:1", { "7,C,1346,Georgio Bolero,Tailoring Trainer,Stormwind City,-,436,640,-,312,2,4" })
+		else
+			list("N", req, "2:75", {
+				"1,C,914,Ander Germaine,Warrior Trainer,Stormwind City,Old Town,790,710,-,140,1,0",
+				"2,C,3169,Tarshaw Jaggedscar,Warrior Trainer,Orgrimmar,-,800,320,Kalimdor,-1,8,0",
+			})
+		end
+	elseif cmd == "M" and args[3] == "N" then
+		reply("M:" .. req .. ":ok:Ander Germaine <Warrior Trainer> - Stormwind City%2C Old Town (79%2C 71)%2C 140 yards north-east")
 	elseif cmd == "M" then
 		reply("M:" .. req .. ":ok:Westfall (42%2C 72)%2C 120 yards away")
 	elseif cmd == "F" then
@@ -804,6 +834,86 @@ step("quests tab: headings, where you are, chains, era, search, filters", functi
 	tick(1)
 	assert(sent[#sent]:match("^X:%d+:defias$"), "quest search not asked: " .. sent[#sent])
 	assert(textShown("^Search: defias$") and textShown("%(Westfall%)"), "search result without its heading")
+	J.OpenSection("dungeons", true)
+	tick(0.5)
+end)
+
+step("directory tab: class trainer, professions, search, map flag, Town Guide", function ()
+	SlashCmdList.JOURNALDIRECTORY()
+	tick(1)
+	assert(J.view.section == "directory", "/directory didn't open the Directory tab")
+	assert(sent[#sent]:match("^N:%d+:C:1$"), "your class trainer not asked first: " .. sent[#sent])
+	assert(sent[#sent - 1]:match("^N:%d+:R$"), "your profession skills not asked: " .. sent[#sent - 1])
+	assert(textShown("^Warrior trainer$"), "class trainer entry missing")
+	assert(textShown("^Ander Germaine"), "nearest trainer not listed")
+	assert(textShown("140 yd north%-east"), "distance and direction missing")
+	assert(textShown("^Kalimdor$"), "a trainer on another continent without its continent")
+	assert(textShown("showing 2 of 75"), "a cut list doesn't say so")
+	assert(not textShown("^Pet trainer$"), "hunter-only entry shown to a warrior")
+	local row = find(function (f) return f.__kind == "Button" and type(rawget(f, "place")) == "table" and f.place.place == 1 and f:IsVisible() end)
+	row.__scripts.OnClick(row)
+	tick(0.5)
+	assert(sent[#sent]:match("^M:%d+:N:1:914$"), "map flag not asked: " .. sent[#sent])
+	assert(chatShown("Flagged on your map"), "map flag answer not printed")
+	-- professions are under a group, with your rank
+	assert(not textShown("^Tailoring$"), "Profession trainers not collapsed at first")
+	local professions = find(function (f) return f.__kind == "Button" and type(rawget(f, "entry")) == "table" and f.entry.group == "professions" and f:IsVisible() end)
+	professions.__scripts.OnClick(professions)
+	local tailoring = find(function (f) return f.__kind == "Button" and type(rawget(f, "entry")) == "table" and f.entry.skill == 197 and f:IsVisible() end)
+	assert(tailoring, "profession entries not shown")
+	assert(textShown("Expert"), "your own profession rank missing")
+	tailoring.__scripts.OnClick(tailoring)
+	tick(0.5)
+	assert(sent[#sent]:match("^N:%d+:P:197$"), "profession not asked: " .. sent[#sent])
+	assert(textShown("up to Artisan"), "trainer rank missing")
+	assert(JournalCharDB.directory.selected == "p197", "selection not remembered")
+	-- the More group starts collapsed
+	assert(not textShown("^Barber$"), "More group not collapsed")
+	professions.__scripts.OnClick(professions)
+	assert(textShown("^Tailoring$"), "the picked profession hidden by its collapsed group")
+	local more = find(function (f) return f.__kind == "Button" and type(rawget(f, "entry")) == "table" and f.entry.group == "more" and f:IsVisible() end)
+	more.__scripts.OnClick(more)
+	assert(textShown("^Barber$"), "More group didn't open")
+	-- search
+	local box = find(function (f) return f.__kind == "EditBox" and rawget(f, "hint") and f.hint:GetText() == "Search name, title or zone" end)
+	box:SetText("aldwin")
+	tick(1)
+	assert(sent[#sent]:match("^N:%d+:S:aldwin$"), "search not asked: " .. sent[#sent])
+	assert(textShown("^Search: aldwin$") and textShown("^Aldwin Laughlin"), "search result missing")
+	-- picking a category while searching clears the box and asks once
+	local before = counts.N
+	local bank = find(function (f) return f.__kind == "Button" and type(rawget(f, "entry")) == "table" and f.entry.category == 7 and f:IsVisible() end)
+	bank.__scripts.OnClick(bank)
+	tick(1)
+	assert(box:GetText() == "", "picking a category didn't clear the search")
+	assert(counts.N == before + 1, "a category picked while searching was asked " .. (counts.N - before) .. " times")
+	assert(sent[#sent]:match("^N:%d+:C:7$"), "bank not asked: " .. sent[#sent])
+	-- a long search with a non-ASCII letter on the cut is cut before that letter
+	box:SetText(string.rep("a", 63) .. "\195\164")
+	tick(1)
+	assert(sent[#sent]:match("^N:%d+:S:" .. string.rep("a", 63) .. "$"), "search cut inside a character: " .. sent[#sent])
+	box:SetText("")
+	tick(1)
+	-- the Town Guide spell: the server says OPEN, which toggles the tab
+	reply("OPEN:7:directory")
+	tick(0.2)
+	assert(sent[#sent] == "OPENED:7", "OPEN not answered: " .. sent[#sent])
+	assert(not JournalFrame:IsShown(), "OPEN didn't close the tab that was shown")
+	reply("OPEN:8:directory")
+	tick(0.5)
+	assert(JournalFrame:IsShown() and J.view.section == "directory", "OPEN didn't open the tab")
+	-- .find <words>
+	J.OpenSection("dungeons", true)
+	tick(0.5)
+	before = counts.N
+	reply("OPEN:9:directory:aldwin laughlin")
+	tick(1)
+	assert(J.view.section == "directory", ".find didn't open the tab")
+	assert(sent[#sent]:match("^N:%d+:S:aldwin laughlin$"), ".find words not searched: " .. sent[#sent])
+	assert(box:GetText() == "aldwin laughlin", ".find words not in the search box")
+	-- the skills and the search; not the remembered category first
+	assert(counts.N == before + 2, ".find opening the tab asked " .. (counts.N - before) .. " times")
+	box:SetText("")
 	J.OpenSection("dungeons", true)
 	tick(0.5)
 end)

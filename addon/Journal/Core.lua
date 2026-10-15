@@ -14,6 +14,11 @@ J.HELLO_PROGRESSION = 4
 J.HELLO_LEARNING = 8
 J.HELLO_COLLECTIONS = 16
 J.HELLO_QUESTS = 32
+J.HELLO_DIRECTORY = 64
+
+-- What this addon can do, sent with HELLO (AddonFeatureFlags in src/Journal.h): open a tab when
+-- the server says OPEN (the Town Guide spell and .find), and answer OPENED.
+J.ADDON_FEATURES = 1
 
 -- Ability tags.
 J.TAG = {
@@ -260,7 +265,7 @@ local nextReq = 0
 local pending = {}
 -- list answers: first letter of the R/D/E codes per command
 local LISTS = { D = true, B = true, S = true, A = true, L = true, K = true, Q = true, T = true, F = true, C = true, W = true, O = true,
-	G = true, Z = true, X = true }
+	G = true, Z = true, X = true, N = true }
 
 local function send(msg)
 	SendAddonMessage(J.PREFIX, msg, "WHISPER", UnitName("player"))
@@ -349,6 +354,15 @@ local function onAddonMessage(message)
 		onHello(fields)
 		finish(req, fields)
 		return
+	elseif code == "OPEN" then
+		-- Sent unasked: "OPEN:<token>:<tab>[:<argument>]". The answer tells the server the addon is
+		-- still here; without it the server opens its menu instead.
+		local fields = splitFields(rest)
+		if fields[1] and fields[1] ~= "" then
+			send("OPENED:" .. req)
+			J.Fire("OPEN", fields[1], J.NonEmpty(J.Unescape(fields[2])))
+		end
+		return
 	elseif code == "OFF" then
 		J.serverReady = false
 		J.Fire("NO_SERVER")
@@ -386,7 +400,7 @@ local helloSerial = 0
 function J.SayHello()
 	helloSerial = helloSerial + 1
 	local mine = helloSerial
-	J.Request("HELLO", { tostring(J.PROTOCOL) })
+	J.Request("HELLO", { tostring(J.PROTOCOL), tostring(J.ADDON_FEATURES) })
 	J.After(6, function ()
 		if mine == helloSerial and not J.serverReady then J.Fire("NO_SERVER") end
 	end)
@@ -491,9 +505,10 @@ BINDING_NAME_JOURNAL_MOUNTS = "Mounts"
 BINDING_NAME_JOURNAL_PETS = "Pets"
 BINDING_NAME_JOURNAL_TOYS = "Toys"
 BINDING_NAME_JOURNAL_QUESTS = "Quests"
+BINDING_NAME_JOURNAL_DIRECTORY = "Directory"
 
 local HELP = "|cffffd200/journal|r (or Shift-J) opens the journal. |cffffd200/journal <name>|r searches dungeons, bosses "
-	.. "and loot. |cffffd200/quests|r, |cffffd200/mounts|r, |cffffd200/pets|r and |cffffd200/toys|r open those tabs. |cffffd200/journal minimap|r "
+	.. "and loot. |cffffd200/quests|r, |cffffd200/directory|r, |cffffd200/mounts|r, |cffffd200/pets|r and |cffffd200/toys|r open those tabs. |cffffd200/journal minimap|r "
 	.. "shows or hides the minimap button. |cffffd200/journal reset|r moves the window back. |cffffd200/journal refresh|r "
 	.. "fetches the data again."
 
@@ -527,6 +542,8 @@ end
 
 SLASH_JOURNALQUESTS1 = "/quests"
 SlashCmdList.JOURNALQUESTS = function () J.ToggleSection("quests") end
+SLASH_JOURNALDIRECTORY1 = "/directory"
+SlashCmdList.JOURNALDIRECTORY = function () J.ToggleSection("directory") end
 SLASH_JOURNALMOUNTS1 = "/mounts"
 SlashCmdList.JOURNALMOUNTS = function () J.ToggleSection("mounts") end
 SLASH_JOURNALPETS1 = "/pets"
