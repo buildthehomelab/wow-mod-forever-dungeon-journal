@@ -59,9 +59,14 @@ opened carry a lock and the stage they open at.
 rares come last. On the right, the difficulty menu and four tabs:
 - **Overview**: with no boss picked, the instance's difficulties with your lockout on each, what
   it takes to enter, the entrance (with a map flag), wings and a summary of its quests. With a boss
-  picked, its model (drag to turn it), level, health and the creatures fought in the encounter.
-- **Abilities**: per creature, each ability with icon, cast time, tags and description.
-- **Loot**: drops with chances, class and slot filters. With no boss picked, every boss's loot.
+  picked, its model (drag to turn it), level, health, the creatures fought in the encounter, its
+  enrage timer ("Berserk after 10 min") and what it gives besides its loot.
+- **Abilities**: per creature, each ability with icon, cast time, tags and description. Spells
+  whose tooltip has no description get a short one written from what the spell does; the realm's
+  notes and role flags (tank, healer, damage dealer, important, deadly) show with them.
+- **Loot**: drops with chances, class and slot filters (items for some classes only, tier tokens
+  among them, follow the class filter). With no boss picked, every boss's loot. A token's tooltip
+  lists what it turns into for the class picked.
 - **Quests**: as above.
 
 **Difficulty tabs** are the map's own (Normal and Heroic, 10 and 25 player, heroic raids). With
@@ -106,12 +111,23 @@ At startup the module builds an index:
   its `lastEncounterDungeon` closes), plus rares spawned in the instance;
 - **abilities** from the bosses' C++ scripts (`mod_forever_journal_script_spell`, see below),
   SmartAI scripts (following timed action lists, respecting difficulty flags), creature spells,
-  and what bosses are seen casting (`mod_forever_journal_learned`). Spells with SpellDifficulty
-  versions show the version of the chosen difficulty;
+  and what bosses are seen casting on each difficulty (`mod_forever_journal_learned`), then the
+  changes in `mod_forever_journal_ability`. Spells with SpellDifficulty versions show the version
+  of the chosen difficulty. The client shows a spell's own tooltip text; for spells whose
+  description in `Spell.dbc` is empty (the server reads the file from its `DataDir`) the server
+  writes one from the spell's effects: school and damage or healing, radius, duration, auras such
+  as attack speed or damage taken, stuns and fears, summons, and the spell a periodic aura
+  triggers. Such spells named like internal helpers (Teleport, Visual, Dummy, Anchor, Ride
+  Vehicle, Trigger...) are left out;
+- **enrage timers** from the C++ scripts (`mod_forever_journal_script_enrage`, see below) and
+  SmartAI events that cast a Berserk or Enrage spell once, a fixed time into combat;
 - **loot** from `creature_loot_template`, `gameobject_loot_template` and
   `reference_loot_template`, with chances worked out the way `LootTemplate::Process` rolls
   (groups, equal-chance entries, references and their multipliers, the realm's drop rates).
-  Shared world drop tables are left out;
+  Shared world drop tables are left out. A **token** is a quest or junk item that a quest rewarding
+  items asks for (one of it), or that a vendor's extended cost asks for: tier 4 to 10 tokens,
+  Ahn'Qiraj's and 40 player Naxxramas', the Head of Onyxia. Its classes are those of what it turns
+  into;
 - **quests** sorted under the instance's zone, or asking for creatures or quest drops found only
   there; status per player from the core's own checks, XP including other modules' changes
   (such as mod-forever-dungeon-xp);
@@ -159,6 +175,27 @@ seeds them:
   (`Kind` M, P or T; `ID` the spell for mounts and pets, the item for toys), for sources the data
   can't tell, such as a reward your realm hands out by hand.
 
+`data/sql/db-world/updates/mod_forever_journal_2026_10_14_01.sql` adds a `Difficulty` column to
+`mod_forever_journal_learned` (spells learned before it count for every difficulty) and:
+- `mod_forever_journal_ability`: changes to a creature's abilities, applied after the automatic
+  list. `Entry` is the base creature entry (0 = every creature), `Spell` the spell (any difficulty
+  version of it).
+  - `Hide` 1 leaves the spell out.
+  - `Sort` puts it before the others, lowest first (0 = where the automatic list puts it).
+  - `Flags`: 1 tank, 2 healer, 4 damage dealer, 8 important, 16 deadly; shown as tags.
+  - `Note`: a line shown under the description and in the tooltip.
+
+  A row for a spell the creature isn't known to cast adds it on every difficulty, even a passive
+  aura. Example: flag Patchwerk's Hateful Strike for tanks and healers.
+  ```sql
+  INSERT INTO mod_forever_journal_ability (Entry, Spell, Flags, Note)
+  VALUES (16028, 41926, 3, 'Hits the highest-health melee target other than the tank.');
+  ```
+- `mod_forever_journal_boss_reward`: lines on a boss's overview for what it gives besides its loot,
+  such as currency another module puts straight in the bags. By encounter (`MapID`, `Bit` from
+  `DungeonEncounter.dbc`) or by creature (`MapID`, `Entry`, for rares), for one map difficulty or
+  all of them (255). The module seeds none.
+
 ### Abilities from C++ scripts
 
 Spells cast from C++ boss scripts aren't in the database, so
@@ -172,6 +209,13 @@ python3 tools/extract_script_spells.py \
     azerothcore-wotlk/src/server/scripts/{EasternKingdoms,Kalimdor,Outland,Northrend,World} \
     mod-individual-progression/src
 ```
+
+It also writes each script's **enrage timer** to `mod_forever_journal_script_enrage`: a
+`ScheduleEnrageTimer`, a `ScheduleEvent` whose event casts the spell, or a scheduler task that
+casts it, where the event or the spell is called Berserk or Enrage, the time is one fixed value of
+a minute or more, set when the boss is engaged and not under an `if` (heroic only, hard mode), the
+event doesn't repeat, and nothing during the fight resets, cancels, delays or reschedules it.
+Scripts with two different timers get none.
 
 The checked-in file was made from mod-playerbots/azerothcore-wotlk f19a187 and
 mod-individual-progression 723c510.
@@ -259,8 +303,9 @@ interface (1). `Journal.IsTabShown(key)` tells whether the journal is open on a 
 ## Development
 
 `lua tools/addon_smoke_test.lua addon/Journal` loads the addon against a stubbed 3.3.5a API
-and a fake server and walks the home page, era locks, an instance, a boss's abilities, loot and
-its filters, quests, search, the 40 player tab, opening inside an instance, the Mounts, Pets and
+and a fake server and walks the home page, era locks, an instance, a boss's abilities (with
+server-written descriptions, notes, role flags, enrage timers and boss rewards), loot and its
+filters (class-only items, tokens and what they turn into), quests, search, the 40 player tab, opening inside an instance, the Mounts, Pets and
 Toys tabs (sources, map flags, boss links, Summon, filters) and a tab registered by another addon.
 `DRAGON=1` runs it with a DragonUI stand-in.
 

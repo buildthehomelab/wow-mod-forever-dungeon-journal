@@ -17,14 +17,22 @@
  *
  * A reference shared by many loot tables is a world drop table (the level 30-35 greens and so
  * on); it is left out unless Journal.Loot.ShowWorldDrops is on, as retail's journal does.
+ *
+ * A token is a quest or junk item handed in for other items: one of it is what a quest that
+ * rewards items asks for (the tier 4-6 tokens, Ahn'Qiraj's and Naxxramas' 40 player ones, the Head
+ * of Onyxia), or what a vendor's extended cost asks for (the tier 7-10 tokens). Items turned into
+ * by more than MAX_TOKEN_RESULTS things are currencies, not tokens.
  */
 
 #include "Journal.h"
+#include "DBCStores.h"
 #include "DatabaseEnv.h"
 #include "QueryResult.h"
 #include "ItemTemplate.h"
 #include "Log.h"
 #include "ObjectMgr.h"
+#include "Player.h"
+#include "QuestDef.h"
 #include "StringFormat.h"
 #include "World.h"
 #include <algorithm>
@@ -63,6 +71,57 @@ namespace Journal::Loot
 
         std::array<std::unordered_map<uint32, std::vector<Drop>>, STORE_COUNT> sDrops;
         std::vector<Drop> const sNone;
+
+        constexpr std::size_t MAX_TOKEN_RESULTS = 40;
+
+        struct TokenResult
+        {
+            uint32 item = 0;
+            uint32 classes = 0;   // CLASSMASK bits, 0 = any
+            uint32 races = 0;     // the quest's races, 0 = any
+            char kind = 'Q';      // Q quest, V vendor
+        };
+
+        std::unordered_map<uint32, std::vector<TokenResult>> sTokens;
+
+        uint32 PlayableClasses(uint32 mask)
+        {
+            mask &= CLASSMASK_ALL_PLAYABLE;
+            return mask == CLASSMASK_ALL_PLAYABLE ? 0 : mask;
+        }
+
+        // Both restrictions at once; 0 means any class.
+        uint32 BothClasses(uint32 a, uint32 b)
+        {
+            return !a ? b : !b ? a : a & b;
+        }
+
+        bool IsTokenKind(uint32 item)
+        {
+            ItemTemplate const* proto = sObjectMgr->GetItemTemplate(item);
+            return proto && (proto->Class == ITEM_CLASS_QUEST || proto->Class == ITEM_CLASS_MISC);
+        }
+
+        void AddTokenResult(uint32 token, uint32 item, uint32 classes, uint32 races, char kind)
+        {
+            ItemTemplate const* proto = sObjectMgr->GetItemTemplate(item);
+            if (!proto || item == token)
+                return;
+            uint32 own = PlayableClasses(proto->AllowableClass);
+            classes = BothClasses(PlayableClasses(classes), own);
+            if ((own || classes) && !classes)
+                return; // a quest for classes that can't use the item
+            std::vector<TokenResult>& list = sTokens[token];
+            for (TokenResult& r : list)
+                if (r.item == item)
+                {
+                    // The same item from another quest: for whoever either is for.
+                    r.classes = r.classes && classes ? (r.classes | classes) : 0;
+                    r.races = r.races && races ? (r.races | races) : 0;
+                    return;
+                }
+            list.push_back({ item, classes, races, kind });
+        }
 
         constexpr uint16 LOOT_MODE_DEFAULT_BIT = 1;
         constexpr uint32 MAX_DEPTH = 6;
@@ -463,6 +522,113 @@ namespace Journal::Loot
         return IsWorldDrop(reference);
     }
 
+    void BuildTokens()
+    {
+        sTokens.clear();
+
+        for (auto const& [id, quest] : sObjectMgr->GetQuestTemplates())
+        {
+            std::vector<uint32> rewards;
+            for (uint32 item : quest->RewardItemId)
+                if (item)
+                    rewards.push_back(item);
+            for (uint32 item : quest->RewardChoiceItemId)
+                if (item)
+                    rewards.push_back(item);
+            if (rewards.empty())
+                continue;
+            for (uint8 i = 0; i < QUEST_ITEM_OBJECTIVES_COUNT; ++i)
+            {
+                uint32 token = quest->RequiredItemId[i];
+                if (!token || quest->RequiredItemCount[i] != 1 || !IsTokenKind(token))
+                    continue;
+                for (uint32 item : rewards)
+                    AddTokenResult(token, item, quest->GetRequiredClasses(), quest->GetAllowableRaces(), 'Q');
+            }
+        }
+
+        if (QueryResult result = WorldDatabase.Query("SELECT DISTINCT CAST(item AS UNSIGNED), CAST(ExtendedCost AS UNSIGNED) "
+            "FROM npc_vendor WHERE item > 0 AND ExtendedCost > 0"))
+            do
+            {
+                Field* f = result->Fetch();
+                uint32 item = uint32(f[0].Get<uint64>());
+                ItemExtendedCostEntry const* cost = sItemExtendedCostStore.LookupEntry(uint32(f[1].Get<uint64>()));
+                if (!cost)
+                    continue;
+                for (uint8 i = 0; i < MAX_ITEM_EXTENDED_COST_REQUIREMENTS; ++i)
+                    if (cost->reqitem[i] && cost->reqitemcount[i] == 1 && IsTokenKind(cost->reqitem[i]))
+                        AddTokenResult(cost->reqitem[i], item, 0, 0, 'V');
+            } while (result->NextRow());
+
+        for (auto itr = sTokens.begin(); itr != sTokens.end();)
+        {
+            if (itr->second.empty() || itr->second.size() > MAX_TOKEN_RESULTS)
+                itr = sTokens.erase(itr);
+            else
+            {
+                std::sort(itr->second.begin(), itr->second.end(), [](TokenResult const& a, TokenResult const& b) { return a.item < b.item; });
+                ++itr;
+            }
+        }
+        LOG_INFO("server.loading", ">> mod-forever-journal: {} tokens", sTokens.size());
+    }
+
+    bool IsToken(uint32 item)
+    {
+        return sTokens.count(item) != 0;
+    }
+
+    uint32 ClassesOf(uint32 item, bool asToken)
+    {
+        ItemTemplate const* proto = sObjectMgr->GetItemTemplate(item);
+        if (!proto)
+            return 0;
+        if (uint32 own = PlayableClasses(proto->AllowableClass))
+            return own;
+        if (!asToken)
+            return 0;
+        auto itr = sTokens.find(item);
+        if (itr == sTokens.end())
+            return 0;
+        uint32 mask = 0;
+        for (TokenResult const& r : itr->second)
+        {
+            if (!r.classes)
+                return 0;
+            mask |= r.classes;
+        }
+        return PlayableClasses(mask);
+    }
+
+    // KR:<req>:<token>:<items>, then KD rows:
+    //   <item>,<classes>,<Q quest/V vendor>,<quality>,<item level>,<name>
+    // Quests the player's race can't take are left out.
+    void HandleTokens(Player* player, std::string const& req, std::vector<std::string_view> const& args)
+    {
+        uint32 token = 0;
+        if (args.size() < 3 || !ParseUInt(args[2], token))
+        {
+            SendError(player, req, "bad");
+            return;
+        }
+        std::vector<std::string> rows;
+        if (auto itr = sTokens.find(token); itr != sTokens.end())
+            for (TokenResult const& r : itr->second)
+            {
+                if (r.races && !(r.races & player->getRaceMask()))
+                    continue;
+                ItemTemplate const* proto = sObjectMgr->GetItemTemplate(r.item);
+                if (!proto)
+                    continue;
+                rows.push_back(Acore::StringFormat("{},{},{},{},{},{}", r.item, r.classes, r.kind, proto->Quality, proto->ItemLevel,
+                    Escape(proto->Name1, 60)));
+            }
+        Send(player, Acore::StringFormat("KR:{}:{}:{}", req, token, rows.size()));
+        SendRows(player, "KD:" + req, rows);
+        Send(player, "KE:" + req);
+    }
+
     uint32 Hash(uint32 seed)
     {
         // Order-independent: XOR of each drop's own FNV hash.
@@ -480,6 +646,10 @@ namespace Journal::Loot
             for (auto const& [id, drops] : sDrops[store])
                 for (Drop const& d : drops)
                     acc ^= mix(mix(mix(2166136261u + uint32(store), id), d.item), uint32(d.chance * 100.0f) ^ (d.flags << 20));
+        // Tokens set flags and classes in the loot rows.
+        for (auto const& [token, results] : sTokens)
+            for (TokenResult const& r : results)
+                acc ^= mix(mix(mix(2166136261u, token), r.item), r.classes);
         return mix(seed, acc);
     }
 }

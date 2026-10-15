@@ -61,6 +61,11 @@ namespace Journal::Index
         constexpr uint32 POI_FLAGS = 99;
         constexpr uint32 POI_ICON_RED_FLAG = 7;
         constexpr uint32 MAX_SUMMONS_SHOWN = 8;
+        constexpr uint8 BIT_NONE = 255;
+
+        // Bumped when rows the addon keeps under the stamp (instances, bosses, loot) change shape,
+        // so it asks for them again.
+        constexpr uint32 DATA_REVISION = 2;
 
         // mod-individual-progression states (IndividualProgression.h)
         constexpr uint8 IP_BLACKWING_LAIR = 1;   // passed Molten Core
@@ -82,6 +87,12 @@ namespace Journal::Index
             uint8 flags = 0; // 1 = hard mode
         };
 
+        struct Reward
+        {
+            uint8 difficulty = DIFFICULTY_ANY;
+            std::string text;
+        };
+
         struct Boss
         {
             uint32 key = 0;                 // encounter bit, or RARE_KEY_BASE + n
@@ -91,6 +102,7 @@ namespace Journal::Index
             bool rare = false;
             std::vector<uint32> creatures;  // base entries, the main one first
             std::vector<Chest> chests;
+            std::vector<Reward> rewards;    // mod_forever_journal_boss_reward
         };
 
         struct Wing
@@ -634,6 +646,50 @@ namespace Journal::Index
                         }
                 }
             }
+        }
+
+        // What a boss gives besides its loot (currency put straight in the bags, a reputation...):
+        // mod_forever_journal_boss_reward rows, by encounter bit or by creature.
+        void ReadRewards()
+        {
+            QueryResult result = WorldDatabase.Query("SELECT MapID, Bit, Entry, Difficulty, Text FROM mod_forever_journal_boss_reward "
+                "ORDER BY MapID, Bit, Entry, Sort");
+            if (!result)
+                return;
+            do
+            {
+                Field* f = result->Fetch();
+                uint32 map = f[0].Get<uint32>();
+                uint8 bit = f[1].Get<uint8>();
+                uint32 entry = f[2].Get<uint32>();
+                Reward reward{ f[3].Get<uint8>(), f[4].Get<std::string>() };
+                if (reward.text.empty() || (!entry && bit == BIT_NONE))
+                    continue;
+                auto range = sData.byMap.equal_range(map);
+                for (auto itr = range.first; itr != range.second; ++itr)
+                    for (Boss& b : sData.instances[itr->second].bosses)
+                    {
+                        bool match = entry ? std::find(b.creatures.begin(), b.creatures.end(), BaseEntry(entry)) != b.creatures.end()
+                            : !b.rare && b.key == bit;
+                        if (match)
+                            b.rewards.push_back(reward);
+                    }
+            } while (result->NextRow());
+        }
+
+        // A row that ends in a text, escaped and cut so the row fits one message.
+        std::string RowWithText(std::string const& head, std::string_view text)
+        {
+            constexpr std::size_t ROW_BUDGET = MAX_PAYLOAD - 20; // after "AD:<request id>:"
+            std::size_t cap = std::min<std::size_t>(text.size(), 200);
+            while (cap > 0)
+            {
+                std::string row = head + Escape(text, cap);
+                if (row.size() <= ROW_BUDGET)
+                    return row;
+                cap -= std::min(cap, row.size() - ROW_BUDGET);
+            }
+            return head + "-";
         }
 
         // Rare spawns in the instance, after its encounters.
@@ -1408,6 +1464,7 @@ namespace Journal::Index
 
         BuildBosses(extras);
         BuildRares();
+        ReadRewards();
 
         // Abilities and loot for every creature the journal shows, on any tab.
         std::unordered_set<uint32> bases;
@@ -1456,6 +1513,7 @@ namespace Journal::Index
         if (GetConfig().collections)
             Collections::Prepare(lootIds);
         Loot::Load(lootIds);
+        Loot::BuildTokens();
 
         PlaceEntrances();
         BuildQuests();
@@ -1464,7 +1522,7 @@ namespace Journal::Index
             Collections::Build();
 
         uint32 h = 2166136261u;
-        h = Fnv(h, PROTOCOL_VERSION);
+        h = Fnv(Fnv(h, PROTOCOL_VERSION), DATA_REVISION);
         for (Instance const& inst : sData.instances)
         {
             h = Fnv(Fnv(Fnv(h, inst.id), inst.map), inst.name);
@@ -1637,7 +1695,10 @@ namespace Journal::Index
     //
     // AR:<req>:<instance>:<boss>:<variant>, then AD rows:
     //   U,<creature>,<level>,<rank>,<health>,<flags 1 = summoned add>,<name>
-    //   S,<creature>,<spell>,<tags>,<cast ms>
+    //   S,<creature>,<spell>,<tags>,<cast ms>[,<description, when the client has none>]
+    //   N,<creature>,<spell>,<note>                       mod_forever_journal_ability's note
+    //   E,<creature>,<spell>,<seconds>                    enrage timer: the spell, cast that far into the fight
+    //   R,<text>                                          what the boss gives besides its loot
     void HandleAbilities(Player* player, std::string const& req, std::vector<std::string_view> const& args)
     {
         Instance const* inst = FindInstance(args, 2);
@@ -1665,8 +1726,17 @@ namespace Journal::Index
             if (CreatureBaseStats const* stats = sObjectMgr->GetCreatureBaseStats(t->maxlevel, uint8(t->unit_class)))
                 health = stats->GenerateHealth(t);
             rows.push_back(Acore::StringFormat("U,{},{},{},{},{},{}", base, t->maxlevel, t->rank, health, add ? 1 : 0, Escape(t->Name, 60)));
+            uint32 enrageSpell = 0;
+            uint32 enrageSeconds = 0;
+            if (Abilities::EnrageOf(base, v->difficulty, enrageSpell, enrageSeconds))
+                rows.push_back(Acore::StringFormat("E,{},{},{}", base, enrageSpell, enrageSeconds));
             for (Abilities::Ability const& a : abilities)
-                rows.push_back(Acore::StringFormat("S,{},{},{},{}", base, a.spell, a.tags, a.castMs));
+            {
+                std::string row = Acore::StringFormat("S,{},{},{},{}", base, a.spell, a.tags, a.castMs);
+                rows.push_back(a.text.empty() ? row : RowWithText(row + ",", a.text));
+                if (!a.note.empty())
+                    rows.push_back(RowWithText(Acore::StringFormat("N,{},{},", base, a.spell), a.note));
+            }
             return true;
         };
 
@@ -1680,6 +1750,9 @@ namespace Journal::Index
             for (uint32 s : Abilities::Summons(c))
                 if (adds < MAX_SUMMONS_SHOWN && unit(BaseEntry(s), true))
                     ++adds;
+        for (Reward const& r : boss->rewards)
+            if (r.difficulty == DIFFICULTY_ANY || r.difficulty == v->difficulty)
+                rows.push_back(RowWithText("R,", r.text));
 
         Send(player, Acore::StringFormat("AR:{}:{}:{}:{}", req, inst->id, boss->key, v->id));
         SendRows(player, "AD:" + req, rows);
@@ -1689,7 +1762,8 @@ namespace Journal::Index
     // ---- L: loot on a difficulty tab ------------------------------------------------------------
     //
     // LR:<req>:<instance>:<boss or all>:<variant>:<items>, then LD rows:
-    //   <item>,<chance x100>,<flags>,<min>,<max>,<quality>,<class>,<subclass>,<inventory type>,<item level>,<required level>,<boss>,<name>
+    //   <item>,<chance x100>,<flags>,<min>,<max>,<quality>,<class>,<subclass>,<inventory type>,<item level>,<required level>,<boss>,<name>,<classes>
+    // classes: the CLASSMASK bits of the classes it is for (a token: those of what it turns into); 0 = any
     void HandleLoot(Player* player, std::string const& req, std::vector<std::string_view> const& args)
     {
         Instance const* inst = FindInstance(args, 2);
@@ -1709,10 +1783,13 @@ namespace Journal::Index
         for (Pick const& p : picks)
         {
             ItemTemplate const* proto = sObjectMgr->GetItemTemplate(p.drop.item);
-            rows.push_back(Acore::StringFormat("{},{},{},{},{},{},{},{},{},{},{},{},{}", p.drop.item,
-                uint32(std::lround(p.drop.chance * 100.0f)), p.drop.flags, p.drop.minCount, p.drop.maxCount, proto->Quality,
+            // A drop only there for a quest is that quest's objective, not a token to trade in.
+            bool token = !(p.drop.flags & LOOT_QUEST) && Loot::IsToken(p.drop.item);
+            uint32 flags = p.drop.flags | (token ? uint32(LOOT_TOKEN) : 0u);
+            rows.push_back(Acore::StringFormat("{},{},{},{},{},{},{},{},{},{},{},{},{},{}", p.drop.item,
+                uint32(std::lround(p.drop.chance * 100.0f)), flags, p.drop.minCount, p.drop.maxCount, proto->Quality,
                 proto->Class, proto->SubClass, proto->InventoryType, proto->ItemLevel, proto->RequiredLevel, p.boss,
-                Escape(proto->Name1, 60)));
+                Escape(proto->Name1, 60), Loot::ClassesOf(p.drop.item, token)));
         }
         Send(player, Acore::StringFormat("LR:{}:{}:{}:{}:{}", req, inst->id, all ? std::string("all") : std::to_string(bossKey), v->id, rows.size()));
         SendRows(player, "LD:" + req, rows);
@@ -2033,6 +2110,6 @@ namespace Journal::Index
         uint32 base = BaseEntry(creature->GetEntry());
         if (!sData.learnable.count(base))
             return;
-        Abilities::Learn(base, spell->Id);
+        Abilities::Learn(base, spell->Id, uint8(creature->GetMap()->GetDifficulty()));
     }
 }

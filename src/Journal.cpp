@@ -10,8 +10,9 @@
  *   D:<req>                           -> DR:<req>:<instances>, DD rows (I/W/V), DE
  *   B:<req>:<instance>                -> BR, BD rows, BE        bosses
  *   S:<req>:<instance>                -> SR, SD rows (V/R), SE   lockouts, era locks, requirements
- *   A:<req>:<instance>:<boss>:<var>   -> AR, AD rows (U/S), AE   abilities
+ *   A:<req>:<instance>:<boss>:<var>   -> AR, AD rows (U/S/N/E/R), AE  abilities, enrage, rewards
  *   L:<req>:<instance>:<boss>:<var>   -> LR, LD rows, LE        loot (boss "all" = every boss)
+ *   K:<req>:<item>                    -> KR, KD rows, KE        what a token turns into
  *   Q:<req>:<instance>                -> QR, QD rows, QE        quests with the player's status
  *   QD:<req>:<quest>                  -> TR, TD rows (O/K/I), TE quest objectives
  *   H:<req>                           -> H:<req>:<instance>:<variant>   the instance you're in
@@ -270,6 +271,8 @@ namespace Journal
                 Index::HandleAbilities(player, req, args);
             else if (command == "L")
                 Index::HandleLoot(player, req, args);
+            else if (command == "K")
+                Loot::HandleTokens(player, req, args);
             else if (command == "Q")
                 Index::HandleQuests(player, req, args);
             else if (command == "QD")
