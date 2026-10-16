@@ -947,4 +947,9 @@ namespace Journal::Quests
         Send(player, "M:" + req + ":ok:" + Escape(Index::WhereText(player, e.spot.map, e.spot.x, e.spot.y, e.spot.zone), 120));
         return true;
     }
+    char GroupOfZone(uint32 zoneId)
+    {
+        AreaTableEntry const* zone = sAreaTableStore.LookupEntry(zoneId);
+        return zone ? ZoneGroup(zone) : 'X';
+    }
 }

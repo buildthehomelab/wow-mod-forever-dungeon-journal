@@ -11,6 +11,10 @@ An [AzerothCore](https://www.azerothcore.org/) (WotLK 3.3.5a) module and addon t
 - **Directory**: a town guide. Your class trainer, every profession's trainers and every service
   (flight masters, innkeepers, banks, auction houses, mailboxes, repairs, vendors and more), nearest
   first, flagged on your map with a click. The **Town Guide** spell and `.find` open it.
+- **Lore**: a codex of each zone's places, people and history that fills in as you play. Walking
+  into a place, talking to someone, defeating them, or taking and finishing quests unlocks entries,
+  with a banner each time you discover one. Its **Library** keeps every book, plaque and letter you
+  read in the world, to read again.
 - **Mounts**, **Pets** and **Toys**: everything there is to collect, what you already have, and
   where to get the rest: vendors and their prices, drops with their chances, quests,
   achievements, professions, trainers, containers and fishing.
@@ -18,8 +22,8 @@ An [AzerothCore](https://www.azerothcore.org/) (WotLK 3.3.5a) module and addon t
   hunter **Beasts** field guide and [mod-transmog-plus](https://github.com/buildthehomelab/wow-mod-transmog-plus)'s
   **Appearances** show up here when they're installed.
 
-Open it with **Shift-J**, the minimap button, `/journal`, `/quests`, `/directory`, `/mounts`, `/pets`
-or `/toys`.
+Open it with **Shift-J**, the minimap button, `/journal`, `/quests`, `/directory`, `/lore`, `/mounts`,
+`/pets` or `/toys`.
 
 Everything comes from your realm's own data, so custom loot, custom mounts and pets,
 mod-individual-progression's vanilla raids and other modules' changes show up as they are on your
@@ -130,6 +134,43 @@ several spots in one zone (a wandering guard) shows once, at the nearest.
 **The Town Guide spell** (taught to every character, in the General tab of the spellbook) opens and
 closes the Directory; `.find` does the same, and `.find <words>` opens it on a search. Characters
 without the addon get a gossip menu with the same search, categories and map flags instead.
+
+### Lore
+
+A codex of the world, zone by zone. On the left, the zones with lore, by continent, with how much
+of each you've found; in the middle, the zone's entries: its overview, then **Places**, **People**
+and **History**; on the right, the entry you picked.
+
+Entries are discovered by playing, not by reading a list:
+
+- walking into a zone or one of its places, alive and on foot or your own mount, the way the
+  game's own exploration works (on a flight path, the place you land in counts once you're down);
+- talking to someone (opening their chat or quest window);
+- defeating someone (everyone in the group who shares the kill);
+- taking a quest, or turning one in.
+
+Each discovery shows a banner at the top of the screen; click it to read the entry. New entries
+are marked **New** until you've read them. Entries you haven't found yet are listed in grey with a
+hint ("Explore Goldshire", "Speak with Marshal Dughan", "Defeat Hogger"); their text stays on the
+server until you find them. Characters only see what they can actually find: an entry that only a
+quest for another race or class unlocks is left out.
+
+Nobody starts from nothing: at login, the areas a character has already explored and the quests
+it has already taken or done are credited quietly.
+
+With mod-individual-progression, lore in Outland, on the Isle of Quel'Danas and in Northrend opens
+with the stage that opens those lands (an entry can also name its own stage). Until then it carries
+a lock and the stage it opens at.
+
+The first lore covers **Elwynn Forest** and **Durotar**; more zones are added as they're written
+(see [Writing lore](#writing-lore)).
+
+**The Library**, at the top of the zone list, is your bookshelf. Every book, plaque, tablet or
+letter you read in the world (anything that opens a page of text, on a table, a wall or in your
+bags) goes on it the first time you read it, with a banner, and stays there to read again from the
+tab, every page of it, long after you've left it behind or thrown the letter away. The shelf is
+sorted by title and says where you read each one. A book found in several places counts once. Only
+books you've read are listed, so there's nothing to spoil. `/lore library` opens it.
 
 ### Mounts, Pets and Toys
 
@@ -293,6 +334,46 @@ Scripts with two different timers get none.
 The checked-in file was made from mod-playerbots/azerothcore-wotlk f19a187 and
 mod-individual-progression 723c510.
 
+## Writing lore
+
+The lore lives in the world database and comes from `data/lore/<zone>.json`, one file per zone.
+`tools/build_lore_sql.py` checks the files and writes
+`data/sql/db-world/updates/mod_forever_journal_lore_<zone>.sql` from each. Each of those replaces
+its zone's lore, and the database updater applies it again whenever it changes.
+
+```json
+{
+  "zone": 12,
+  "name": "Elwynn Forest",
+  "entries": [
+    {
+      "id": 12005,
+      "kind": "place",
+      "title": "Goldshire",
+      "triggers": [{ "area": "Goldshire" }, { "talk": 240 }],
+      "body": ["First paragraph.", "Second paragraph."],
+      "sources": ["quest 62 description"]
+    }
+  ]
+}
+```
+
+- `zone` is the AreaTable zone the entries are filed under; entry ids are `zone * 1000 + n`.
+- `kind` is `zone` (the overview), `place`, `person` or `history`. Entries keep their order within a
+  kind.
+- `triggers` say what unlocks the entry: `area` (an area of the zone by its name in AreaTable.dbc,
+  matched only inside that zone), `areaId`, `talk` and `kill` (creature entries), `accept` and
+  `complete` (quest ids). Give an entry more than one, so it still unlocks if one of them is missed.
+- Optional: `faction` (`alliance` or `horde`), `races` and `classes` (masks), `era` (the
+  mod-individual-progression stage it opens at).
+- `sources` say what the entry was written from (the game's own quest and NPC text, mostly). They
+  stay in the database and are never sent to players.
+
+Run `python3 tools/build_lore_sql.py --world-sql <core>/data/sql/base/db_world` to also check that
+every creature and quest a trigger names exists. At startup the server logs any area name it
+can't find in the zone (`lore entry ...: no area "..." in zone ...`) and any entry nothing unlocks.
+`.journal lore reload` reads changed lore without a restart.
+
 ## Requirements
 
 - [AzerothCore](https://www.azerothcore.org/) wotlk (master) and a WoW 3.3.5a (12340) client.
@@ -312,13 +393,15 @@ cd azerothcore-wotlk/modules
 git clone https://github.com/buildthehomelab/wow-mod-forever-journal.git mod-forever-journal
 ```
 Re-run CMake, rebuild, and copy `conf/mod_forever_journal.conf.dist` next to your
-`worldserver.conf`. The SQL in `data/sql/db-world` is applied by the database updater.
+`worldserver.conf`. The SQL in `data/sql/db-world` and `data/sql/db-characters` is applied by the
+database updater.
 
 Client: copy `addon/Journal` into `Interface/AddOns`. On realms using Portalkeeper,
 `sql/portalkeeper_addon.sql` (run by hand against `acore_world`) makes it a required addon.
 
 To remove the module, take it out of the build and run
-`data/sql/uninstall/mod_forever_journal_uninstall_world.sql`.
+`data/sql/uninstall/mod_forever_journal_uninstall_world.sql` (against `acore_world`) and
+`data/sql/uninstall/mod_forever_journal_uninstall_characters.sql` (against `acore_characters`).
 
 ## Configuration
 
@@ -327,7 +410,8 @@ the world drop threshold, showing world drops or grey and white items, the quest
 collections (`Journal.Collections.Enable`), listing unobtainable mounts, pets and toys
 (`Journal.Collections.ShowUnobtainable`), the Quests tab (`Journal.Quests.Enable`) and the
 Directory (`Journal.Directory.*`: on or off, the Town Guide spell and whether it's taught at login,
-how many places a list shows, the gossip menu's page size, saving worked-out zones).
+how many places a list shows, the gossip menu's page size, saving worked-out zones) and the Lore
+tab (`Journal.Lore.Enable`).
 
 ### The Town Guide spell
 
@@ -405,7 +489,9 @@ interface (1). `Journal.IsTabShown(key)` tells whether the journal is open on a 
 | Command | |
 | --- | --- |
 | `/journal` or `/dj` (Shift-J) | open or close the journal |
-| `/quests`, `/directory`, `/mounts`, `/pets`, `/toys` | open or close the journal on that tab (key bindings too) |
+| `/quests`, `/directory`, `/lore`, `/mounts`, `/pets`, `/toys` | open or close the journal on that tab (key bindings too) |
+| `/lore library` | open the Library of the books you've read |
+| `/lore banner`, `/lore sound` | turn the lore and library banner, or its sound, on or off |
 | `.find`, the Town Guide spell | open or close the Directory (a gossip menu without the addon) |
 | `.find <words>` | search the Directory by name, title or zone |
 | `/journal <tab>` | open a tab by its key: `dungeons`, `raids`, `quests`, `mounts`, `beasts`... |
@@ -413,6 +499,10 @@ interface (1). `Journal.IsTabShown(key)` tells whether the journal is open on a 
 | `/journal minimap` | show or hide the minimap button |
 | `/journal reset` | move the window back to the middle |
 | `/journal refresh` | fetch the journal data again |
+| `.journal lore` | GM: how much lore there is, and how much the selected character has found |
+| `.journal lore discover <entry\|all>` | GM: discover an entry, or every one, for the selected character |
+| `.journal lore reset` | GM: forget the selected character's discoveries and library (explored areas and quests are credited again at its next login) |
+| `.journal lore reload` | admin: read the lore tables again |
 
 ## Development
 
@@ -422,8 +512,11 @@ server-written descriptions, notes, role flags, enrage timers and boss rewards),
 filters (class-only items, tokens and what they turn into), quests, search, the 40 player tab,
 opening inside an instance, the Quests tab (headings, where you are, chains, era locks, search,
 filters), the Directory (categories, professions with your rank, search, map flags, the Town
-Guide's OPEN message and its answer, `.find <words>`, one request per pick), the Mounts, Pets and Toys tabs (sources, map flags, boss links, Summon, filters) and a
-tab registered by another addon.
+Guide's OPEN message and its answer, `.find <words>`, one request per pick), the Lore tab (zones,
+entries by kind, hints, text in pieces, New until read, the discovery banner and its queue, the
+Library's shelf, a book's pages in order and a book's banner), the
+Mounts, Pets and Toys tabs (sources, map flags, boss links, Summon, filters) and a tab registered by
+another addon.
 `DRAGON=1` runs it with a DragonUI stand-in.
 
 ## Troubleshooting
@@ -452,6 +545,10 @@ tab registered by another addon.
 - **An NPC is missing from the Directory:** the spawn list is read once at startup (restart after
   `.npc add`), and the Directory leaves out anyone hostile to you, holiday NPCs outside their event
   and places your progression stage hasn't opened.
+- **A lore entry never unlocks:** look in the worldserver log at startup for
+  `mod-forever-journal: lore entry` lines: an area name that isn't in the zone, or a creature or
+  quest that doesn't exist. Areas count only alive and once off a flight path; a GM can unlock an
+  entry with `.journal lore discover <entry>`.
 - **No 40 player tabs or era locks:** they need mod-individual-progression with
   `IndividualProgression.Enable = 1`.
 

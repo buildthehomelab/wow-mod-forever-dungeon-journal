@@ -10,7 +10,7 @@ local Unescape = J.Unescape
 
 -- One request per key at a time; everyone asking meanwhile gets the same answer.
 local inflight = {}
-local function fetch(key, cmd, fields, parse, done)
+local function fetch(key, cmd, fields, parse, done, raw)
 	if inflight[key] then
 		table.insert(inflight[key], done)
 		return
@@ -21,8 +21,9 @@ local function fetch(key, cmd, fields, parse, done)
 		inflight[key] = nil
 		local value = result and parse(result) or nil
 		for _, fn in ipairs(waiting) do fn(value, err) end
-	end)
+	end, raw)
 end
+J.Fetch = fetch
 
 -----------------------------------------
 -- instances
