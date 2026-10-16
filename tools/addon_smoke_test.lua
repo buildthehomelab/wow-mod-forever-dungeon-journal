@@ -242,7 +242,7 @@ end
 
 -- With DRAGON=1, a DragonUI stand-in, so the skinned branches run too.
 if os.getenv("DRAGON") == "1" then
-	NineSliceUtils = { GetLayout = function () return {} end, ApplyLayout = function () end }
+	DragonUI_NineSlice = { GetLayout = function () return {} end, ApplyLayout = function () end }
 	DragonUI = {
 		_dir = "Interface\\AddOns\\DragonUI\\Textures\\", atlasinfo = {},
 		SafeSetAtlas = function () return true end, SkinRedButton = function () end,

@@ -14,6 +14,10 @@ J.UniqueName = uniqueName
 -----------------------------------------
 -- DragonUI, if it's there and new enough to carry the helpers we borrow
 
+-- DragonUI's nine-slice helper: DragonUI_NineSlice since DragonUI's 2026 rewrite, NineSliceUtils
+-- before it.
+local NineSliceUtils = _G.DragonUI_NineSlice or _G.NineSliceUtils
+
 function J.Dragon()
 	local D = _G.DragonUI
 	if D and D._dir and D.atlasinfo and D.SafeSetAtlas and D.SkinRedButton and NineSliceUtils
