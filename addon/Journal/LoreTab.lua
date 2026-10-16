@@ -339,7 +339,7 @@ local function build(panel)
 				b.name:SetText(e.book.title)
 				b.name:SetTextColor(1, 1, 1)
 				b.right:SetText(J.LoreIsNew(e.book) and "|cff40ff40New|r" or "")
-				setShown(b.selectedBg, state.entry and state.entry.id == e.book.id)
+				setShown(b.selectedBg, state.entry and state.entry.book and state.entry.id == e.book.id)
 				return
 			end
 			if e.kind then
@@ -366,7 +366,7 @@ local function build(panel)
 			b.name:SetText(entry.title)
 			if unknown then b.name:SetTextColor(0.5, 0.5, 0.5) else b.name:SetTextColor(1, 1, 1) end
 			b.right:SetText(J.LoreIsNew(entry) and "|cff40ff40New|r" or "")
-			setShown(b.selectedBg, state.entry and state.entry.id == entry.id)
+			setShown(b.selectedBg, state.entry and not state.entry.book and state.entry.id == entry.id)
 		end)
 
 	local function fillEntries()
@@ -486,6 +486,7 @@ local function build(panel)
 		serial = serial + 1
 		if not z then
 			state.entries = nil
+			state.entry = nil
 			fillEntries()
 			clearReader("Pick a zone on the left.")
 			return
@@ -504,6 +505,7 @@ local function build(panel)
 				fillEntries()
 				zones:Render()
 				if #state.entries == 0 then
+					state.entry = nil
 					clearReader("Your library is empty.\n\nBooks, plaques, tablets and letters you read in the world are kept "
 						.. "here, so you can read them again whenever you like.")
 					return
@@ -543,7 +545,7 @@ local function build(panel)
 			-- The entry already being read (the list was asked again after a discovery): stay where
 			-- the reader is.
 			local shown = state.entry
-			if pick and shown and pick.id == shown.id and pick.state == shown.state then
+			if pick and shown and not shown.book and pick.id == shown.id and pick.state == shown.state then
 				state.entry = pick
 				entries:Render()
 				return

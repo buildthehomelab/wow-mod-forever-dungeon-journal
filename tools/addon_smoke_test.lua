@@ -313,6 +313,7 @@ end
 local counts = {}
 local sent = {}
 local echoOnly = false -- a realm without the module: the whisper to yourself just comes back
+local emptyLibrary = false -- the J answer: no books read yet
 local function serve(msg)
 	if echoOnly then
 		fire("CHAT_MSG_ADDON", "JNL", msg, "WHISPER", "Tester")
@@ -466,11 +467,15 @@ local function serve(msg)
 			list("V", req, args[3] .. ":12:0:Elwynn Forest", { "Green hills%2C old forest." })
 		end
 	elseif cmd == "J" then
-		list("J", req, "2", { "B,1001,1700000000,The Kaldorei and the Well of Eternity,Stormwind City", "B,2002,1700000100,A Letter,-" })
+		if emptyLibrary then
+			list("J", req, "0", {})
+		else
+			list("J", req, "2", { "B,1001,1700000000,The Kaldorei and the Well of Eternity,Stormwind City", "B,2002,1700000100,A Letter,-" })
+		end
 	elseif cmd == "P" then
 		-- Two pages; the second's text comes in two pieces, one of them looking like a number.
 		reply("PR:" .. req .. ":" .. args[3] .. ":2:The Kaldorei and the Well of Eternity")
-		reply("PD:" .. req .. ":1.Long ago%2C the night elves.;2.It fell in;2. 10000.")
+		reply("PD:" .. req .. ":1.Long ago%2C the night elves.$B$BHello $N.;2.It fell in;2. 10000.")
 		reply("PE:" .. req)
 	elseif cmd == "O" then
 		-- Orb of Deception in the bags, Piccolo of the Flaming Fire only in the bank.
@@ -1008,10 +1013,28 @@ step("lore tab: zones, entries, reading, discovery banner", function ()
 	assert(kaldorei, "book missing from the shelf")
 	kaldorei.__scripts.OnClick(kaldorei)
 	tick(0.5)
-	assert(textShown("^|cffffd200Page 1|r\n\nLong ago, the night elves%.\n\n|cffffd200Page 2|r\n\nIt fell in 10000%.$"),
-		"pages not joined in order, or read as numbers")
+	assert(textShown("^|cffffd200Page 1|r\n\nLong ago, the night elves%.\n\nHello Tester%.\n\n|cffffd200Page 2|r\n\nIt fell in 10000%.$"),
+		"pages not joined in order, placeholders not filled in, or read as numbers")
 	assert(textShown("^Read in Stormwind City$"), "where it was read missing")
 	assert(JournalCharDB.loreRead.b1001, "reading a book didn't mark it read")
+	-- an empty Library, then back to a zone: the zone's entry shows again
+	local elwynn = find(function (f) return f.__kind == "Button" and type(rawget(f, "entry")) == "table" and f.entry.zone
+		and f.entry.zone.id == 12 and f:IsVisible() end)
+	elwynn.__scripts.OnClick(elwynn)
+	tick(0.5)
+	local function loreText() return textShown("^The town at the crossroads") or textShown("^Green hills, old forest%.$") end
+	assert(loreText(), "Elwynn's entry not reopened")
+	emptyLibrary = true
+	tick(6) -- past the shelf's few seconds of grace
+	local libraryRow = find(function (f) return f.__kind == "Button" and type(rawget(f, "entry")) == "table" and f.entry.zone
+		and f.entry.zone.library and f:IsVisible() end)
+	libraryRow.__scripts.OnClick(libraryRow)
+	tick(1.5)
+	assert(textShown("^Your library is empty"), "empty Library message missing")
+	emptyLibrary = false
+	elwynn.__scripts.OnClick(elwynn)
+	tick(0.5)
+	assert(loreText() and not textShown("^Your library is empty"), "the reader stayed blank after the empty Library")
 	-- a book read while playing: its banner opens it
 	J.OpenSection("dungeons", true)
 	tick(0.5)

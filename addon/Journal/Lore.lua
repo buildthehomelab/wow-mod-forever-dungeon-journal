@@ -133,6 +133,7 @@ function J.LoadBook(id, done)
 			page = tonumber(page)
 			if page and page >= 1 and page <= count then pages[page] = pages[page] .. Unescape(piece) end
 		end
+		for i = 1, count do pages[i] = J.FillPlaceholders(pages[i]) end
 		return { id = tonumber(result.meta[1]) or id, title = Unescape(result.meta[3] or "-"), pages = pages }
 	end, function (book, err)
 		if book then books[id] = book end

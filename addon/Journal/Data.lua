@@ -405,22 +405,25 @@ function J.LoadQuestDetail(quest, done)
 				d.prev = { id = r[2], done = r[3] == 1, name = Unescape(tostring(r[4] or "-")) }
 			end
 		end
-		-- The objectives text keeps the client's placeholders: fill in the usual ones.
-		local text = table.concat(d.text)
-		local name = UnitName("player") or ""
 		local _, class = UnitClass("player")
-		local race = UnitRace("player") or ""
-		text = text:gsub("%$[Nn]", name):gsub("%$[Cc]", (UnitClass("player"))):gsub("%$[Rr]", race)
-			:gsub("%$[Bb]", "\n"):gsub("%$[Gg]([^:;]*):([^;]*);", function (male, female)
-				return UnitSex("player") == 3 and female or male
-			end)
-		d.objectives = text
+		d.objectives = J.FillPlaceholders(table.concat(d.text))
 		d.class = class
 		return d
 	end, function (d)
 		if d then questDetail[quest] = d end
 		done(d)
 	end)
+end
+
+-- Quest and book text keeps the client's placeholders: fills in the usual ones ($N name, $C class,
+-- $R race, $B line break, $G male:female;).
+function J.FillPlaceholders(text)
+	local name = UnitName("player") or ""
+	local race = UnitRace("player") or ""
+	return (text:gsub("%$[Nn]", name):gsub("%$[Cc]", (UnitClass("player"))):gsub("%$[Rr]", race)
+		:gsub("%$[Bb]", "\n"):gsub("%$[Gg]([^:;]*):([^;]*);", function (male, female)
+			return UnitSex("player") == 3 and female or male
+		end))
 end
 
 -----------------------------------------

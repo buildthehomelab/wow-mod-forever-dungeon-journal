@@ -406,23 +406,49 @@ namespace Journal::Lore
             return 0;
         }
 
-        // Letters written as HTML (<HTML><BODY><P>...) as plain text with line breaks.
+        // Letters and plaques written as HTML (<HTML><BODY><H1>..</H1><P>..</P>) as plain text: the
+        // source's own line breaks are only layout, <BR> breaks a line, a heading or paragraph ends
+        // one, and never more than one blank line in a row.
         std::string PlainPage(std::string const& text)
         {
             if (Lower(text.substr(0, 6)) != "<html>")
                 return text;
             std::string out;
+            auto lineBreak = [&out](bool paragraph)
+            {
+                while (!out.empty() && out.back() == ' ')
+                    out.pop_back();
+                if (out.empty())
+                    return;
+                std::size_t breaks = 0;
+                for (auto it = out.rbegin(); it != out.rend() && *it == '\n'; ++it)
+                    ++breaks;
+                std::size_t want = paragraph ? 2 : 1;
+                while (breaks < want)
+                {
+                    out += '\n';
+                    ++breaks;
+                }
+            };
             for (std::size_t i = 0; i < text.size(); ++i)
             {
-                if (text[i] == '<')
+                char c = text[i];
+                if (c == '<')
                 {
                     std::size_t end = text.find('>', i);
                     if (end == std::string::npos)
                         break;
                     std::string tag = Lower(text.substr(i + 1, end - i - 1));
-                    if (tag.rfind("br", 0) == 0 || tag == "/p" || tag.rfind("/h", 0) == 0)
-                        out += '\n';
+                    if (tag.rfind("br", 0) == 0)
+                        lineBreak(false);
+                    else if (tag == "/p" || tag.rfind("/h", 0) == 0)
+                        lineBreak(true);
                     i = end;
+                }
+                else if (c == '\n' || c == '\r' || c == '\t' || c == ' ')
+                {
+                    if (!out.empty() && out.back() != ' ' && out.back() != '\n')
+                        out += ' ';
                 }
                 else if (text[i] == '&')
                 {
@@ -1091,8 +1117,8 @@ public:
     }
 };
 
-// Reading a letter or note in the bags (CMSG_READ_ITEM has no script hook of its own). Runs where
-// the packet's handler runs, just before it.
+// Reading a letter or note in the bags (CMSG_READ_ITEM has no script hook of its own), and a book
+// object the client reports using. Runs where the packet's handler runs, just before it.
 class JournalLoreServerScript : public ServerScript
 {
 public:
@@ -1100,15 +1126,37 @@ public:
 
     bool CanPacketReceive(WorldSession* session, WorldPacket const& packet) override
     {
-        if (packet.GetOpcode() != CMSG_READ_ITEM || packet.size() < 2 || !session)
+        uint16 opcode = packet.GetOpcode();
+        if ((opcode != CMSG_READ_ITEM && opcode != CMSG_GAMEOBJ_REPORT_USE) || !session)
             return true;
         Player* player = session->GetPlayer();
         if (!player || !player->IsInWorld())
+            return true;
+        if (opcode == CMSG_GAMEOBJ_REPORT_USE)
+        {
+            ReportedUse(player, packet);
+            return true;
+        }
+        if (packet.size() < 2)
             return true;
         Item* item = player->GetItemByPos(packet.read<uint8>(0), packet.read<uint8>(1));
         if (item && item->GetTemplate()->PageText && player->CanUseItem(item) == EQUIP_ERR_OK)
             Lore::ReadBook(player, item->GetTemplate()->PageText, player->GetZoneId());
         return true;
+    }
+
+    // A book object the client reports reading (the opcode the core credits "use object"
+    // achievements from), in case the client draws a book's pages without asking to use it. The
+    // same checks as HandleGameobjectReportUse; a book already on the shelf is ignored.
+    static void ReportedUse(Player* player, WorldPacket const& packet)
+    {
+        if (packet.size() < 8 || player->m_mover != player)
+            return;
+        GameObject* go = player->GetMap()->GetGameObject(ObjectGuid(packet.read<uint64>(0)));
+        if (!go || go->HasGameObjectFlag(GO_FLAG_NOT_SELECTABLE) || !go->IsWithinDistInMap(player, INTERACTION_DISTANCE))
+            return;
+        if (uint32 page = Lore::PageOf(go->GetGOInfo()))
+            Lore::ReadBook(player, page, go->GetZoneId());
     }
 };
 
