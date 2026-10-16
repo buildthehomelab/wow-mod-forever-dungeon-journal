@@ -1,0 +1,275 @@
+{
+  "zone": 141,
+  "name": "Teldrassil",
+  "entries": [
+    {
+      "id": 141000,
+      "kind": "zone",
+      "title": "Teldrassil",
+      "triggers": [{ "areaId": 141 }],
+      "body": [
+        "Teldrassil is the new World Tree of the night elves, a tree so vast that a whole forest grows on its crown. It rises out of the Veiled Sea off the northern coast of Kalimdor, across the water from Darkshore. The city of Darnassus sits among its western boughs, and the villages, glades and moonwells of the kaldorei are scattered through the woods below.",
+        "The tree is young. It was grown by Arch Druid Fandral Staghelm and the most powerful of his druids after the Battle of Mount Hyjal, when the old World Tree, Nordrassil, was spent to destroy the demon lord Archimonde and the night elves lost the immortality it had given them. Teldrassil was meant to restore it. So far it has not.",
+        "Something is also wrong with the land on its branches. The furbolgs of the Gnarlpine tribe, once gentle neighbours, have gone mad with corruption, the timberlings have turned angry and diseased, and satyrs and grells lurk in the caves. The Sentinels and druids keep watch from Shadowglen and Dolanaar, and young night elves are sent out to learn what threatens their new home."
+      ],
+      "sources": ["quests 929, 933, 7383, 935 reward texts and descriptions (Crown of the Earth)", "quests 459, 476, 918, 932 descriptions", "pre-Cataclysm lore: Teldrassil and Darnassus, Nordrassil at Hyjal"]
+    },
+    {
+      "id": 141001,
+      "kind": "place",
+      "title": "Shadowglen",
+      "triggers": [{ "area": "Shadowglen" }, { "accept": 456 }],
+      "body": [
+        "A deep glade in the north-east of Teldrassil, enclosed by hills and the giant roots of the tree. It is where young night elves first take up their training as druids, hunters, priests, rogues and warriors, under the eye of the Shadowglen Sentinels.",
+        "The druids of the glade watch closely over its balance. Heavy spring rains let the nightsabers and thistle boars grow too many for the land to feed, and Conservator Ilthalaine has had them thinned. Darker troubles have followed: grells tainted by fel moss in the hills to the south, and the return of the dryad Tarindrella, whose presence has not been felt in Kalimdor's forests for years."
+      ],
+      "sources": ["quests 456, 457 descriptions and offer texts", "quests 458, 459 descriptions", "creature 2079 Conservator Ilthalaine gossip", "creature 12160 Shadowglen Sentinel"]
+    },
+    {
+      "id": 141002,
+      "kind": "place",
+      "title": "Aldrassil",
+      "triggers": [{ "area": "Aldrassil" }, { "talk": 3514 }, { "accept": 921 }],
+      "body": [
+        "A great tree at the heart of Shadowglen, hollowed into halls and chambers that wind up its trunk. The trainers and merchants of the glade live and work at its foot and on its lower floors.",
+        "In the highest room sits Tenaron Stormgrip, who sends each young elf to the moonwell north of Aldrassil for a phial of its water before they leave the glade. With the water comes the first part of a story that every night elf is meant to hear: what became of their people after Mount Hyjal."
+      ],
+      "sources": ["quests 920, 921, 928 descriptions and offer texts", "creatures 3587-3597 (Shadowglen trainers and merchants)"]
+    },
+    {
+      "id": 141003,
+      "kind": "place",
+      "title": "Shadowthread Cave",
+      "triggers": [{ "area": "Shadowthread Cave" }, { "accept": 916 }, { "kill": 1994 }],
+      "body": [
+        "A cave north of Aldrassil, thick with webs. The webwood spiders inside are giants beside the small spiders they are related to, and the druid Gilshalan Windwalker believes the growth of the World Tree has changed them. He has collected their venom and a nest egg to study in Darnassus.",
+        "The cave is dangerous to the careless. Its broodmother, a spider called Githyiss the Vile, poisoned the young elf Iverron when he wandered too close, and only an antidote brewed by his friend Dirania Silvershine saved him."
+      ],
+      "sources": ["quests 916, 917 descriptions and reward texts", "quests 4495, 3519, 3521, 3522 descriptions", "creature 1994 Githyiss the Vile"]
+    },
+    {
+      "id": 141004,
+      "kind": "place",
+      "title": "Dolanaar",
+      "triggers": [{ "area": "Dolanaar" }, { "talk": 3515 }, { "talk": 6736 }],
+      "body": [
+        "The main village of Teldrassil, built around a moonwell on the road between Shadowglen and Darnassus. It has an inn kept by Innkeeper Keldamyr, trainers for every path a night elf may follow, and a steady traffic of Sentinels, druids and messengers.",
+        "Dolanaar is also where news of the forest's troubles gathers. Corithras Moonrage tends the moonwell and carries on the history begun in Shadowglen, Athridas Bearmantle worries over the sleeping druids, and Tallonkai Swiftroot deals quietly with matters the village would rather not discuss. Just outside the village, a satyr named Zenn Foulhoof looks for helpers who do not ask questions."
+      ],
+      "sources": ["quests 928, 929, 2159, 475, 932, 488 descriptions and offer texts", "creature 6736 Innkeeper Keldamyr gossip"]
+    },
+    {
+      "id": 141005,
+      "kind": "place",
+      "title": "Fel Rock",
+      "triggers": [{ "area": "Fel Rock" }, { "accept": 932 }, { "kill": 2038 }],
+      "body": [
+        "A cave a short way north of Dolanaar, home to grells, vicious sprites and worse. The grells that infest the hills of Shadowglen are thought to come from here, already caught by the fel moss.",
+        "At its heart lives Lord Melenas, a satyr who has gathered the grells around him as warriors. The satyrs were once night elves, and one hiding so close to Dolanaar is an embarrassment the village's druids would like dealt with quietly."
+      ],
+      "sources": ["quest 932 description and offer text", "quest 459 description (grells tainted by fel moss)", "creatures 2005 Vicious Grell, 2003 Shadow Sprite, 2038 Lord Melenas", "pre-Cataclysm lore: satyrs as corrupted Highborne"]
+    },
+    {
+      "id": 141006,
+      "kind": "place",
+      "title": "Starbreeze Village",
+      "triggers": [{ "area": "Starbreeze Village" }, { "talk": 2107 }, { "accept": 2438 }],
+      "body": [
+        "A small village east of Dolanaar, with a moonwell outside its edge. It was a quiet place where druids and their friends kept homes, among them Tallonkai Swiftroot, who left a treasured dreamcatcher in a dresser there.",
+        "The Gnarlpine furbolgs pillaged it. They ambushed Gaerolas Talvethren, the Great Warden of the sleeping druids, as he left for the Ban'ethil Barrow Den, and then overran the village. Mystics of the tribe now camp to the north under Ferocitas the Dream Eater, who wears a stolen emerald round his neck."
+      ],
+      "sources": ["quests 475, 476 descriptions", "quests 2438, 2459 descriptions", "quest 929 (moonwell outside Starbreeze)"]
+    },
+    {
+      "id": 141007,
+      "kind": "place",
+      "title": "Ban'ethil Barrow Den",
+      "triggers": [{ "area": "Ban'ethil Barrow Den" }, { "area": "Ban'ethil Hollow" }, { "accept": 483 }, { "talk": 7317 }],
+      "body": [
+        "A barrow in the hills west of Dolanaar where the Druids of the Talon lie in hibernation. Their sleep keeps a pact with Ysera, the Dreamer, and their spirits walk the Emerald Dream while their bodies rest. The druids store the Relics of Wakening in sacred chests inside, for without them the ritual of sleep cannot be safely broken.",
+        "The Gnarlpine have invaded it. Their shamans have found a way to tear a sleeping druid's spirit from his body and animate the empty flesh, and they have turned it against anyone who comes exploring. The spirit of one such victim, Oben Rageclaw, still lingers near the entrance."
+      ],
+      "sources": ["quests 475, 483 descriptions and offer texts", "quests 2541, 2561 descriptions", "creature 2852 Enslaved Druid of the Talon"]
+    },
+    {
+      "id": 141008,
+      "kind": "place",
+      "title": "Lake Al'Ameth",
+      "triggers": [{ "area": "Lake Al'Ameth" }, { "talk": 2080 }, { "kill": 2166 }],
+      "body": [
+        "A large lake south of Dolanaar. The druid Denalan keeps a camp and a garden on its eastern shore, where he studies the plants of Teldrassil and grows them in soils of his own making.",
+        "The lake has become the centre of a sickness among the timberlings. Tainted sprouts spring up around its waters, and in a cave on its southern bank lives Oakenscowl, once a great leader of his kind, now swollen with an enormous tumour and spreading corruption to everything that lives around the lake."
+      ],
+      "sources": ["quests 997, 918, 919 descriptions", "quest 2499 description and reward text", "quests 930, 931, 941 (Denalan's garden and planter)"]
+    },
+    {
+      "id": 141009,
+      "kind": "place",
+      "title": "Gnarlpine Hold",
+      "triggers": [{ "area": "Gnarlpine Hold" }, { "accept": 486 }, { "kill": 2039 }],
+      "body": [
+        "The stronghold of the Gnarlpine furbolgs in the south-west of Teldrassil. It was a peaceful village once; now it is a war camp, guarded by avengers and totemics and full of captives.",
+        "Its chieftain is Ursal the Mauler, who drives his tribe mad with the fel moss. Druids of the Talon taken from the Barrow Den are held here, and the druids of Dolanaar believe they cannot be woken while Ursal lives."
+      ],
+      "sources": ["quests 476, 486 descriptions", "creatures 2013 Gnarlpine Avenger, 2014 Gnarlpine Totemic, 2852 Enslaved Druid of the Talon"]
+    },
+    {
+      "id": 141010,
+      "kind": "place",
+      "title": "Pools of Arlithrien",
+      "triggers": [{ "area": "Pools of Arlithrien" }, { "accept": 933 }],
+      "body": [
+        "A string of pools south-east of the entrance to Darnassus, with a moonwell on their shore. The druids draw water from it for the city's own well.",
+        "The Sentinels find this stretch hard to patrol. Crazed Gnarlpine attack anyone near the pools, and the reports of furbolg violence that the Sentinels first dismissed as rumour now come in from here more than anywhere."
+      ],
+      "sources": ["quest 933 description and offer text", "quest 929 (druids of Darnassus replenish their moonwell from Teldrassil's)"]
+    },
+    {
+      "id": 141011,
+      "kind": "place",
+      "title": "The Oracle Glade",
+      "triggers": [{ "area": "The Oracle Glade" }, { "talk": 3519 }, { "accept": 937 }],
+      "body": [
+        "A glade in the far north-west of Teldrassil around the Oracle Tree, an ancient that watches over the growth of the World Tree alongside the Arch Druid. Beneath its boughs lies the first and most powerful moonwell on Teldrassil.",
+        "Bloodfeather harpies have built their nests all around the glade. When the Oracle Tree sent a runner to Darnassus with a report, the harpies killed the messenger, and Sentinel Arynia Cloudsbreak and a small band of Sentinels were sent to push them back. The harpies took Arynia's sabercat, Mist, in one of their raids."
+      ],
+      "sources": ["quests 937, 940 descriptions and offer texts", "quest 7383 description and progress text", "quest 938 description and progress text"]
+    },
+    {
+      "id": 141012,
+      "kind": "place",
+      "title": "Wellspring Lake",
+      "triggers": [{ "area": "Wellspring Lake" }, { "area": "Wellspring River" }, { "accept": 923 }, { "kill": 3535 }],
+      "body": [
+        "A lake in northern Teldrassil, fed by springs and drained by the Wellspring River. The timberlings that wander its shores are the most tainted on the tree, their bark covered in mossy tumours full of poison.",
+        "The druids of Darnassus have ordered them cut down and the tumours burned until a cure is found. Among them roams Blackmoss the Fetid, a timberling whose heart, coated in dark, oily moss, keeps beating even after its death."
+      ],
+      "sources": ["quest 923 description and reward text", "quest 927 description", "creatures 2029 Timberling Mire Beast, 2030 Elder Timberling, 3535 Blackmoss the Fetid"]
+    },
+    {
+      "id": 141013,
+      "kind": "place",
+      "title": "Rut'theran Village",
+      "triggers": [{ "area": "Rut'theran Village" }, { "talk": 3838 }, { "talk": 10118 }, { "accept": 3661 }],
+      "body": [
+        "A village among the roots at the foot of Teldrassil, and the tree's link to the mainland. A portal carries travellers up to Darnassus, a ferry crosses to Auberdine in Darkshore, and hippogryphs fly the same route all day under the care of Vesprystus.",
+        "The fishing is extraordinary. The fish that swim around the base of the tree grow far larger than their cousins off the mainland, and the fishers of Rut'theran, Nessa Shadowsong among them, suspect the World Tree's rapid growth is the cause.",
+        "The village is also a place of study. Erelas Ambersky, who raises young hippogryphs here, wants to know whether the wildkin really were made by Elune and collects their feathers from as far away as the Hinterlands and Winterspring. Daryn Lightwind, a lore keeper of the Cenarion Circle, sends students north to the ancient elven ruins of Winterspring."
+      ],
+      "sources": ["quests 6341, 6342, 6343 descriptions and reward texts", "quests 3661, 978, 979 descriptions (Erelas Ambersky's wildkin research)", "quest 5250 description (Daryn Lightwind)", "creatures 3838 Vesprystus, 10118 Nessa Shadowsong, 7916 Erelas Ambersky gossip", "pre-Cataclysm lore: Rut'theran portal to Darnassus"]
+    },
+    {
+      "id": 141030,
+      "kind": "person",
+      "title": "Corithras Moonrage",
+      "triggers": [{ "talk": 3515 }, { "complete": 928 }, { "accept": 929 }],
+      "body": [
+        "A druid who keeps the moonwell in Dolanaar. He takes up the history of the night elves where Tenaron Stormgrip in Shadowglen leaves off, and he tells it in exchange for errands: phials filled at the moonwells of Starbreeze, the Pools of Arlithrien and the Oracle Glade.",
+        "The water he collects is poured into a single vessel and sent to the Arch Druid in Darnassus. Corithras speaks frankly about the tree's flaws and hopes Fandral Staghelm finds his answer soon."
+      ],
+      "sources": ["quests 928, 929, 933, 7383, 935 descriptions and reward texts"]
+    },
+    {
+      "id": 141031,
+      "kind": "person",
+      "title": "Athridas Bearmantle",
+      "triggers": [{ "talk": 2078 }, { "complete": 476 }, { "accept": 483 }],
+      "body": [
+        "A druid of Dolanaar who feels the moods of the forest. When word from the Great Warden of the Barrow Den stopped coming, he sensed trouble on the wind before anyone brought him news.",
+        "Athridas has taken the fate of the sleeping Druids of the Talon as his own charge. He sent helpers to recover the Relics of Wakening from the Barrow Den, prepared the ritual to wake his brethren, and named Ursal the Mauler as the one who must die before it could work."
+      ],
+      "sources": ["quests 475, 476, 483, 486 descriptions and offer texts", "quest 459 reward text (Athridas shares the concern for the forest)"]
+    },
+    {
+      "id": 141032,
+      "kind": "person",
+      "title": "Denalan",
+      "triggers": [{ "talk": 2080 }, { "complete": 997 }, { "accept": 919 }],
+      "body": [
+        "A druid and gardener with a camp on Lake Al'Ameth. He works with soils and growing things, waits impatiently for rare earths from Darnassus, and is delighted by any strange plant brought to him: a glowing fruit that may have come from the eastern kingdoms, or a frond like one he last saw in the Swamp of Sorrows decades ago.",
+        "His real work is the timberlings. Denalan believes the soil of Teldrassil lies behind their anger, and he plants their seeds in his own earth hoping to raise a gentler generation. His friend Rellian Greenspyre in Darnassus thinks Denalan may be their only hope."
+      ],
+      "sources": ["quests 997, 918, 919, 922 descriptions and reward texts", "quests 930, 931 reward texts", "quests 2498, 2499"]
+    },
+    {
+      "id": 141033,
+      "kind": "person",
+      "title": "Zenn Foulhoof",
+      "triggers": [{ "talk": 2150 }, { "accept": 488 }, { "accept": 489 }],
+      "body": [
+        "A satyr who lingers on the edge of Dolanaar, offering rewards to young elves who will fetch him nightsaber fangs, owl feathers and spider silk. He calls them reagents for his business in the forest and asks that it stay a secret.",
+        "The Council of the Forest takes a dim view of anyone who helps him, since a satyr is an enemy of the forest by nature. Those who do are told to redeem themselves by feeding him fel cones, the smoking, corrupted seeds that fall from Teldrassil's trees, which Zenn takes for a harmless snack."
+      ],
+      "sources": ["quests 488, 489 descriptions, offer and reward texts"]
+    },
+    {
+      "id": 141034,
+      "kind": "person",
+      "title": "Tallonkai Swiftroot",
+      "triggers": [{ "talk": 3567 }, { "accept": 2438 }, { "accept": 932 }],
+      "body": [
+        "A druid of Dolanaar who praises anyone taking an active part in protecting the groves. He owned an emerald dreamcatcher, a rare gift from Gaerolas Talvethren that draws luck from the Emerald Dream, and lost it when the Gnarlpine took Starbreeze Village.",
+        "Tallonkai also handles business the druids would rather keep quiet. The satyr Lord Melenas in nearby Fel Rock shames the whole village, and Tallonkai wants him dead quickly and without fuss."
+      ],
+      "sources": ["creature 3567 gossip", "quests 2438, 2459, 932 descriptions and offer texts"]
+    },
+    {
+      "id": 141035,
+      "kind": "person",
+      "title": "Oben Rageclaw",
+      "triggers": [{ "talk": 7317 }, { "accept": 2541 }, { "kill": 7318 }],
+      "body": [
+        "A Druid of the Claw who slept in the Ban'ethil Barrow Den. The Gnarlpine shamans cut his spirit loose from his body with a voodoo charm, and he is trapped in the Emerald Dream while his body fights for them.",
+        "After studying one of the charms, Oben chose the only way out he could see: his body had to be killed and the charm used on it. Once that was done his spirit was free of the furbolgs, and he can now rest in the Dream for good."
+      ],
+      "sources": ["quests 2541, 2561 descriptions and reward texts", "creature 7318 Rageclaw"]
+    },
+    {
+      "id": 141036,
+      "kind": "person",
+      "title": "Ursal the Mauler",
+      "triggers": [{ "kill": 2039 }, { "accept": 486 }],
+      "body": [
+        "The chieftain of the Gnarlpine tribe. He is the one who turned the fel moss on his own people, using its power to drive the once peaceful furbolgs into a frenzy and set them against the protectors of the forest.",
+        "Ursal ordered the raid on the Ban'ethil Barrow Den and keeps captured Druids of the Talon in Gnarlpine Hold. The druids of Dolanaar hold him responsible, and their ritual of awakening cannot succeed while he lives."
+      ],
+      "sources": ["quest 476 description", "quest 486 description and offer text"]
+    },
+    {
+      "id": 141050,
+      "kind": "history",
+      "title": "After Hyjal",
+      "triggers": [{ "complete": 921 }, { "complete": 929 }, { "accept": 933 }],
+      "body": [
+        "For ten thousand years the World Tree Nordrassil on Mount Hyjal gave the night elves immortality. When the Burning Legion came for it, the night elves, the orcs and the humans made their stand on the mountain, and Nordrassil's power was unleashed to destroy Archimonde. The demon lord died, and the tree was left smoking and broken.",
+        "With it went the night elves' immortality. In those same dark days Illidan, the Betrayer, was freed from his long imprisonment, and Malfurion Stormrage, the great druid the elves call Shan'do, vanished. The druids were left leaderless and uncertain.",
+        "The moonwells of Teldrassil carry the memory of an older danger. Their waters come from the Well of Eternity, the source of the magic that brought ruin on the world long ago. The druids use them and the Sentinels revere them as shrines to Elune, but sorcery itself is forbidden to all night elves."
+      ],
+      "sources": ["quest 921 description and progress text", "quest 929 reward text", "quest 933 reward text (Malfurion never returned)", "pre-Cataclysm lore: Battle of Mount Hyjal, Illidan's release"]
+    },
+    {
+      "id": 141051,
+      "kind": "history",
+      "title": "A Tree Without Blessing",
+      "triggers": [{ "complete": 933 }, { "complete": 7383 }, { "accept": 935 }, { "complete": 940 }],
+      "body": [
+        "With Malfurion gone, Arch Druid Fandral Staghelm took the lead of the druids. He persuaded the Circle of Ancients in Darkshore that it was time for the night elves to rebuild and win back their immortality, and with the Circle's approval he and the strongest druids grew Teldrassil.",
+        "When the tree was grown, Fandral asked the great dragons to bless it as they had once blessed Nordrassil. Nozdormu, the Lord of Time, refused and rebuked him for his arrogance, and Alexstrasza the Life-Binder sided with Nozdormu. Without their blessing, Teldrassil has grown unpredictably.",
+        "The druids blame many of the tree's troubles on that refusal: strange beasts rising from its soil, maddened furbolgs, diseased timberlings. The night elves have a home again, but not their immortality, and Fandral has confessed that he fears his work on the tree will never be finished."
+      ],
+      "sources": ["quest 933 reward text", "quests 934/7383 description and reward text", "quest 935 description and reward text", "quest 940 reward text"]
+    },
+    {
+      "id": 141052,
+      "kind": "history",
+      "title": "The Fel Moss",
+      "triggers": [{ "complete": 459 }, { "complete": 476 }, { "complete": 918 }],
+      "body": [
+        "The furbolgs of Teldrassil were a peaceful people who lived in the hills around Shadowglen. Then they left their homes, gathered under the name of the Gnarlpine tribe and turned on the elves. The dryad Tarindrella came back to Shadowglen because of it, and she blamed fel moss, a corrupting growth that twists the minds of whatever it touches.",
+        "Grells taken from the hills carry the moss on them, and the Gnarlpine chieftain uses it deliberately. The druids also see something like it in the sickness of the timberlings, whose tumours and moss-covered hearts Denalan and Rellian Greenspyre have been trying to understand.",
+        "Nobody yet knows where the moss came from, or whether it is a product of the tree's flawed growth. The druids of the Cenarion Circle are worried enough to send investigators across the sea to see whether the same corruption has reached Darkshore."
+      ],
+      "sources": ["quests 458, 459 descriptions and reward text", "quest 476 description", "quests 918, 922, 923, 927 descriptions and reward texts", "quest 984 description and creature 3693 Terenthis gossip (Darkshore)"]
+    }
+  ]
+}

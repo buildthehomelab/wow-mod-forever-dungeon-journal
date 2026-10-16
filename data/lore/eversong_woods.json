@@ -1,0 +1,317 @@
+{
+  "zone": 3430,
+  "name": "Eversong Woods",
+  "entries": [
+    {
+      "id": 3430000,
+      "kind": "zone",
+      "title": "Eversong Woods",
+      "triggers": [{ "areaId": 3430 }],
+      "body": [
+        "Eversong is the northern heart of Quel'Thalas, the realm the high elves built after they crossed the sea from Kalimdor: a forest of golden and crimson leaves, white stone spires and arcane sanctums, with Silvermoon City at its northern edge. The elves have shaped it with magic for thousands of years, and the woods still glow with it.",
+        "Then the Scourge came. Prince Arthas marched his army north through the forest to Silvermoon and beyond to the Sunwell, killing most of the elven people and leaving a black scar of dead earth across the land. The survivors, who now call themselves the sin'dorei or blood elves, lost the Sunwell that fed them and have struggled with a hunger for magic ever since.",
+        "What remains of Eversong is held with difficulty. Scourge still walk down the Dead Scar from the Ghostlands, Amani trolls raid from the south-east, murlocs creep along the coast, and some of the elves' own kind, maddened by their craving, have become the Wretched. The blood elves have joined the Horde, and their hopes rest on reaching their prince, Kael'thas, in Outland."
+      ],
+      "sources": ["page text of GO 180643 Saga of the Sin'dorei", "quest 8475 description (the Dead Scar)", "quest 8476 description (Amani raids; until we can reach Outland)", "quest 8463, 8468 (the Wretched)", "creature 15405 gossip (with the Sunwell gone)", "pre-Cataclysm lore: Warcraft III, fall of Quel'Thalas"]
+    },
+    {
+      "id": 3430001,
+      "kind": "place",
+      "title": "Sunstrider Isle and the Sunspire",
+      "triggers": [{ "area": "Sunstrider Isle" }, { "area": "The Sunspire" }, { "accept": 8325 }, { "talk": 15278 }],
+      "body": [
+        "An island at the north-western tip of Eversong, joined to the mainland by a bridge. Its centre is the Sunspire, a tower of study where young blood elves begin their training under Magistrix Erona and the arcanists who serve with her. Erona sees her people as adrift since the Sunwell was lost, and her pupils as the start of their recovery, with Outland as the goal.",
+        "Since the Scourge invasion the magisters have lost their grip on it. The floating Burning Crystals that powered the isle's experiments now pour out power unchecked, the mana wyrms that guarded them have gone wild, the lynxes have been driven mad, and even the tenders once used to tend the gardens have turned on their keepers. Reclaiming the isle is slow and unpleasant work.",
+        "The first lesson the arcanists teach is control. Every blood elf must learn to master the hunger for magic and release what they absorb, because those who fail become Wretched."
+      ],
+      "sources": ["quest 8325, 8326, 8334, 8336 offer texts", "quest 8346 description (control the thirst or become Wretched)", "creature 15278 gossip (a race adrift; Outland awaits)", "creature 15297 gossip", "quest 8347 (bridge south of the isle)"]
+    },
+    {
+      "id": 3430002,
+      "kind": "place",
+      "title": "Falthrien Academy",
+      "triggers": [{ "area": "Falthrien Academy" }, { "accept": 8335 }, { "kill": 15367 }],
+      "body": [
+        "A ruined school of magic south-west of the Sunspire. Arcane wraiths drift through its halls, some of them tainted by the same corruption that has spread over the rest of the isle.",
+        "At its top lives Felendren the Banished, an elf exiled from blood elf lands for ignoring the warnings of his teachers. He would not learn to control his hunger for magic and has become one of the Wretched, feeding on whatever power he can reach and using the wraiths as his servants. The Sunspire counts him as a direct threat."
+      ],
+      "sources": ["quest 8335 description and offer text", "quest 8338 (Tainted Arcane Sliver)"]
+    },
+    {
+      "id": 3430003,
+      "kind": "place",
+      "title": "Shrine of Dath'Remar",
+      "triggers": [{ "area": "Shrine of Dath'Remar" }, { "accept": 8345 }, { "talk": 15295 }],
+      "body": [
+        "A monument on the west of Sunstrider Isle to Dath'Remar Sunstrider, the first king of the high elves, who led his people out of Kalimdor and through the storms of the Maelstrom to found Quel'Thalas. The royal line that ends in Prince Kael'thas descends from him.",
+        "A bronze plaque on the shrine honours his sacrifice and says that everyone who prospers in Quel'Thalas does so thanks to him. Well Watcher Solanian, who keeps his vigil at the Sunspire, believes every newcomer to the isle should come here and read it, though others say he dwells too much on the past. From the Sunspire he once had a fine view of the Sunwell; now he tells the young that the elves are survivors, and must learn to master their hunger before it masters them."
+      ],
+      "sources": ["quest 8345 description and offer text", "page text 2936 (the shrine's plaque)", "creature 15295 gossip", "page text 1854 (Dath'Remar took the name Sunstrider)", "pre-Cataclysm lore: the Sunstrider dynasty"]
+    },
+    {
+      "id": 3430004,
+      "kind": "place",
+      "title": "Ruins of Silvermoon",
+      "triggers": [{ "area": "Ruins of Silvermoon" }, { "area": "Dawning Lane" }, { "accept": 9704 }, { "kill": 15638 }],
+      "body": [
+        "Part of Silvermoon City was never rebuilt after the Scourge broke through. Its streets, Dawning Lane among them, lie in broken stone north-west of Falconwing Square, and the road from Sunstrider Isle to the square runs straight through them.",
+        "The ruins are dangerous. The arcane patrollers built by the elves' forefathers to guard the city have fallen into disrepair and no longer know their masters, and Wretched lurk among the rubble, ready to kill for a few mana crystals. The outrunners who carry goods between the isle and Falconwing Square have lost at least one of their number there."
+      ],
+      "sources": ["quest 8472 description (arcane patrollers in the ruined section of Silvermoon, to the north-west)", "quests 9704, 9705, 8350 offer texts", "pre-Cataclysm lore: part of Silvermoon left in ruins after the Scourge invasion"]
+    },
+    {
+      "id": 3430005,
+      "kind": "place",
+      "title": "Falconwing Square",
+      "triggers": [{ "area": "Falconwing Square" }, { "accept": 8463 }, { "talk": 16924 }],
+      "body": [
+        "A small town on the road south from Sunstrider Isle, with an inn, a few shops and the Inner Elf Gate, behind which the city guard keeps a post. It is the first stop on the mainland for newcomers from the isle.",
+        "The square is also where the city's guard deals with the Wretched. Captain Aeldon Sunbrand of the Blood Hawks keeps his post here, a wanted notice offers a reward for the Wretched ringleader Thaelis the Hungerer, and Sergeant Kan'ren questions a captured Wretched in the open, unmoved by anyone who thinks him cruel: two of his men were killed this month."
+      ],
+      "sources": ["quest 9357 (Captain Sunbrand inside the Inner Elf Gate)", "quest 8468 description", "creature 16924 gossip", "quest 8350 (the inn at Falconwing Square)"]
+    },
+    {
+      "id": 3430006,
+      "kind": "place",
+      "title": "The North and West Sanctums",
+      "triggers": [{ "area": "North Sanctum" }, { "area": "West Sanctum" }, { "accept": 8486 }, { "talk": 15405 }],
+      "body": [
+        "Arcane sanctums south-west of Falconwing Square. Each draws power from the ley lines that run unseen beneath Quel'Thalas, and since the loss of the Sunwell they have become one of the blood elves' steadiest sources of energy. Ley-Keeper Caidanis keeps the North Sanctum; Ley-Keeper Velania keeps the West.",
+        "The West Sanctum has paid for that importance. Velania warned that it was being made to carry too much, and in the end one of its energy converters burst into flames and mana wraiths poured out. In the city there was talk of night elf sabotage. Velania thinks the overload alone explains it."
+      ],
+      "sources": ["creature 15405 gossip", "creature 15401 gossip", "quests 8895, 9119, 8486, 8489, 9352 descriptions and offer texts", "quest 8472 reward text (sanctums not at full capacity)"]
+    },
+    {
+      "id": 3430007,
+      "kind": "place",
+      "title": "East Sanctum",
+      "triggers": [{ "area": "East Sanctum" }, { "accept": 8487 }, { "talk": 15402 }],
+      "body": [
+        "A sanctum that stood in the path of Arthas's army as it marched on Silvermoon, and now lies in the middle of the Dead Scar. The ley energies beneath it are disrupted, the soil is poisoned, and undead are drawn to it.",
+        "Apprentice Mirveda came here against her old teacher's advice to find out whether the taint could be undone. Her samples gave a grim answer: the very nature of the soil has changed, and the damage cannot be reversed. Her notes were sent on to the grand magister in Silvermoon."
+      ],
+      "sources": ["quest 8487, 8488, 9254, 9255 descriptions, offer and reward texts"]
+    },
+    {
+      "id": 3430008,
+      "kind": "place",
+      "title": "The Dead Scar",
+      "triggers": [{ "area": "The Dead Scar" }, { "accept": 8475 }, { "kill": 15654 }],
+      "body": [
+        "A band of black, dead earth that runs south from Silvermoon through the golden forest and on into the Ghostlands. It marks the road Arthas took when he led the Scourge to the city, and nothing has grown on it since.",
+        "The Scar still serves the undead as a road. Mindless Scourge wander up it from the south day after day, and rangers such as Ranger Jaela stand guard along it, cutting them down and expecting no end to the work."
+      ],
+      "sources": ["quest 8475 description and reward text", "creature 15416 gossip", "quest 9252 (undead roaming the Dead Scar near Fairbreeze)"]
+    },
+    {
+      "id": 3430009,
+      "kind": "place",
+      "title": "Stillwhisper Pond",
+      "triggers": [{ "area": "Stillwhisper Pond" }, { "talk": 15970 }, { "accept": 9064 }],
+      "body": [
+        "A quiet pond south-east of Silvermoon where Instructor Antheol gives his lectures in the open air. He compares students to sheep: likeable when watched, and liable to drown in a shallow river the moment they are left alone.",
+        "Two of his apprentices, Ralen and Meledor, proved his point. Robbed by the Wretched on the road, they lost his elemental grimoire in the river and tried to bribe a passer-by to take the blame. Antheol found out, and punished them with a spell that left them, for a time, in a less dignified shape."
+      ],
+      "sources": ["creature 15970 gossip", "quests 9035, 9062, 9064, 9066 descriptions, offer and reward texts"]
+    },
+    {
+      "id": 3430010,
+      "kind": "place",
+      "title": "Fairbreeze Village",
+      "triggers": [{ "area": "Fairbreeze Village" }, { "talk": 15397 }, { "accept": 9256 }],
+      "body": [
+        "A village in southern Eversong, where the road south from Falconwing Square meets the way west to the coast. Its people say Silvermoon has all but given up on them, and they stay anyway because it is their home.",
+        "Fairbreeze is pressed from two sides, with the Scourge coming up the Dead Scar to the east and the Wretched holding the shipyard to the west. Rangers hold its borders, Magistrix Landra Dawnstrider looks after its magical defences, and none of them can get reinforcements from the city. The Amani have marked it on their maps as well."
+      ],
+      "sources": ["creature 15397 gossip", "quest 9358 description", "quests 9256, 9252 descriptions", "quest 9360, 9363 (troll attack planned on Fairbreeze)"]
+    },
+    {
+      "id": 3430011,
+      "kind": "place",
+      "title": "Sunsail Anchorage",
+      "triggers": [{ "area": "Sunsail Anchorage" }, { "area": "Golden Strand" }, { "accept": 8892 }, { "kill": 16294 }],
+      "body": [
+        "A shipyard on the western coast, just west of Fairbreeze Village. The Wretched organised well enough to take it in a raid, and the defenders fled so quickly that they left most of their weapons behind. The Wretched ringleader Aldaron has made his lair on the top floor of the building by the docks.",
+        "Velendris Whitemorn and his rangers hold a small camp east of the anchorage, waiting for the chance to take it back. With them is Captain Kelisendra, a merchant who ignored warnings to leave port. The Wretched took her magical goods, her crew deserted, and the Grimscale murlocs of the Golden Strand carried off the rest of her cargo, navigation rutters included."
+      ],
+      "sources": ["quests 8480, 9076, 8892, 9256 descriptions and offer texts", "quests 8886, 8887 descriptions and offer texts", "creature 15921 gossip"]
+    },
+    {
+      "id": 3430012,
+      "kind": "place",
+      "title": "Saltheril's Haven",
+      "triggers": [{ "area": "Saltheril's Haven" }, { "talk": 16144 }, { "accept": 9395 }],
+      "body": [
+        "A country house west of Fairbreeze Village, home away from home for Lord Saltheril. He throws parties to celebrate the glory of Quel'Thalas and expects everyone nearby to keep him supplied with wine, fireworks and appetisers.",
+        "The defenders of Fairbreeze have little patience for him. Magistrix Dawnstrider thinks he and his hangers-on are pretending the war is not happening, and Saltheril in turn thinks she is rude and means to complain about her to the regent lord."
+      ],
+      "sources": ["quest 9395 description and reward text", "quest 9067 description", "creature 16144 gossip"]
+    },
+    {
+      "id": 3430013,
+      "kind": "place",
+      "title": "Farstrider Retreat",
+      "triggers": [{ "area": "Farstrider Retreat" }, { "talk": 15399 }, { "accept": 8476 }],
+      "body": [
+        "A ranger outpost in eastern Eversong, held by the Farstriders, rangers sworn to defend their people from enemies near and far. Lieutenant Dawnrunner commands it, and the blacksmith Arathel Sunforge works its forge.",
+        "The retreat faces the Amani trolls of Zeb'Watha and Tor'Watha to the south-east, whose raids have worn the rangers down. The Farstriders see what is left of Eversong as all the blood elves still own in Azeroth, to be defended at any cost until they can reach Outland."
+      ],
+      "sources": ["creature 15399 gossip", "quest 8476 description", "quest 9359 reward text", "creature 15400"]
+    },
+    {
+      "id": 3430014,
+      "kind": "place",
+      "title": "Zeb'Watha and Tor'Watha",
+      "triggers": [{ "area": "Zeb'Watha" }, { "area": "Tor'Watha" }, { "kill": 15643 }, { "accept": 8479 }],
+      "body": [
+        "Two Amani troll settlements on either side of Lake Elrendar, south-east of the Farstrider Retreat. The Amani hold that these lands are theirs, as they have since before the elves arrived, and they raid the rangers daily.",
+        "Their chieftain, Zul'Marosh, rules from Zeb'Watha. At Tor'Watha the trolls keep a caged Darkspear prisoner, and the spearcrafter Otembe works with a hammer so light and well balanced that elven smiths have heard of it. Plans carried by the trolls show they mean to strike at the Farstrider Retreat and Fairbreeze Village."
+      ],
+      "sources": ["quest 8476 description", "quests 8479, 8477 descriptions", "quest 9360 description and reward text", "pre-Cataclysm lore: the Amani and the founding of Quel'Thalas"]
+    },
+    {
+      "id": 3430015,
+      "kind": "place",
+      "title": "Duskwither Spire",
+      "triggers": [{ "area": "Duskwither Spire" }, { "area": "Duskwither Grounds" }, { "accept": 8888 }, { "kill": 15966 }],
+      "body": [
+        "A school of magic north of the Farstrider Retreat, run until recently by Magister Duskwither. He closed it in a hurry and sent his apprentices away, without telling his groundskeeper, Wyllithen, who stayed behind to find the grounds overrun by mana serpents and ether fiends.",
+        "Inside, the power sources were left running, and strange magical creatures have filled the spire. Some of the apprentices did not leave: they had already fallen into the craving and become Wretched. A journal left in the spire shows that the magister's own experiments started it all."
+      ],
+      "sources": ["quests 8888, 8889, 8890, 8891, 9394, 8894 descriptions, offer and reward texts", "creature 15969 gossip"]
+    },
+    {
+      "id": 3430016,
+      "kind": "place",
+      "title": "Tranquil Shore",
+      "triggers": [{ "area": "Tranquil Shore" }, { "talk": 15920 }, { "kill": 15937 }],
+      "body": [
+        "A beach on Eversong's western coast, now overrun by Grimscale murlocs. Hathvelion Sungaze of the Farstriders watches them from a bluff above the shore and takes their presence as a personal insult to Quel'Thalas.",
+        "The Grimscales have a chieftain, Mmmrrrggglll, who roams the Golden Strand south of the river mouth wearing a ring taken from one of Hathvelion's fallen comrades. Killing him threw the murlocs into a panic, but it did not drive them away."
+      ],
+      "sources": ["quests 8884, 8885 descriptions, progress and reward texts", "creature 15920 gossip"]
+    },
+    {
+      "id": 3430017,
+      "kind": "place",
+      "title": "The Border Runestones",
+      "triggers": [{ "area": "Runestone Falithas" }, { "area": "Runestone Shan'dor" }, { "talk": 16362 }, { "accept": 8490 }],
+      "body": [
+        "Along the southern edge of Eversong stand ancient runestones that once powered a protective barrier across the border. Many were broken during Arthas's attack and others were stolen. Of the three that remain, only one still holds its full power.",
+        "Runewarden Deryan guards them and has sworn that while he lives the remaining stones will not fail. They also ward the land against the taint that spreads ahead of the Scourge. Where the westernmost stone was destroyed, the elves had to burn the forest around it to keep the taint from spreading."
+      ],
+      "sources": ["quest 8490 description", "quest 9253, 9258 descriptions", "creature 16362 gossip", "pre-Cataclysm lore: Warcraft III, Arthas breaking the runestones of Quel'Thalas"]
+    },
+    {
+      "id": 3430018,
+      "kind": "place",
+      "title": "The Scorched Grove",
+      "triggers": [{ "area": "The Scorched Grove" }, { "talk": 15398 }, { "kill": 15637 }],
+      "body": [
+        "A stretch of burnt forest in south-western Eversong, around the ruins of the western runestone. When the stone fell, the elves set fire to the woods along the Ghostlands border rather than let the Scourge's taint creep north.",
+        "Larianna Riverwind watches over the grove from a tower to its north-west. The treants who had long been friends of the elves are trying to make the forest grow back, and the elves have failed to persuade them to stop. Now the withered treants are fought as enemies, a decision Larianna finds hard to bear."
+      ],
+      "sources": ["quest 9258 description", "quest 8473 description and reward text", "creature 15398 gossip"]
+    },
+    {
+      "id": 3430030,
+      "kind": "person",
+      "title": "Aeldon Sunbrand",
+      "triggers": [{ "talk": 15403 }, { "accept": 8463 }, { "accept": 9352 }],
+      "body": [
+        "Captain of the Blood Hawks, the guard who keep order at Falconwing Square. He sees the Wretched as a constant thorn in his side: they endanger themselves by tapping unstable magic and plot against respectable society, and when they steal mana crystals that might blow a hole in the city walls, it makes his men look bad.",
+        "Sunbrand also has to sort true reports of night elf spies from false ones. When papers taken from an intruder turned out to be written in Dwarvish, he quickly named the culprit, and had the matter dealt with quietly."
+      ],
+      "sources": ["creature 15403 gossip", "quests 8463, 9352, 8482, 8483 descriptions, offer and reward texts"]
+    },
+    {
+      "id": 3430031,
+      "kind": "person",
+      "title": "Prospector Anvilward",
+      "triggers": [{ "talk": 15420 }, { "kill": 15420 }, { "complete": 8483 }],
+      "body": [
+        "A dwarf sent from Ironforge on a diplomatic mission, who was allowed to stay at the North Sanctum as a guest of Ley-Keeper Caidanis. His interest in the arcane sanctums was rather keen for a diplomat.",
+        "Papers carried by a night elf spy were found to be in Dwarvish. They suggested that their author had not caused the West Sanctum's failure but had been sent to watch its results, and called the elves' work reckless and dangerous. Captain Sunbrand decided Anvilward was the spy, and he was quietly killed. Word went to the ranger-general that Ironforge should expect to pay for its meddling."
+      ],
+      "sources": ["quests 8482, 8483, 8896 descriptions, offer and reward texts", "quest 9119 (Caidanis's dwarven guest)"]
+    },
+    {
+      "id": 3430032,
+      "kind": "person",
+      "title": "Magister Duskwither",
+      "triggers": [{ "talk": 15951 }, { "accept": 8888 }, { "complete": 8891 }],
+      "body": [
+        "The master of Duskwither Spire, now staying at the Farstrider Retreat. He set out to find a way to purify other, corrupted sources of magic for his people to use, and kept on despite warnings.",
+        "By the time he understood his mistake, some of his pupils had gone too far and become Wretched. He emptied the spire in a hurry but forgot to shut off its power. He blames himself for their fate, and means to burn the journal of his research so that nobody else falls prey to it."
+      ],
+      "sources": ["quests 8888, 8890, 8891 descriptions and reward texts", "creature 15951 gossip"]
+    },
+    {
+      "id": 3430033,
+      "kind": "person",
+      "title": "Magistrix Landra Dawnstrider",
+      "triggers": [{ "talk": 16210 }, { "accept": 9254 }, { "complete": 9255 }],
+      "body": [
+        "A magistrix at Fairbreeze Village who is busy holding together what is left of Quel'Thalas and has no time for Lord Saltheril's party requests. She is ashamed of how much of their homeland the sin'dorei have lost and determined to take back the south.",
+        "Landra worries for her former apprentice Mirveda, whose risky research took her to the East Sanctum, and for her nephew, a courier sent on a secret errand into the Ghostlands who has not come back. When Mirveda's notes proved the Dead Scar's taint permanent, Landra took it as one more reason for her people to seek their future in Outland."
+      ],
+      "sources": ["creature 16210 gossip", "quests 9395, 9254, 9255 descriptions and reward texts", "quest 9144 description (her nephew)"]
+    },
+    {
+      "id": 3430034,
+      "kind": "person",
+      "title": "Ven'jashi",
+      "triggers": [{ "talk": 15406 }, { "accept": 8479 }],
+      "body": [
+        "A Darkspear troll held in a cage at Tor'Watha. The Darkspear and the Amani are bitter enemies, and Zul'Marosh burned Ven'jashi's village, poisoned him and left him caged to die, though not before he had killed many Amani.",
+        "Ven'jashi says he is not afraid of death, but will not let himself die until Zul'Marosh is dead too. He holds off the poison only for that, and he has hidden a gift in the sand for whoever brings him the chieftain's head."
+      ],
+      "sources": ["quest 8479 description and reward text"]
+    },
+    {
+      "id": 3430035,
+      "kind": "person",
+      "title": "Old Whitebark",
+      "triggers": [{ "kill": 15409 }, { "accept": 8474 }, { "complete": 10166 }],
+      "body": [
+        "An elder of the treants of Eversong. Long ago his people helped the elves rebuild Larianna Riverwind's village, and in thanks she made him a pendant marked with her initials. She first met him beside the runestone in the Scorched Grove.",
+        "When the elves burned the grove, Old Whitebark and his treants tried to make it grow again, and the elves treated that as a threat to the border. His spirit lingers by the runestone, accepting that the land has changed for ever, and hoping that one day, long after the elves are gone, a new tree might grow there among the ashes."
+      ],
+      "sources": ["quest 8474 description and reward text", "quest 10166 description and reward text", "quest 8473 description"]
+    },
+    {
+      "id": 3430050,
+      "kind": "history",
+      "title": "The Saga of the Sin'dorei",
+      "triggers": [{ "area": "Shrine of Dath'Remar" }, { "complete": 8345 }, { "accept": 8325 }, { "talk": 15295 }],
+      "body": [
+        "Thousands of years ago, Highborne elves exiled from Kalimdor for their reckless use of magic sailed across the sea and founded Quel'Thalas in the north of Lordaeron. They called themselves high elves, and at the heart of their kingdom they made the Sunwell, a fount of magical power on which they came to depend.",
+        "In the Third War, Prince Arthas and the Scourge laid the kingdom to waste and killed nearly nine in ten of its people. Arthas used the Sunwell's power to raise the lich Kel'Thuzad, fouling its waters, and the survivors were cut off from the magic that had sustained them.",
+        "Prince Kael'thas Sunstrider, the last of the royal line, renamed his people the blood elves in memory of the fallen and taught them to draw on other magical energies, demonic ones included, to ease their thirst. He went on to Outland and allied with Illidan. The Alliance turned away from the elves for their methods, and those left in Quel'Thalas, ruled by Regent Lord Lor'themar Theron, now look to the Horde to help them reach their prince."
+      ],
+      "sources": ["page text of GO 180643 Saga of the Sin'dorei", "quest 8345 offer text", "page texts 1845-1860 (Dath'Remar and the exile of the Highborne)", "pre-Cataclysm lore: Lor'themar Theron as regent lord"]
+    },
+    {
+      "id": 3430051,
+      "kind": "history",
+      "title": "The Wretched",
+      "triggers": [{ "accept": 8468 }, { "complete": 8890 }, { "kill": 15949 }],
+      "body": [
+        "Since the Sunwell was lost, every blood elf has had to master a craving for magic. Most manage it. Some do not, and the elves call those the Wretched: thin, half-mad elves who live only to feed their addiction, tapping unstable arcane sources, robbing travellers of crystals, wands and spellbooks, and gorging on stolen magic until they fall into a stupor.",
+        "The Wretched have grown bold enough to kill city guards and take the shipyard at Sunsail Anchorage. To the guards of Silvermoon they are criminals. To the families of apprentices who fell into the craving they are something sadder, and some say a blood elf in that state is better off dead."
+      ],
+      "sources": ["quests 8463, 8468, 9035, 8480, 9076 descriptions", "creature 15403 gossip", "quest 8335 offer text (Felendren refused to learn control)", "quest 8890 reward text", "quest 8346 description (failure to control the thirst makes one Wretched)"]
+    },
+    {
+      "id": 3430052,
+      "kind": "history",
+      "title": "Spies from the Alliance",
+      "triggers": [{ "complete": 8483 }, { "accept": 9352 }, { "kill": 15968 }],
+      "body": [
+        "The high elves were once members of the Alliance. Since the blood elves turned to demonic magic and joined the Horde, their old allies watch Quel'Thalas with suspicion, and the elves return it in full.",
+        "Night elf scouts have been caught in the woods around the West Sanctum. Most reports of Darnassians in Eversong turn out to be rumour, but the papers taken from one scout were written in Dwarvish and showed that someone in Ironforge had sent an observer to watch the sanctum's failure. The sin'dorei now trust no one who belongs to the Alliance."
+      ],
+      "sources": ["quests 9352, 8482, 8483 descriptions, offer and reward texts", "quest 8491 (night elf poachers)", "page text of GO 180643 (shunned by the Alliance)"]
+    }
+  ]
+}

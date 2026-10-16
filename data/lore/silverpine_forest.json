@@ -1,0 +1,272 @@
+{
+  "zone": 130,
+  "name": "Silverpine Forest",
+  "entries": [
+    {
+      "id": 130000,
+      "kind": "zone",
+      "title": "Silverpine Forest",
+      "triggers": [{ "areaId": 130 }],
+      "body": [
+        "A dark forest of tall pines on Lordaeron's south-western coast, south of Tirisfal, with the Great Sea to the west and Lordamere Lake to the east. Its farms and fishing villages were emptied by the plague, and mist lies in its valleys most of the day. At its southern end the Greymane Wall closes the road to the kingdom of Gilneas.",
+        "The Forsaken see Silverpine as a vital stronghold, the road from their capital to the human and dwarven lands further south. They hold it from the Sepulcher, an old crypt at the forest's heart, and from there they try to bring the rest of the forest to heel.",
+        "That is no small task. The mad archmage Arugal has filled Shadowfang Keep with worgen and laid a curse on the village below it, Scourge gnolls carry corpses across the lake to a fortress on Fenris Isle, and wizards of Dalaran are at work in the village of Ambermill."
+      ],
+      "sources": ["quest 421 description (Silverpine as a strategic stronghold, conquest of the lands to the south)", "quest 9189 description (the Sepulcher, a dilapidated crypt)", "quest 530 (Greymane Wall, kingdom of Gilneas)", "quests 99, 438, 477 descriptions", "pre-Cataclysm lore: Silverpine geography"]
+    },
+    {
+      "id": 130001,
+      "kind": "place",
+      "title": "The Sepulcher",
+      "triggers": [{ "area": "The Sepulcher" }, { "talk": 1952 }, { "talk": 2226 }],
+      "body": [
+        "An old crypt in the middle of the forest, crowded now with Deathguards, merchants and apothecaries' tables. It is the Forsaken's headquarters in Silverpine, and High Executor Hadrec runs the occupation from here.",
+        "Bats fly daily between the Sepulcher and the capital, and supplies come in the same way. A blood elf advisor, Sorrelon, has been posted here to represent his people to the Forsaken; he makes no secret of finding the place unsettling."
+      ],
+      "sources": ["quest 9189 description and reward text (dilapidated crypt, Advisor Sorrelon)", "creature 16288 gossip", "quests 6321, 6322, 6323, 6324 (bats, supply order)", "quests 428, 449 (Hadrec)"]
+    },
+    {
+      "id": 130002,
+      "kind": "place",
+      "title": "Pyrewood Village",
+      "triggers": [{ "area": "Pyrewood Village" }, { "accept": 99 }, { "talk": 2058 }],
+      "body": [
+        "A human village in southern Silverpine, below the hill of Shadowfang Keep. By day its people look and behave much as they always did. When the sun goes down, they turn into the Moonrage worgen.",
+        "Arugal holds the village through its council, whom he uses as puppets to keep the cursed townsfolk in line. The Royal Apothecary Society lost one of its own here: Apothecary Berard, whose study was in the Pyrewood inn, fell under the curse and became one of Arugal's mindless servants."
+      ],
+      "sources": ["quest 99 description (human by day, worgen by night)", "quest 452 description (Pyrewood Council as Arugal's puppets)", "quest 450 description (Berard's study in the Pyrewood Village Inn)"]
+    },
+    {
+      "id": 130003,
+      "kind": "place",
+      "title": "Shadowfang Keep",
+      "triggers": [{ "area": "Shadowfang Keep" }, { "kill": 2529 }, { "accept": 421 }],
+      "body": [
+        "A grim castle on a crag above Pyrewood, once the seat of Baron Silverlaine. It is now the lair of the archmage Arugal and the worgen he calls his children.",
+        "The keep's shadow reaches the whole forest. Arugal's reckless magic has spread from it to the farms, the mine in the south-eastern hills and the village at its feet, and his sons roam the woods along the road."
+      ],
+      "sources": ["quest 421 description (Arugal, cursed beast of Shadowfang Keep)", "quests 424, 452 (magic spread to the mine, sons of Arugal)", "creature 2529 Son of Arugal", "pre-Cataclysm lore: Baron Silverlaine, Shadowfang Keep"]
+    },
+    {
+      "id": 130004,
+      "kind": "place",
+      "title": "Ambermill",
+      "triggers": [{ "area": "Ambermill" }, { "accept": 479 }, { "kill": 2120 }],
+      "body": [
+        "A village in the south-east of the forest, off the eastern fork of the main road. It is the last centre of human resistance in Silverpine, kept going by the wizards of Dalaran, who ship in crates of supplies by wagon from Hillsbrad.",
+        "Their interest is not charity. Ambermill sits on a dormant ley energy node that the Kirin Tor marked long ago, and the wizards mean to wake it. Conjurers and warders carry rune-inscribed pendants to channel the work, and an archmage directs the weaving of the spell."
+      ],
+      "sources": ["quests 477, 478, 481, 482 descriptions and reward texts", "quests 479, 480 descriptions", "creature 2120 Archmage Ataeric"]
+    },
+    {
+      "id": 130005,
+      "kind": "place",
+      "title": "Deep Elem Mine",
+      "triggers": [{ "area": "Deep Elem Mine" }, { "accept": 424 }, { "kill": 1972 }],
+      "body": [
+        "A mine in the hills south-east of the Sepulcher. Arugal's magic seeped into it, and its foreman, Grimson the Pale, has become something tainted and dangerous.",
+        "The Forsaken want the mine for themselves. Its riches would supply their push south, and Dalar Dawnweaver believes that with Grimson dead it would be theirs."
+      ],
+      "sources": ["quest 424 description and reward text"]
+    },
+    {
+      "id": 130006,
+      "kind": "place",
+      "title": "Beren's Peril",
+      "triggers": [{ "area": "Beren's Peril" }, { "accept": 516 }, { "kill": 2283 }],
+      "body": [
+        "A cave in the southern hills, close to one of the Dalaran wizards' camps. Its location was long uncertain even to the Forsaken.",
+        "Undead servants of Thule Ravenclaw, drudgers and guardians, gather inside it. Shadow Priest Allister's agents learned they were preparing an attack on the Forsaken, and the Sepulcher decided to strike first."
+      ],
+      "sources": ["quest 516 description and reward text", "creatures 1973 Ravenclaw Guardian, 1974 Ravenclaw Drudger, 2283 Ravenclaw Regent"]
+    },
+    {
+      "id": 130007,
+      "kind": "place",
+      "title": "The Decrepit Ferry",
+      "triggers": [{ "area": "The Decrepit Ferry" }, { "accept": 438 }, { "accept": 439 }],
+      "body": [
+        "An old ferry landing on the shore of Lordamere Lake, east of the Sepulcher, guarded by rot hide gnolls and other undead. Across the water a matching dock can be seen on Fenris Isle.",
+        "The Forsaken found a boat here heaped with wrapped corpses. One of them still wore a ring, and it showed where the bodies came from: the mass graves of Tirisfal, robbed by the gnolls and shipped to the isle."
+      ],
+      "sources": ["quest 438 description and reward text", "quest 439 description and reward text"]
+    },
+    {
+      "id": 130008,
+      "kind": "place",
+      "title": "Fenris Isle",
+      "triggers": [{ "area": "Fenris Isle" }, { "accept": 443 }, { "kill": 1948 }],
+      "body": [
+        "An island in Lordamere Lake, east of the Decrepit Ferry, and the Scourge's strongest position in Silverpine. Rot hide gnolls overrun it, savage and raging, along with their mystics and plague weavers.",
+        "The corpses carried across from the ferry end up here. What the Scourge does with them, and who commands the gnolls, were the first things the Forsaken set out to learn before attacking."
+      ],
+      "sources": ["quests 442, 443 descriptions", "quest 439 reward text", "creatures 1940, 1942, 1943 rot hides, 1948 Snarlmane"]
+    },
+    {
+      "id": 130009,
+      "kind": "place",
+      "title": "Fenris Keep",
+      "triggers": [{ "area": "Fenris Keep" }, { "accept": 461 }, { "kill": 1947 }],
+      "body": [
+        "The castle on Fenris Isle, home of the mage Thule Ravenclaw. Thule once lived here with servants, and his head servant and bodyguard, Alaric, spent the best days of his life within its walls.",
+        "Thule's protection spell gave Alaric an unlife he could not escape. Thule later beheaded him and gave the head to the gnolls as a toy, and the body was buried in an unmarked grave near the stable. Behind a dusty shelf in the south-western tower, Thule hid a wand he had made long ago with two friends."
+      ],
+      "sources": ["quest 460 description", "quest 461 description and reward text", "quest 491 description"]
+    },
+    {
+      "id": 130010,
+      "kind": "place",
+      "title": "The Dead Field",
+      "triggers": [{ "area": "The Dead Field" }, { "accept": 437 }, { "kill": 1983 }],
+      "body": [
+        "An old farm north of the Sepulcher that the rot hide gnolls have made into a base. The Forsaken sent small forces against it more than once.",
+        "Each time they were beaten back by the banshee Nightlash, who appears to reinforce the gnolls and routs attackers with her magic. When she is destroyed, her essence crumbles to dust."
+      ],
+      "sources": ["quest 437 description and reward text"]
+    },
+    {
+      "id": 130011,
+      "kind": "place",
+      "title": "The Ivar Patch",
+      "triggers": [{ "area": "The Ivar Patch" }, { "kill": 1971 }, { "accept": 425 }],
+      "body": [
+        "A farm in northern Silverpine, with a barn standing over its fields. The deathstalkers Rane and Quinn Yorick were passing through on a scouting mission when a ghoul, Ivar the Foul, came out of the barn and attacked them.",
+        "They escaped, but Quinn was badly mauled, and the two have been holed up nearby ever since, Rane keeping watch while Ivar waits in the barn for her guard to drop. Worgs hunt the land between the farm and Malden's Orchard to the east."
+      ],
+      "sources": ["quest 425 description", "quest 429 description (worgs toward Malden's Orchard)", "quest 428"]
+    },
+    {
+      "id": 130012,
+      "kind": "place",
+      "title": "The Skittering Dark",
+      "triggers": [{ "area": "The Skittering Dark" }, { "accept": 447 }, { "kill": 12433 }],
+      "body": [
+        "A spider-infested hollow in the north-west of the forest. The spiders breed there in great numbers, and few travellers go near it.",
+        "The Royal Apothecary Society has found a use for it. Mixed with a toxin from the hearts of the forest's grizzled bears, the spiders' blood makes a deadly elixir, one more step toward the new plague."
+      ],
+      "sources": ["quest 447 description", "creature 12433 Krethis Shadowspinner"]
+    },
+    {
+      "id": 130013,
+      "kind": "place",
+      "title": "Lordamere Lake",
+      "triggers": [{ "area": "Lordamere Lake" }, { "accept": 451 }, { "complete": 451 }],
+      "body": [
+        "The great lake on Silverpine's eastern edge, between the forest and the hills of Alterac and Hillsbrad, dotted with small islands. Moss-covered lake skulkers and creepers live on the islands, and Vile Fin murlocs fish its shores.",
+        "Ages ago an ancient plague killed off all the fish and other life in its waters. Apothecary Berard was studying that plague when Arugal's curse took him, and his journal points to the moss of the lake beasts and a rare tumour found on a murloc."
+      ],
+      "sources": ["quest 450 description (ancient plague that killed the aquatic life of Lake Lordamere)", "quest 451 description", "creatures 1953, 1954 lake skulkers, 1767, 1768 Vile Fin murlocs"]
+    },
+    {
+      "id": 130014,
+      "kind": "place",
+      "title": "The Greymane Wall",
+      "triggers": [{ "area": "The Greymane Wall" }, { "accept": 530 }, { "kill": 2332 }],
+      "body": [
+        "A massive wall across Silverpine's southern border. Behind it lies Gilneas, whose king, Genn Greymane, raised the wall after the Second War to shut his kingdom off from the rest of the world. Its gates have stayed closed ever since, through the plague and the fall of Lordaeron.",
+        "Ragged refugees camp in the woods before it. Among those hiding there is Valdred Moray, a man who murdered his friend's wife and fled south hoping to slip into Gilneas."
+      ],
+      "sources": ["quest 530 description (Valdred at the Greymane Wall, trying to flee into Gilneas)", "creatures 2053 Haggard Refugee, 2054 Sickly Refugee", "pre-Cataclysm lore: Genn Greymane and the Greymane Wall"]
+    },
+    {
+      "id": 130030,
+      "kind": "person",
+      "title": "High Executor Hadrec",
+      "triggers": [{ "talk": 1952 }, { "accept": 428 }],
+      "body": [
+        "The commander of the Forsaken in Silverpine, based at the Sepulcher. He sends out deathstalkers to scout the forest, apothecaries to study its enemies and soldiers to take its strong points one by one.",
+        "Hadrec admits he did not expect so much Scourge in Silverpine, nor so much trouble for his scouts. He wants hard proof of every loss and every victory: confirmation of missing agents, dust from a destroyed banshee, and in the end Thule Ravenclaw's head."
+      ],
+      "sources": ["quests 428, 437, 442, 449 descriptions and reward texts"]
+    },
+    {
+      "id": 130031,
+      "kind": "person",
+      "title": "Dalar Dawnweaver",
+      "triggers": [{ "talk": 1938 }, { "accept": 421 }],
+      "body": [
+        "A Forsaken mage at the Sepulcher who has set himself to undo Arugal's curse. He knows the Kirin Tor's affairs from the inside, down to which villages its wizards once marked for their ley energies.",
+        "Dalar has nothing but contempt for Arugal, whom he calls a charlatan unfit to clean chamber pots in Dalaran. He studies the enchanted shackles that bind the Moonrage worgen and the spells Arugal left behind, looking for a way to turn them against their maker."
+      ],
+      "sources": ["quests 421, 422, 423, 99 descriptions and reward texts", "quest 482 description (Ambermill earmarked by the Kirin Tor)"]
+    },
+    {
+      "id": 130032,
+      "kind": "person",
+      "title": "Apothecary Renferrel",
+      "triggers": [{ "talk": 1937 }, { "accept": 447 }],
+      "body": [
+        "The Royal Apothecary Society's man in Silverpine, who works at a table outside the Sepulcher. Between reports to his colleagues in Brill, the capital and Tarren Mill, he brews potions for the Forsaken in the field.",
+        "Renferrel turned worg hearts into a healing draught for an injured deathstalker, broke down the ichor in the rot hides' veins to find warlock and necromantic magic in it, and mixed a potion from Bethor Iceshard's incantations to help whoever goes after Thule Ravenclaw."
+      ],
+      "sources": ["quests 429, 443, 444, 446, 447, 493 descriptions and reward texts", "quest 445 reward text"]
+    },
+    {
+      "id": 130033,
+      "kind": "person",
+      "title": "Shadow Priest Allister",
+      "triggers": [{ "talk": 2121 }, { "accept": 477 }],
+      "body": [
+        "A shadow priest at the Sepulcher who gathers the reports of the Forsaken's scouts and agents. He watches the humans of Ambermill and the wizards who support them, and he wants to know why Dalaran cares about such a backwater.",
+        "Allister prefers to strike before his enemies are ready. When he heard that Thule's undead were gathering in a cave at Beren's Peril to attack, he sent fighters to hit them first."
+      ],
+      "sources": ["quests 477, 478, 479, 480, 516 descriptions and reward texts"]
+    },
+    {
+      "id": 130034,
+      "kind": "person",
+      "title": "Rane and Quinn Yorick",
+      "triggers": [{ "talk": 1950 }, { "talk": 1951 }, { "complete": 425 }],
+      "body": [
+        "Brother and sister deathstalkers sent to scout northern Silverpine for High Executor Hadrec. Weeks passed with no word, and the Sepulcher feared the Scourge had taken them.",
+        "They had got no further than the Ivar Patch, where a ghoul mauled Quinn. Rane stayed by her brother, guarding him and waiting for help, while a third member of their team, Erland, was pinned down by wolves nearby. Their report, when it reached the Sepulcher, showed far more Scourge in the forest than anyone had planned for."
+      ],
+      "sources": ["quests 428, 425, 429, 430 descriptions and reward texts", "quest 435 description (Erland, wolves)", "quest 449 reward text"]
+    },
+    {
+      "id": 130035,
+      "kind": "person",
+      "title": "Thule Ravenclaw",
+      "triggers": [{ "kill": 1947 }, { "accept": 442 }],
+      "body": [
+        "Once a young and promising mage of the Kirin Tor, a student and friend of Bethor Iceshard and Gunther Arcanus. When the Lich King rose, Thule betrayed his colleagues and went over to the Scourge.",
+        "He rules Fenris Isle as a necromancer, created the rot hide gnolls with warlock and necromantic magic, and leads them against the Forsaken. He still kept the wand he and his two old friends wove from their apprentice wands, though he had come to despise it; he would neither use it nor let the others have it."
+      ],
+      "sources": ["quest 366 description (three friends in the Kirin Tor)", "quests 444, 446 descriptions", "quest 460 description (created the rot hides)", "quest 491 description and reward text (the Woven Wand)"]
+    },
+    {
+      "id": 130050,
+      "kind": "history",
+      "title": "Arugal's Curse",
+      "triggers": [{ "accept": 421 }, { "complete": 99 }, { "accept": 422 }],
+      "body": [
+        "When the Scourge overran Lordaeron, the archmage Arugal of the Kirin Tor tried to turn the tide by summoning the worgen, savage wolf-men, from beyond this world. They could not be controlled. They turned on everyone, and Arugal, broken by what he had done, took them as his children and withdrew into Shadowfang Keep.",
+        "His spells have spread through Silverpine since. He first worked out of a wheat farm north of the bridge, leaving spellbooks behind, and bound the Moonrage worgen with enchanted shackles to strengthen weak magic. The people of Pyrewood carry the curse too, human by day and beast by night.",
+        "The Forsaken call it Arugal's folly, and Dalar Dawnweaver is determined to learn its workings well enough to break it."
+      ],
+      "sources": ["quests 421, 422, 423, 99 descriptions", "quests 99, 421-424 titles (Arugal's Folly)", "pre-Cataclysm lore: Arugal summons the worgen during the Third War"]
+    },
+    {
+      "id": 130051,
+      "kind": "history",
+      "title": "The Rot Hides",
+      "triggers": [{ "complete": 443 }, { "accept": 446 }, { "complete": 442 }],
+      "body": [
+        "The rot hides are gnolls given a cursed half-life by Thule Ravenclaw. A foul ichor runs in their veins, laced with warlock and necromantic spells that Bethor Iceshard had not seen in a long time.",
+        "Thule uses them as gravediggers. They rob the mass graves of Tirisfal, load the bodies onto boats at the Decrepit Ferry and carry them across Lordamere Lake to Fenris Isle, to swell the Lich King's army. When Thule was finally destroyed, the energy released was felt as far away as the Sepulcher."
+      ],
+      "sources": ["quests 443, 444, 446 descriptions and reward texts", "quest 460 description", "quests 438, 439 reward texts", "quest 442 reward text"]
+    },
+    {
+      "id": 130052,
+      "kind": "history",
+      "title": "Deliah's Ring",
+      "triggers": [{ "complete": 439 }, { "accept": 441 }, { "complete": 530 }],
+      "body": [
+        "Among the corpses on the boat at the Decrepit Ferry was a woman, recently dead, wearing a ring engraved \"For Deliah\". Brill's records showed that a Deliah had lived in the town and been buried in the mass grave.",
+        "Her husband, Raleigh Andrean, once a chef and now Forsaken, felt nothing at the news. He wanted only revenge on his old friend Valdred Moray, who had murdered her and fled to the Greymane Wall. When it came, Raleigh gave back the ring and kept Valdred's hands instead, as a reminder of his friend's betrayal."
+      ],
+      "sources": ["quests 439, 440, 441 descriptions and reward texts", "quest 530 description and reward text", "creature 2050 Raleigh Andrean <Ex-Chef>"]
+    }
+  ]
+}

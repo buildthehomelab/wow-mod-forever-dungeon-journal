@@ -1,0 +1,274 @@
+{
+  "zone": 38,
+  "name": "Loch Modan",
+  "entries": [
+    {
+      "id": 38000,
+      "kind": "zone",
+      "title": "Loch Modan",
+      "triggers": [{ "areaId": 38 }],
+      "body": [
+        "A broad highland valley in the east of Khaz Modan, reached from Dun Morogh through a tunnel in the mountains. Its centre is the Loch itself, a long lake held back at its northern end by the Stonewrought Dam, one of the great works of the dwarves. Green hills, pine woods and farmland run down to the water, and the town of Thelsamar stands on the road along the western shore.",
+        "Loch Modan is busy country. The Explorers' League digs for ancient ruins east of the lake, hunters gather at a lodge on the far shore, and the road north through Algaz Gate leads on to the Wetlands and the lands beyond.",
+        "It is also under pressure from every side. Stonesplinter troggs have tunnelled up in the south, Mo'grosh ogres camp in the north-east, kobolds burrow in the western foothills and Dark Iron saboteurs creep around the dam. The reserves that should defend it have been called away to the Alliance front, and the reinforcements Ironforge promised have never arrived."
+      ],
+      "sources": ["quests 224, 267, 237 descriptions and offer texts", "quests 255, 416, 250 descriptions", "quest 436 description", "quest 283 offer text (the dam as a landmark)", "pre-Cataclysm lore: Khaz Modan, Stonewrought Dam"]
+    },
+    {
+      "id": 38001,
+      "kind": "place",
+      "title": "Thelsamar",
+      "triggers": [{ "area": "Thelsamar" }, { "talk": 1340 }],
+      "body": [
+        "The only town of any size in Loch Modan, a cluster of stone houses on the road along the Loch's western shore. Mountaineer Kadrell patrols its street and points newcomers to the poster outside the town's branch of the Explorers' League, where Jern Hornhelm handles the League's business with the excavation.",
+        "Thelsamar has the trades a frontier town needs: a gryphon master who swears his birds are the fastest in the Eastern Kingdoms, a mining trainer, and the Healtouches, an alchemist father and his herbalist daughter. Magistrate Bluntnose keeps order, as best he can with almost no soldiers."
+      ],
+      "sources": ["creature 1340 gossip", "quests 298, 436 (Jern Hornhelm)", "creature 1572 gossip", "creature 1470 gossip (Kali Healtouch)", "quest 6387", "quest 255 description"]
+    },
+    {
+      "id": 38002,
+      "kind": "place",
+      "title": "Stoutlager Inn",
+      "triggers": [{ "area": "Stoutlager Inn" }, { "talk": 6734 }, { "accept": 418 }],
+      "body": [
+        "Thelsamar's inn is rarely quiet. Children run in and out, and workers from the excavation come in hungry at the end of the day. Vidra Hearthstove, who feeds them, is famous for her blood sausages, made with bear meat, boar casings and a pinch of spider ichor for spice.",
+        "Vidra expects guests to earn their meals, however grand they think themselves. Inside, the inn keeps a copy of an old history of how the dwarves first came to Khaz Modan."
+      ],
+      "sources": ["quest 418 description and offer text", "page text of GO 175736 (Ironforge - the Awakening of the Dwarves) spawned in the inn"]
+    },
+    {
+      "id": 38003,
+      "kind": "place",
+      "title": "Algaz Gate",
+      "triggers": [{ "area": "Algaz Gate" }, { "area": "Algaz Station" }, { "area": "Dun Algaz" }, { "accept": 161 }],
+      "body": [
+        "At Loch Modan's northern edge the road passes through Algaz Gate and the pass of Dun Algaz into the Wetlands. Mountaineers keep a station by the gate, and every traveller to Menethil Harbor or the Arathi Highlands passes beneath their eyes.",
+        "The way north has grown dangerous. Beyond the pass the Dark Iron dwarves have destroyed the Thandol Span and pillaged the town of Dun Modr, and those who must travel that road are told to keep to it and stop for nothing."
+      ],
+      "sources": ["quest 161 description", "quest 250 description (Thandol Span, Dun Modr)", "pre-Cataclysm geography: Dun Algaz pass to the Wetlands"]
+    },
+    {
+      "id": 38004,
+      "kind": "place",
+      "title": "The Northern Guard Tower",
+      "triggers": [{ "area": "North Gate Pass" }, { "talk": 1343 }, { "complete": 1339 }],
+      "body": [
+        "One of two guard towers on Loch Modan's western border with Dun Morogh, each watching a pass through the mountains. Mountaineer Stormpike keeps the top of it, and loves nothing more than telling young visitors about his exploits on the battlefield.",
+        "Stormpike cannot leave his post, so he sends others on his errands, near and far. The Stormpikes are a proud clan and a wealthy one, and Mountaineer Stormpike has ordered a new shield all the way from Stormwind, from a dwarven armourer whose work he admires."
+      ],
+      "sources": ["quest 1339 description and offer text", "creature 1343 gossip", "quest 1338 description and offer text", "quest 307"]
+    },
+    {
+      "id": 38005,
+      "kind": "place",
+      "title": "The Southern Guard Tower",
+      "triggers": [{ "area": "South Gate Pass" }, { "talk": 1092 }, { "accept": 224 }],
+      "body": [
+        "The tower over the southern pass, where the road from Dun Morogh comes through the mountains, is home to Captain Rugelfuss and his regiment. Their orders are to hold the gate, and they dare not march away from it for fear of invasion, even as troggs swarm in the hills to the south.",
+        "Rugelfuss's mountaineers, Cobbleflint, Gravelgaw and Wallbang among them, hand out work to any volunteer who will carry the fight to the troggs for them. Not far to the south, Mountaineer Pebblebitty guards a locked gate toward the Searing Gorge and turns away nearly everyone who asks to pass."
+      ],
+      "sources": ["quests 267, 224, 237, 263 descriptions", "creature 3836 Mountaineer Pebblebitty gossip", "quest 3182"]
+    },
+    {
+      "id": 38006,
+      "kind": "place",
+      "title": "Stonesplinter Valley",
+      "triggers": [{ "area": "Stonesplinter Valley" }, { "kill": 1205 }, { "accept": 237 }],
+      "body": [
+        "A rocky valley in the south-west of Loch Modan, now the main home of the Stonesplinter troggs. They have dug their tunnels throughout its hills, and skullthumpers, seers, shamans and bonesnappers come out of it to raid the dwarven lands.",
+        "The valley is where the trogg chieftain Grawmug keeps court, never without his two guards. The mountaineers believe that killing him would give them a real chance of driving the troggs back underground."
+      ],
+      "sources": ["quests 237, 263, 217 descriptions", "creatures 1163, 1164, 1166, 1197"]
+    },
+    {
+      "id": 38007,
+      "kind": "place",
+      "title": "Silver Stream Mine",
+      "triggers": [{ "area": "Silver Stream Mine" }, { "accept": 307 }],
+      "body": [
+        "A mine in the north of Loch Modan that ran dry long ago. The Miners' League turned it into a storage depot, filling it with crates of good dwarven tools.",
+        "Kobolds have since moved in and made themselves at home among the crates. The mountaineers mean to clear them out, but the League would rather someone rescued its gear before the warriors go in and break everything."
+      ],
+      "sources": ["quest 307 description and offer text"]
+    },
+    {
+      "id": 38008,
+      "kind": "place",
+      "title": "Stonewrought Dam",
+      "triggers": [{ "area": "Stonewrought Dam" }, { "talk": 1093 }, { "accept": 250 }],
+      "body": [
+        "The great dam at the northern end of the Loch, built by the dwarves to hold back its waters. It is one of the proudest landmarks of the kingdom, and a long walk across its top gives a view over the whole valley.",
+        "Its keeper, Chief Engineer Hinderweir VII, has watched most of his security detail leave for the Alliance front. Dark Iron sappers have been seen around its eastern ramp, and Hinderweir is certain the dam is their next target."
+      ],
+      "sources": ["quest 250 description", "quest 283 offer text", "quest 1558 objective (the view from the middle of the dam)"]
+    },
+    {
+      "id": 38009,
+      "kind": "place",
+      "title": "The Loch",
+      "triggers": [{ "area": "The Loch" }, { "kill": 1693 }, { "accept": 2038 }],
+      "body": [
+        "The lake that gives the valley its name fills its heart from the dam in the north to the hills in the south, scattered with small wooded islands. Crocolisks have dug in on the islands, and they are big, fierce and good for leather.",
+        "Troggs hold at least one of the islands too. When a gnomish gyrocopter came down in the water, they wasted no time robbing its pilot of his tools."
+      ],
+      "sources": ["quest 385 description", "quest 2038 description", "creature 2476 Large Loch Crocolisk"]
+    },
+    {
+      "id": 38010,
+      "kind": "place",
+      "title": "Mo'grosh Stronghold",
+      "triggers": [{ "area": "Mo'grosh Stronghold" }, { "kill": 1210 }, { "accept": 255 }],
+      "body": [
+        "An ogre encampment in the north-east of Loch Modan, across the water from Thelsamar. The Mo'grosh ogres raid from here against the town, the dam and the excavation, and they ambushed a caravan bringing ore from the Wetlands.",
+        "The ogres also mine crystals in the hills around their camp. The crystals are rare and the ogres keep them close, but a dwarven engineer may need one badly enough to send someone in after it."
+      ],
+      "sources": ["quests 255, 256 descriptions", "quest 1655 description", "quest 278 description (Mo'grosh crystals)"]
+    },
+    {
+      "id": 38011,
+      "kind": "place",
+      "title": "Ironband's Excavation Site",
+      "triggers": [{ "area": "Ironband's Excavation Site" }, { "talk": 1345 }, { "accept": 436 }],
+      "body": [
+        "An Explorers' League dig into ancient ruins east of the Loch, reached by going round its southern tip. Prospector Ironband runs the site and Magmar Fellhew manages its day-to-day business.",
+        "Work has slowed to a crawl. Troggs came up inside the ruins soon after the diggers uncovered a hoard of carved stone idols, and the idols drive the troggs berserk. The blastpowder Ironband needs to dig, or to fight, keeps going missing on the road."
+      ],
+      "sources": ["quests 436, 297, 298 descriptions and offer texts", "quest 301 offer text"]
+    },
+    {
+      "id": 38012,
+      "kind": "place",
+      "title": "The Farstrider Lodge",
+      "triggers": [{ "area": "The Farstrider Lodge" }, { "talk": 1154 }, { "accept": 385 }],
+      "body": [
+        "A hunting lodge on the eastern shore of the Loch, where hunting skill counts for more than birth or title. Marek Ironheart runs it, and trades a little in crocolisk skins and meat from the islands, though he would rather tell stories about the time a croc nearly took his hand.",
+        "The lodge draws hunters of every sort. Young Daryl brags of his skill to everyone who will listen, Vyrin Swiftwind wishes he would stop, and a bowyer sells weapons to those heading out into the hills."
+      ],
+      "sources": ["creature 1154 gossip", "quest 385 description and progress text", "quests 257, 271 descriptions", "creature 1687 Cliff Hadin <Bowyer>"]
+    },
+    {
+      "id": 38013,
+      "kind": "place",
+      "title": "Grizzlepaw Ridge",
+      "triggers": [{ "area": "Grizzlepaw Ridge" }, { "kill": 1225 }, { "accept": 271 }],
+      "body": [
+        "Bear country in the hills over Thelsamar. Black bears roam the slopes, and the lodge's hunters come up here for meat and hides.",
+        "One bear is better known than the rest. Ol' Sooty, a big brute who keeps a lair in these hills, has outlasted every hunter of the Farstrider Lodge who went after him, and gave Daryl the Youngling the scar he likes to boast about."
+      ],
+      "sources": ["quest 271 description (Ol' Sooty's lair in the hills over Thelsamar)", "quest 418 (bear meat)", "creatures 1186, 1189 (black bears)"]
+    },
+    {
+      "id": 38030,
+      "kind": "person",
+      "title": "Chief Engineer Hinderweir VII",
+      "triggers": [{ "talk": 1093 }, { "accept": 278 }],
+      "body": [
+        "The engineer in charge of the Stonewrought Dam, seventh of his name. He is a worrier by nature, and with his best inspector reassigned to the front and Dark Iron sappers lurking on the ramps, he has a great deal to worry about.",
+        "He was right to. A powder found near the dam turned out to be seaforium, harmless when dry and deadly once wet, and Hinderweir had to brew a disarming mixture from spider venom, an ogre crystal and a crocolisk's tear before the Dark Irons could set it off."
+      ],
+      "sources": ["quests 250, 199, 161, 274, 278, 280, 283 descriptions and offer texts"]
+    },
+    {
+      "id": 38031,
+      "kind": "person",
+      "title": "Grawmug",
+      "triggers": [{ "kill": 1205 }, { "accept": 217 }],
+      "body": [
+        "The chieftain of the Stonesplinter troggs, who leads the latest incursion into Loch Modan. Two elite guards, Gnasher and Brawler, never leave his side.",
+        "Captain Rugelfuss's scouts tracked him to the south-western hills. Troggs are not known for leadership, which made the mountaineers all the more eager to see this one dead."
+      ],
+      "sources": ["quest 217 description and offer text"]
+    },
+    {
+      "id": 38032,
+      "kind": "person",
+      "title": "Chok'sul",
+      "triggers": [{ "kill": 1210 }, { "accept": 256 }],
+      "body": [
+        "The ogre believed to lead and plan the Mo'grosh attacks on Thelsamar, the Stonewrought Dam and the excavation site. A wanted poster in Thelsamar offers a reward for proof of his death, by any means.",
+        "He keeps to the ogre encampment in the north-east of the valley, surrounded by brutes and enforcers."
+      ],
+      "sources": ["quest 256 description and offer text", "quest 255"]
+    },
+    {
+      "id": 38033,
+      "kind": "person",
+      "title": "Prospector Ironband",
+      "triggers": [{ "talk": 1344 }, { "accept": 298 }],
+      "body": [
+        "The Explorers' League prospector in charge of the dig east of the Loch. Jern Hornhelm calls him stout and honest, a dwarf who values results, which is why his slow progress worries his friends.",
+        "Ironband keeps writing for more blastpowder, and his superiors keep sending it. Prospector Stormpike in Ironforge, who is not a patient dwarf, wants to know where the last shipment went, and so does Ironband."
+      ],
+      "sources": ["quests 298, 301, 302, 436 descriptions and offer texts", "quest 309 offer text"]
+    },
+    {
+      "id": 38034,
+      "kind": "person",
+      "title": "Daryl the Youngling",
+      "triggers": [{ "talk": 1187 }, { "accept": 257 }],
+      "body": [
+        "A young hunter at the Farstrider Lodge who prefers to be called Daryl the Bold. He sets timed hunting challenges for visitors, never quite gets their names right, and is sure nobody can match him.",
+        "Daryl is fond of telling the story of his scar, earned against a bear a year or two ago. His fellow hunter Vyrin Swiftwind knows the bear was Ol' Sooty, and has been waiting for months for someone to bring its head back and give Daryl a fright."
+      ],
+      "sources": ["quests 257, 258, 271, 531 descriptions and offer texts", "creature 1156 gossip"]
+    },
+    {
+      "id": 38035,
+      "kind": "person",
+      "title": "Magistrate Bluntnose",
+      "triggers": [{ "talk": 1139 }, { "accept": 255 }],
+      "body": [
+        "The magistrate of Thelsamar. He waited two months for Ironforge to answer his plea for soldiers, only to be told that a handful would come in another two months.",
+        "Bluntnose has stopped waiting. He pays hired swords out of the town's purse to deal with the ogres, and hopes to turn to the troggs once the ogres are dealt with."
+      ],
+      "sources": ["quest 255 description and offer text", "quest 256"]
+    },
+    {
+      "id": 38036,
+      "kind": "person",
+      "title": "Bingles Blastenheimer",
+      "triggers": [{ "talk": 6577 }, { "accept": 2038 }],
+      "body": [
+        "A gnomish pilot sent to scout over Gnomeregan, who crashed his gyrocopter in the Loch and was promptly robbed by troggs from a nearby island. His friends in Ironforge assumed he had blown himself up.",
+        "Bingles is undaunted. He belongs to a gnomish movement planning an air assault on the troggs and leper gnomes who hold their old city, and he wants his tools and his special Blastencapper explosives back so he can return to it."
+      ],
+      "sources": ["quest 2038 description and offer text", "quest 2039 description and offer text"]
+    },
+    {
+      "id": 38050,
+      "kind": "history",
+      "title": "The Stonesplinter Incursion",
+      "triggers": [{ "complete": 224 }, { "accept": 267 }, { "complete": 217 }],
+      "body": [
+        "Troggs are crude, savage creatures of the deep earth. In recent years they have broken out all over Khaz Modan, and in Loch Modan they tunnel up from every crevice. The mountaineers count them the greatest threat Ironforge faces at home.",
+        "The kingdom is ill placed to meet it. The Ironforge Reserve has been called up to the Alliance front, and the mountaineers left behind are a fraction of what is needed. They were promised reinforcements to hold until the reserve returned; the reinforcements never came, and the news from the front speaks of heavy losses.",
+        "So the dwarves of Loch Modan fight on with what they have, relying on volunteers to keep the troggs under pressure and to strike at their leaders."
+      ],
+      "sources": ["quests 224, 267, 237, 263, 217 descriptions and offer texts", "pre-Cataclysm lore: troggs of Khaz Modan"]
+    },
+    {
+      "id": 38051,
+      "kind": "history",
+      "title": "The Dark Iron Plot",
+      "triggers": [{ "accept": 250 }, { "complete": 283 }, { "complete": 309 }],
+      "body": [
+        "The Dark Iron dwarves have been enemies of Ironforge since the War of the Three Hammers, when they were defeated and cast out to the south. Lately they have struck north into the Wetlands, destroying the Thandol Span and pillaging Dun Modr.",
+        "In Loch Modan their aim seems to be the dam. Insurgents swam to its base with a keg of seaforium powder, which can be harmless for years and catastrophic once wet, and only Chief Engineer Hinderweir's quick work defused it.",
+        "They have friends, too. Blastpowder meant for Ironband's excavation was ambushed on the road, and one of the porters who had worked with the shipments for almost a year turned out to be a Dark Iron sympathiser. Nobody yet knows who else is helping them."
+      ],
+      "sources": ["quests 250, 274, 280, 283 descriptions and offer texts", "quests 273, 309 offer texts (Saean, sympathisers)", "pre-Cataclysm lore: War of the Three Hammers, Dark Iron clan"]
+    },
+    {
+      "id": 38052,
+      "kind": "history",
+      "title": "The Awakening of the Dwarves",
+      "triggers": [{ "talk": 6734 }, { "accept": 436 }, { "talk": 1105 }],
+      "body": [
+        "The dwarves' own histories say they began as the earthen, beings of living stone made by the Titans to shape and guard the deep places of the world. When the Well of Eternity collapsed and the world was sundered, the earthen withdrew into the Titan halls where they had been made, Uldaman among them, and slept.",
+        "Thousands of years later the earthen of Uldaman woke and found themselves changed: their stone hides had turned to skin and their power over the earth had faded. They named themselves dwarves, built a kingdom under the highest mountain they could find, and called the land Khaz Modan in honour of the Titan Khaz'goroth. Around the forge they made for him grew the city of Ironforge.",
+        "The Explorers' League exists in part to recover that past, and its digs, like the one east of the Loch, are searches for the old Titan works the dwarves came from."
+      ],
+      "sources": ["page text of GO 175736 (Ironforge - the Awakening of the Dwarves), spawned in the Stoutlager Inn", "quest 436 description (excavation of ancient ruins)", "pre-Cataclysm lore: Explorers' League and the dwarves' Titan origins"]
+    }
+  ]
+}

@@ -1,0 +1,263 @@
+{
+  "zone": 215,
+  "name": "Mulgore",
+  "entries": [
+    {
+      "id": 215000,
+      "kind": "zone",
+      "title": "Mulgore",
+      "triggers": [{ "areaId": 215 }],
+      "body": [
+        "A wide country of grass and gentle hills in western Kalimdor, ringed by mountains and cut by streams, where kodo herds graze and the wind seldom stops. It is the homeland of the tauren. Their villages sit on the plains and the mesas, and in the north the great city of Thunder Bluff rises on its cliffs above the grass.",
+        "For generations the tauren were wanderers, driven from place to place by the centaurs who hunted them. Cairne Bloodhoof, chieftain of the Bloodhoof tribe, gathered the scattered tribes together, and with the help of Thrall's orcs led them here to a land they could hold. The tauren repaid that help by joining the Horde.",
+        "The tauren see the land as their most sacred provider and take only what they need from it. Not everyone shares that view. Goblin miners have poisoned their wells, dwarves dig into their hills, gnolls slaughter the wildlife, and quilboars and harpies raid the edges of their territory."
+      ],
+      "sources": ["quests 767, 771 (the land as holy provider)", "quests 748, 764, 746, 745, 743, 757 (goblins, dwarves, gnolls, harpies, quilboars)", "quest 763 (Baine, son of Cairne)", "quest 854 (lives of tauren and orcs intertwined)", "pre-Cataclysm lore: Warcraft III, the tauren exodus and Thrall's aid to Cairne"]
+    },
+    {
+      "id": 215001,
+      "kind": "place",
+      "title": "Red Cloud Mesa",
+      "triggers": [{ "area": "Red Cloud Mesa" }, { "talk": 2980 }, { "accept": 747 }],
+      "body": [
+        "A high, wind-scoured mesa in south-western Mulgore, cut off from the plains below by steep cliffs and a single winding road. Young tauren begin their lives as hunters and warriors here, far from the dangers of the wider world.",
+        "The people of the mesa pride themselves on their hunting. Plainstriders and mountain cougars give them meat, feathers and pelts for clothing and tent cloth, and a newcomer who keeps the village supplied soon earns the notice of its elders."
+      ],
+      "sources": ["quests 747, 750 descriptions and offer texts", "quest 763 (follow the road out of Camp Narache)"]
+    },
+    {
+      "id": 215002,
+      "kind": "place",
+      "title": "Camp Narache",
+      "triggers": [{ "area": "Camp Narache" }, { "talk": 2981 }, { "accept": 755 }],
+      "body": [
+        "The tauren village on Red Cloud Mesa, a ring of hide tents and totems around a central fire. Chief Hawkwind leads it, and his family does much of the work of welcoming and teaching the young.",
+        "Everyone in Narache is expected to share the work, from the hunt to the humblest chore. The camp is also where the Rites of the Earthmother begin, the trials that every young tauren must pass before being welcomed in Thunder Bluff."
+      ],
+      "sources": ["quests 747, 752, 753, 755 descriptions and offer texts", "creature 2980 Grull Hawkwind gossip"]
+    },
+    {
+      "id": 215003,
+      "kind": "place",
+      "title": "Brambleblade Ravine",
+      "triggers": [{ "area": "Brambleblade Ravine" }, { "kill": 8554 }, { "accept": 780 }],
+      "body": [
+        "A thorny ravine east of Camp Narache, held by the Bristleback quilboars. Their chief, Sharptusk Thornmantle, rules a makeshift village down among the brambles and wages a long war against the tauren of the mesa.",
+        "The Bristlebacks ambush hunting parties, steal from Narache under cover of dark and train their battleboars to be vicious. A map found in the ravine once showed that their warchief was planning a full siege of the camp, and only warning from the mesa let the warriors of Bloodhoof Village come to its aid in time."
+      ],
+      "sources": ["quests 757, 780, 3376 descriptions", "quest 781 description and offer text (Bristleback attack plans)"]
+    },
+    {
+      "id": 215004,
+      "kind": "place",
+      "title": "Bloodhoof Village",
+      "triggers": [{ "area": "Bloodhoof Village" }, { "talk": 6747 }, { "complete": 1656 }],
+      "body": [
+        "The largest tauren village on the Mulgore plains, home of the Bloodhoof tribe and the first stop for young tauren coming down from Red Cloud Mesa. Baine Bloodhoof, son of the high chieftain Cairne, leads it, and its tents hold hunters, shamans, seers and a riding master who trains kodo riders.",
+        "At its heart burns the tribal fire where seekers of the Rite of Vision drink the Water of the Seers. Innkeeper Kauth keeps the village inn, its beds piled with furs from the mesa, open to every tauren who needs rest on the road."
+      ],
+      "sources": ["quest 763 description and offer text", "quests 772, 767", "quest 1656 progress and offer text (Innkeeper Kauth)", "creature 3690 Kar Stormsinger gossip (kodo riding)"]
+    },
+    {
+      "id": 215005,
+      "kind": "place",
+      "title": "The Water Wells",
+      "triggers": [{ "area": "Winterhoof Water Well" }, { "area": "Thunderhorn Water Well" }, { "area": "Wildmane Water Well" }, { "accept": 748 }],
+      "body": [
+        "Three sacred wells feed the people and beasts of Mulgore, each named for a tauren clan: the Winterhoof well south-east of Bloodhoof Village, the Thunderhorn well to its north, and the Wildmane well north of Thunder Bluff. Stones gathered around them are used in the tauren's holiest brews.",
+        "Goblins of the Venture Company and their servants poisoned all three. The shaman Mull Thunderhorn set about cleansing them one by one, binding the strength of the plains' hunters into totems and carrying out the rituals at each well. When the Winterhoof well ran clean again, the animals came back to drink from it at once."
+      ],
+      "sources": ["quests 748, 754, 756, 758, 759, 760 descriptions and offer texts", "quest 771 (well stones)"]
+    },
+    {
+      "id": 215006,
+      "kind": "place",
+      "title": "Stonebull Lake",
+      "triggers": [{ "area": "Stonebull Lake" }, { "area": "Ravaged Caravan" }, { "accept": 749 }],
+      "body": [
+        "A broad lake in the middle of the Mulgore plains. On its northern shore lie the burned wagons of a Venture Company caravan, which the tauren Outrunners attacked after losing two of their own in an earlier fight.",
+        "The tauren thought their torches had destroyed everything of value, but the crates were full of ore and minerals bound for a goblin processing plant. Packed among them were papers that revealed what the company really intended in Mulgore."
+      ],
+      "sources": ["quests 749, 751 descriptions and offer texts"]
+    },
+    {
+      "id": 215007,
+      "kind": "place",
+      "title": "The Venture Co. Mine",
+      "triggers": [{ "area": "The Venture Co. Mine" }, { "kill": 3051 }, { "accept": 764 }],
+      "body": [
+        "A goblin mine in the eastern foothills, its fires and noise carrying far across the plains. The Venture Company was refused the right to mine in Mulgore and dug anyway, with workers, supervisors and machines brought in faster than the tauren could count.",
+        "Its master was Supervisor Fizsprocket, who kept the company's plans on his clipboard. To the tauren the mine is theft, plain and simple: goblins taking the land's riches with no thought for the land."
+      ],
+      "sources": ["quests 751, 764, 765 descriptions, progress and offer texts", "quest 756 offer text (contending with the land)"]
+    },
+    {
+      "id": 215008,
+      "kind": "place",
+      "title": "Bael'dun Digsite",
+      "triggers": [{ "area": "Bael'dun Digsite" }, { "kill": 2989 }, { "accept": 746 }],
+      "body": [
+        "A dwarven dig site in north-western Mulgore. The dwarves believe secrets lie buried in the earth, and they have set up camp, forge and all, to dig for them.",
+        "Baine Bloodhoof agrees the earth holds secrets, but not that it should be hollowed out to find them. The digging angers the kodos, and the tauren break the dwarves' tools in the hope of teaching them another way to learn."
+      ],
+      "sources": ["quest 746 description, progress and offer text", "creatures 2989 Bael'dun Digger, 2990 Bael'dun Appraiser"]
+    },
+    {
+      "id": 215009,
+      "kind": "place",
+      "title": "Palemane Rock",
+      "triggers": [{ "area": "Palemane Rock" }, { "kill": 2949 }, { "accept": 745 }],
+      "body": [
+        "A rocky outcrop with a cave in the west of Mulgore, where the Palemane gnolls have made their den. More of the tribe camp on the plains south of Bloodhoof Village.",
+        "The Palemanes kill Mulgore's animals without restraint, for their skins and for sport. The tauren tried to talk with them and were ignored, and Baine Bloodhoof now treats them as a lesson in how much harm even a small threat can do to the land if it is left alone."
+      ],
+      "sources": ["quest 745 description, progress and offer text", "creatures 2949, 2950, 2951 Palemane Tanner, Skinner, Poacher"]
+    },
+    {
+      "id": 215010,
+      "kind": "place",
+      "title": "Windfury Ridge",
+      "triggers": [{ "area": "Windfury Ridge" }, { "kill": 2965 }, { "accept": 743 }],
+      "body": [
+        "A line of cliffs along the mountains in south-eastern Mulgore, away from the road. The Windfury harpies nest on its ledges, led by their matriarchs and wind witches.",
+        "The tauren count the harpies among their natural enemies. They are vicious fighters with a hunger for fresh meat, and a young warrior who comes back from the ridge is thought ready to travel beyond Mulgore."
+      ],
+      "sources": ["quest 743 description, progress and offer text", "creatures 2962-2965 Windfury Harpy, Wind Witch, Sorceress, Matriarch"]
+    },
+    {
+      "id": 215011,
+      "kind": "place",
+      "title": "Red Rocks",
+      "triggers": [{ "area": "Red Rocks" }, { "talk": 3233 }, { "accept": 833 }],
+      "body": [
+        "The tauren's most sacred burial ground, among red stone east of Thunder Bluff. Only the most valiant are laid to rest here: the warriors who helped found and defend the city, and those who gave their lives for their tribes and chieftains.",
+        "The spirits of those founders still watch over the place, and young tauren come to them to receive the blessing of their ancestors. Old Lorekeeper Raintotem tends the graves, and was much troubled when Bristleback raiders came to dig among them."
+      ],
+      "sources": ["quest 833 description and offer text", "creature 3233 Lorekeeper Raintotem gossip", "quest 773 description and offer text"]
+    },
+    {
+      "id": 215012,
+      "kind": "place",
+      "title": "The Golden Plains",
+      "triggers": [{ "area": "The Golden Plains" }, { "area": "The Rolling Plains" }, { "accept": 761 }],
+      "body": [
+        "The open grassland that makes up most of Mulgore, broken by streams and stands of tall trees whose ambercorn the seers gather. Kodos, plainstriders and prairie wolves roam it, with cougars and stalkers following the herds.",
+        "To the tauren, hunting here is an honour and a duty. The swoop, a quick and wary bird, is the plains' favourite test: a hunter who brings home a bundle of its quills has shown both patience and sharp eyes."
+      ],
+      "sources": ["quest 761 description and offer text", "quests 748, 756, 771 (plains beasts, ambercorn beneath the trees)", "quest 861 (hunting is a tauren's greatest honour)"]
+    },
+    {
+      "id": 215030,
+      "kind": "person",
+      "title": "Baine Bloodhoof",
+      "triggers": [{ "talk": 2993 }, { "complete": 763 }],
+      "body": [
+        "The son of Cairne Bloodhoof and chieftain of Bloodhoof Village. He has already seen many conflicts wound the land, and hopes the young tauren he guides will witness fewer of them.",
+        "Baine teaches respect for the land and its creatures above all. He speaks of death and life as a circle, each needing the other, and tries words before force; it is only when words fail, as with the Palemane gnolls and the dwarves of Bael'dun, that he sends warriors out."
+      ],
+      "sources": ["quests 745, 746, 763 descriptions and offer texts"]
+    },
+    {
+      "id": 215031,
+      "kind": "person",
+      "title": "The Hawkwinds of Narache",
+      "triggers": [{ "talk": 2981 }, { "talk": 2991 }, { "accept": 752 }],
+      "body": [
+        "Chief Hawkwind leads Camp Narache and starts its young on the Rites of the Earthmother. He is an old friend of Baine Bloodhoof, and a totem bearing his carvings is enough to introduce a newcomer at Bloodhoof Village.",
+        "His son Grull runs the village's hunting and keeps its stores of meat and hides full. His mother, Greatmother Hawkwind, still walks to the well each day to fetch water. Her legs are slower than they were, but she will not give up her duties to the tribe."
+      ],
+      "sources": ["quests 747, 752, 753, 755, 763 descriptions and offer texts"]
+    },
+    {
+      "id": 215032,
+      "kind": "person",
+      "title": "Mull Thunderhorn",
+      "triggers": [{ "talk": 2948 }, { "complete": 754 }],
+      "body": [
+        "A tauren of the Thunderhorn clan in Bloodhoof Village who took on the task of healing Mulgore's poisoned wells. He makes each cleansing totem from what the land offers: the paws, claws and teeth of its predators.",
+        "Mull speaks with the spirits, and the ancestors of his clan speak to him in dreams. He feels each offering of the land as both a sorrow and a pride, and he despairs of goblins, who in his words will never understand the difference between fighting the land and living with it."
+      ],
+      "sources": ["quests 748, 756, 758, 759, 760 descriptions and offer texts"]
+    },
+    {
+      "id": 215033,
+      "kind": "person",
+      "title": "Morin Cloudstalker",
+      "triggers": [{ "talk": 2988 }, { "accept": 765 }],
+      "body": [
+        "A tauren of the Outrunners who keeps watch on the Venture Company near Bloodhoof Village. It was his band that burned the goblin caravan on Stonebull Lake.",
+        "Morin has a dry wit about goblins and very little patience with them. When the caravan's papers revealed that the company had plans to drive the tauren off their land, his amusement turned to anger, and he wanted the mastermind behind them dead."
+      ],
+      "sources": ["quests 749, 751, 764, 765 descriptions, progress and offer texts"]
+    },
+    {
+      "id": 215034,
+      "kind": "person",
+      "title": "Ghost Howl",
+      "triggers": [{ "kill": 3056 }, { "talk": 3052 }, { "complete": 770 }],
+      "body": [
+        "A great white wolf that roams the Mulgore plains. Its ragged hide still carries a terrible wound from the wolf's battles against the Burning Legion. Bringing it down is a rare feat, and the hunters of Bloodhoof Village treat whoever manages it with new respect.",
+        "The old hunter Skorn Whitecloud of Bloodhoof Village knew the wolf well. Skorn's eyes and ears have dimmed, but his spirit has not; he gives his old weapons to those who bring down Ghost Howl, and hopes the wolf's spirit has at last found peace."
+      ],
+      "sources": ["quest 770 description and offer text", "creature 3052 Skorn Whitecloud gossip", "quest 861 offer text (Skorn's spirit burns fiercely)"]
+    },
+    {
+      "id": 215035,
+      "kind": "person",
+      "title": "Mazzranache",
+      "triggers": [{ "kill": 3068 }, { "talk": 3055 }, { "accept": 766 }],
+      "body": [
+        "A strider of legend that hunts the Mulgore plains, with red eyes, razor talons and a venomous bite. Maur Raincaller's grandfather told stories of fighting it and never managed to kill it.",
+        "Maur met the beast himself while crossing the plains and came away with a festering wound in his shoulder. He remembers its screech and the flash of colour as its beak came down, and he warns other travellers to be careful."
+      ],
+      "sources": ["quest 766 description, progress and offer text"]
+    },
+    {
+      "id": 215036,
+      "kind": "person",
+      "title": "Arra'chea",
+      "triggers": [{ "kill": 3058 }, { "accept": 776 }],
+      "body": [
+        "A mighty kodo of the Mulgore plains. The tauren are hunters at heart, and bringing down Arra'chea is one of the tasks by which a tauren who has passed the Rites of the Earthmother keeps the respect they earned.",
+        "Nothing of the kill goes to waste. A gathering party goes out from Thunder Bluff to bring back the hide and the meat."
+      ],
+      "sources": ["quest 776 description and offer text"]
+    },
+    {
+      "id": 215050,
+      "kind": "history",
+      "title": "The Rites of the Earthmother",
+      "triggers": [{ "complete": 757 }, { "complete": 772 }, { "complete": 773 }],
+      "body": [
+        "Every young tauren who hopes to be welcomed in Thunder Bluff must first pass the three Rites of the Earthmother. The Rite of Strength comes first, proven by courage against the tribe's enemies, usually the Bristleback quilboars of Brambleblade Ravine.",
+        "The Rite of Vision follows. A seer brews the Water of the Seers from well stones and fallen ambercorn, and the seeker drinks it before the tribal fire of Bloodhoof Village and follows the vision that appears.",
+        "Last is the Rite of Wisdom, taken at Red Rocks, where the spirits of the warriors who founded Thunder Bluff give their blessing and pass on the duty of defending the city. Those who complete all three may present themselves to the high chieftain."
+      ],
+      "sources": ["quests 755, 757, 767, 771, 772, 773, 775 descriptions and offer texts"]
+    },
+    {
+      "id": 215051,
+      "kind": "history",
+      "title": "The Tauren Come to Mulgore",
+      "triggers": [{ "complete": 763 }, { "accept": 773 }, { "accept": 775 }],
+      "body": [
+        "The tauren were once scattered tribes roaming the plains of Kalimdor, hunted for generations by the centaurs. Cairne Bloodhoof of the Bloodhoof tribe set out to unite them and lead them to a homeland they could defend.",
+        "When Thrall's orcs crossed Kalimdor, they met Cairne's people under centaur attack and fought beside them, escorting them west to Mulgore. There the tauren made their home, raised Thunder Bluff on its cliffs, and laid the warriors who died defending it to rest at Red Rocks.",
+        "Cairne has led his people as high chieftain ever since, and the bond formed on that march is why the tauren fight for the Horde. As the seers say, the lives of tauren and orcs are now bound together."
+      ],
+      "sources": ["quest 763 (Baine, son of Cairne)", "quest 775 (Cairne on the highest mesa)", "quests 773, 833 (founders of Thunder Bluff at Red Rocks)", "quest 854 description (our lives with the orcs have become intertwined)", "page text 175758 (orcs befriended Cairne and his tauren)", "pre-Cataclysm lore: Warcraft III orc campaign, the march to Mulgore"]
+    },
+    {
+      "id": 215052,
+      "kind": "history",
+      "title": "The Venture Company's Designs",
+      "triggers": [{ "complete": 751 }, { "complete": 765 }, { "complete": 760 }],
+      "body": [
+        "The Venture Company is a goblin mining concern that grows faster than is good for it. It asked for the right to mine in Mulgore and was refused, then came anyway with workers, wagons and machines.",
+        "Papers taken from its burned caravan showed that the mine was only the start. The company had drawn up schemes to drive the tauren from their own lands so that it could plunder them freely, and the poisoning of Mulgore's sacred wells was part of the same work.",
+        "The tauren answered without wasting words. The Outrunners struck the mine, Supervisor Fizsprocket was killed, and the wells were cleansed one after another."
+      ],
+      "sources": ["quests 751, 764, 765 descriptions, progress and offer texts", "quests 748, 760 (goblins poisoned the wells)"]
+    }
+  ]
+}

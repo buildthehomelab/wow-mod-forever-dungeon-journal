@@ -162,7 +162,10 @@ With mod-individual-progression, lore in Outland, on the Isle of Quel'Danas and 
 with the stage that opens those lands (an entry can also name its own stage). Until then it carries
 a lock and the stage it opens at.
 
-The first lore covers **Elwynn Forest** and **Durotar**; more zones are added as they're written
+Lore so far covers the starting zones of every race and the zones that follow them: **Elwynn
+Forest**, **Westfall**, **Dun Morogh**, **Loch Modan**, **Teldrassil**, **Darkshore**, **Azuremyst
+Isle**, **Bloodmyst Isle**, **Durotar**, **Mulgore**, **The Barrens**, **Tirisfal Glades**,
+**Silverpine Forest**, **Eversong Woods** and **Ghostlands**. More zones are added as they're written
 (see [Writing lore](#writing-lore)).
 
 **The Library**, at the top of the zone list, is your bookshelf. Every book, plaque, tablet or
@@ -370,7 +373,10 @@ its zone's lore, and the database updater applies it again whenever it changes.
   stay in the database and are never sent to players.
 
 Run `python3 tools/build_lore_sql.py --world-sql <core>/data/sql/base/db_world` to also check that
-every creature and quest a trigger names exists. At startup the server logs any area name it
+every creature and quest a trigger names exists. Add `--areas <AreaTable.dbc>` (the server's
+`data/dbc/AreaTable.dbc`, or an AreaTable csv export such as wago.tools' for a Wrath Classic build,
+which has the same ids for the old world) to also check that every area a trigger names is in its
+zone. At startup the server logs any area name it
 can't find in the zone (`lore entry ...: no area "..." in zone ...`) and any entry nothing unlocks.
 `.journal lore reload` reads changed lore without a restart.
 

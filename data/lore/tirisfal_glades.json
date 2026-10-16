@@ -1,0 +1,294 @@
+{
+  "zone": 85,
+  "name": "Tirisfal Glades",
+  "entries": [
+    {
+      "id": 85000,
+      "kind": "zone",
+      "title": "Tirisfal Glades",
+      "triggers": [{ "areaId": 85 }],
+      "body": [
+        "Tirisfal was once the quiet northern heartland of the kingdom of Lordaeron: rolling hills, farms and mills, and the capital city on the lake shore at its southern edge. The plague of undeath swept through it, the capital fell, and the Glades never recovered. The trees are grey and twisted, the farms stand empty, and the light seems thin even at midday.",
+        "The land now belongs to the Forsaken, undead who broke free of the Lich King and follow Lady Sylvanas Windrunner. They have made the ruined capital their home and the village of Brill their market town, and they raise their newly woken dead in the crypt at Deathknell.",
+        "They hold it against enemies on every side. The Scourge creeps in from the Plaguelands past the Bulwark and rises again in the old mills and graveyards, the Scarlet Crusade has built towers across the Glades and means to burn every undead it finds, and a few stubborn human farmers still work their fields as if nothing had changed."
+      ],
+      "sources": ["quest 363 reward text (freed from the Lich King by Lady Sylvanas)", "quests 356, 359 (Scourge slipping past the Bulwark)", "quests 381, 427 (Scarlet Crusade across Tirisfal)", "quest 365 (human farm north of Deathknell)", "pre-Cataclysm lore: fall of Lordaeron, founding of the Forsaken"]
+    },
+    {
+      "id": 85001,
+      "kind": "place",
+      "title": "Deathknell",
+      "triggers": [{ "area": "Deathknell" }, { "talk": 1569 }, { "accept": 364 }],
+      "body": [
+        "A small village on the western edge of Tirisfal, built around a chapel at the foot of a hill with a crypt and graveyard above it. It is where the Forsaken bring their newly risen, and where the Dark Lady's servants explain to each of them what they have become.",
+        "Deathknell is not safe. Mindless zombies and ghouls shamble through its northern houses, wolves and bats roam the fields to the south, and a camp of the Scarlet Crusade has been set up to the south-east. The Deathguards send the new arrivals to scavenge crates for gear, because more of the dead are always waking and there is never enough to dress them in."
+      ],
+      "sources": ["quest 363 description (chapel at the base of the hill, crypt)", "quests 364, 376, 381, 3902 descriptions"]
+    },
+    {
+      "id": 85002,
+      "kind": "place",
+      "title": "Shadow Grave",
+      "triggers": [{ "area": "Shadow Grave" }, { "talk": 1568 }, { "accept": 363 }],
+      "body": [
+        "The crypt on the hill above Deathknell, kept by Undertaker Mordo. Bodies are laid out here in the hope that they will wake with their minds their own; those that do not stir are thrown on the fire.",
+        "Mordo is the first face most Forsaken see in their second life. He has no talent for gentle welcomes, and sends each one down the steps and along the road to the chapel to hear the rest from the shadow priest."
+      ],
+      "sources": ["quest 363 description and reward text (Mordo, caretaker of the crypt, the fire)"]
+    },
+    {
+      "id": 85003,
+      "kind": "place",
+      "title": "Night Web's Hollow",
+      "triggers": [{ "area": "Night Web's Hollow" }, { "accept": 380 }, { "complete": 380 }],
+      "body": [
+        "An old gold mine north-west of Deathknell. The Forsaken need its gold badly, for coin was scarce in Lordaeron even in the kingdom's best days, but spiders have filled its tunnels with webs and young.",
+        "Executor Arren has too few hands to clear it in one go, so the work is done a little at a time. He reckons on weeks or months of killing before anyone can go down with torches and burn the webs away."
+      ],
+      "sources": ["quest 380 description and reward text", "creatures 1504, 1505 Night Web spiders"]
+    },
+    {
+      "id": 85004,
+      "kind": "place",
+      "title": "Solliden Farmstead",
+      "triggers": [{ "area": "Solliden Farmstead" }, { "accept": 365 }, { "kill": 1936 }],
+      "body": [
+        "A farm just north of Deathknell, still worked by living humans. Farmer Solliden and his hands go on planting and harvesting in the middle of a land of the dead, and their pumpkins grow fat in the fields.",
+        "The Forsaken see the farm as an infestation, made worse by the Scarlet Crusade tower that watches over it. The Deathguards encourage new recruits to raid its pumpkins, which the apothecaries in Brill have found uses for that the farmers would not like."
+      ],
+      "sources": ["quest 365 description", "quest 407 (laced pumpkin)", "creatures 1934 Tirisfal Farmer, 1935 Tirisfal Farmhand, 1936 Farmer Solliden", "quest 427 (tower past the Solliden Farmstead)"]
+    },
+    {
+      "id": 85005,
+      "kind": "place",
+      "title": "Brill",
+      "triggers": [{ "area": "Brill" }, { "talk": 1499 }, { "talk": 1515 }],
+      "body": [
+        "A Lordaeron market town that the Forsaken took over whole, a short way north of the capital's ruins. Its half-timbered houses, town hall, inn and smithy are much as the living left them, and the graveyard at the edge of town is busier than ever.",
+        "Brill is the Forsaken's working town above ground. Magistrate Sevren keeps its records and Executor Zygand directs the war on the Scarlet Crusade from here, apothecaries of the Royal Apothecary Society brew in its gardens, and the seamstress Gretchen Dedmar, who sewed body bags for Sylvanas's army, now sews against the cold creeping through her own limbs."
+      ],
+      "sources": ["quests 358, 405, 440 (Sevren, records of deaths)", "quests 427, 370 (Zygand in Brill)", "quest 367 (Johaan in Brill)", "quest 5481 (Brill graveyard)", "quest 375 description (Gretchen Dedmar)"]
+    },
+    {
+      "id": 85006,
+      "kind": "place",
+      "title": "The Gallows' End Tavern",
+      "triggers": [{ "area": "Gallows' End Tavern" }, { "talk": 5688 }, { "accept": 407 }],
+      "body": [
+        "Brill's inn, kept by Innkeeper Renee, whose tongue is as sharp as her welcome is thin. It is full of plague victims trying to make a life for themselves, and it is still the warmest place to rest in Tirisfal.",
+        "Its cellar serves the Deathguard as a holding cell. A captured Scarlet zealot and a dwarven mountaineer, still sure the Steam Tank Brigade is coming for him, are kept down there, and the apothecaries test their newest brews on them by way of a meal."
+      ],
+      "sources": ["quest 8 description and reward text (Renee, plague victims)", "quests 407, 492 descriptions and texts (prisoners in the cellar)"]
+    },
+    {
+      "id": 85007,
+      "kind": "place",
+      "title": "Agamand Mills",
+      "triggers": [{ "area": "Agamand Mills" }, { "accept": 354 }, { "kill": 1657 }],
+      "body": [
+        "Windmills and farmhouses in northern Tirisfal, once the seat of the Agamands, the most prosperous family in the Glades. When the Scourge came, the Agamands fortified their home and persuaded their workers to stay and fight beside them. Everyone who stayed died, and most of them rose again.",
+        "The mills are now a Scourge camp. Skeletal soldiers and bonecasters hold the grounds, the Agamands themselves walk among them, and the younger son Devlin can be heard chattering madly by the road that leads in. The Deathguard fears the Scourge will use the place as a base to strike deeper into Tirisfal."
+      ],
+      "sources": ["quests 354, 362 descriptions (the Agamands, Devlin)", "quest 426 description (Scourge base at the Mills, windmills)", "creatures 1520, 1522, 1523"]
+    },
+    {
+      "id": 85008,
+      "kind": "place",
+      "title": "Agamand Family Crypt",
+      "triggers": [{ "area": "Agamand Family Crypt" }, { "accept": 408 }, { "kill": 1658 }],
+      "body": [
+        "The burial vault of the Agamand line, on the far side of the mills. It is the Scourge's strongest position in the area.",
+        "A skeleton named Captain Dargol commands from inside it. He has used necromancy to raise generations of Agamand dead, wailing and rotting ancestors who now serve the Lich King in their own family's tomb."
+      ],
+      "sources": ["quest 408 description and offer text", "creatures 1530 Rotting Ancestor, 1534 Wailing Ancestor, 1658 Captain Dargol"]
+    },
+    {
+      "id": 85009,
+      "kind": "place",
+      "title": "Garren's Haunt and the Mass Graves",
+      "triggers": [{ "area": "Garren's Haunt" }, { "accept": 358 }, { "kill": 1753 }],
+      "body": [
+        "A ruined farm north of Brill. South-west of it lie the mass graves, dug when the plague first came and killed more people than the churchyards could hold. Doom weed grows thick among the turned earth.",
+        "The Scourge has sent gnolls to rob those graves. The rot hides, kept alive by an embalming ichor in their veins, dig up the bodies and carry them off for the Lich King's army. The worst of them, a gnoll called Maggot Eye, has a price on his head in Brill."
+      ],
+      "sources": ["quest 358 description (mass graves, Rot Hide gnolls, embalming ichor)", "quest 398 (Maggot Eye wanted poster)", "quest 5482 (doom weed near the mass gravesite)"]
+    },
+    {
+      "id": 85010,
+      "kind": "place",
+      "title": "Brightwater Lake and Gunther's Retreat",
+      "triggers": [{ "area": "Brightwater Lake" }, { "area": "Gunther's Retreat" }, { "accept": 409 }],
+      "body": [
+        "A long lake east of Brill, with a small island in it where the undead mage Gunther Arcanus lives alone among his books. He keeps to himself there and greets strangers as Scourge agents until they prove otherwise.",
+        "Just off the island's southern shore stands an old, bloodstained table. It belongs to Lillith Nefara, an agent of the Scourge who lies dormant until a candle of beckoning is lit upon it."
+      ],
+      "sources": ["quest 366 description (Gunther's Retreat island)", "quest 409 description (altar off the southern coast, Lillith, Candle of Beckoning)", "quest 410 (Lillith's Dinner Table)"]
+    },
+    {
+      "id": 85011,
+      "kind": "place",
+      "title": "Balnir Farmstead",
+      "triggers": [{ "area": "Balnir Farmstead" }, { "accept": 356 }, { "kill": 1529 }],
+      "body": [
+        "An abandoned farm in south-eastern Tirisfal, between Brill and the Plaguelands border. Scourge that slip past the Bulwark tend to gather here, and bleeding horrors and restless spirits haunt its fields.",
+        "The Deathguard keeps a waystation on the road to the west under Deathguard Linnea, whose patrols try to keep the farm clear. The Bulwark's defenders can only hold if no enemy comes at them from behind, and its supply line runs straight past Balnir."
+      ],
+      "sources": ["quests 356, 359 descriptions and reward texts", "creatures 1529 Bleeding Horror, 1532 Wandering Spirit"]
+    },
+    {
+      "id": 85012,
+      "kind": "place",
+      "title": "The Bulwark",
+      "triggers": [{ "area": "The Bulwark" }, { "talk": 10837 }, { "accept": 359 }],
+      "body": [
+        "The fortified line on Tirisfal's eastern border, where the road enters the Western Plaguelands. The Forsaken hold it against the full weight of the Scourge, and most of the time they hold it well.",
+        "High Executor Derrington commands there, and officers and quartermasters of the Argent Dawn keep a post alongside the Deathguard, sharing the work of watching the plagued lands beyond."
+      ],
+      "sources": ["quest 359 reward text (the Bulwark holding the Scourge)", "quest 356 description", "creatures 10837 High Executor Derrington, 10839 Argent Officer Garush, 10856 Argent Quartermaster Hasana"]
+    },
+    {
+      "id": 85013,
+      "kind": "place",
+      "title": "Ruins of Lordaeron",
+      "triggers": [{ "area": "Ruins of Lordaeron" }, { "talk": 3150 }, { "talk": 9566 }],
+      "body": [
+        "The broken walls and towers of Lordaeron's capital, once the greatest human city in the north. It was here that Prince Arthas, home from Northrend, murdered his father King Terenas in the throne room and gave the city to the Scourge.",
+        "The Forsaken took the ruins after the Lich King's grip slipped, and live beneath them. Outside the walls, goblin zeppelin towers connect the Glades with Orgrimmar and Grom'gol in Stranglethorn."
+      ],
+      "sources": ["pre-Cataclysm lore: Arthas's return and the death of King Terenas, Forsaken capital", "creatures 3150 Hin Denburg <Stranglethorn Vale Zeppelin Master>, 9566 Zapetta <Durotar Zeppelin Master>"]
+    },
+    {
+      "id": 85014,
+      "kind": "place",
+      "title": "Faol's Rest",
+      "triggers": [{ "area": "Faol's Rest" }, { "accept": 372 }],
+      "body": [
+        "A quiet stretch of northern Tirisfal named after Archbishop Alonsus Faol, who founded the Church of the Holy Light in Lordaeron and helped raise the first paladins of the Silver Hand.",
+        "Few come to remember him now. The Scarlet Crusade, which claims to fight in the Light's name, keeps a tower just beyond it."
+      ],
+      "sources": ["quest 372 description (tower past Faol's Rest)", "pre-Cataclysm lore: Alonsus Faol, Church of the Holy Light, Knights of the Silver Hand"]
+    },
+    {
+      "id": 85015,
+      "kind": "place",
+      "title": "The Scarlet Towers",
+      "triggers": [{ "area": "Scarlet Watch Post" }, { "area": "Crusader Outpost" }, { "accept": 427 }, { "kill": 1665 }],
+      "body": [
+        "The Scarlet Crusade has taken over the ruined towers of Tirisfal and turned them into forward posts. One stands west of the Solliden farm, one south-west of Brill under Captain Perrine, one in the south-east near Balnir under Captain Vachon, and one in the north beyond Faol's Rest, held by Captain Melrache and his bodyguards.",
+        "Their orders come from the Scarlet Monastery in the north-east of the Glades. Papers taken from one of its messengers gave the Forsaken the names and positions of every field commander, and Executor Zygand has been hunting them down one by one."
+      ],
+      "sources": ["quests 427, 370, 371, 372 descriptions", "quest 382 description and reward text (messenger from the Scarlet Monastery, map of dispositions)", "quest 383"]
+    },
+    {
+      "id": 85030,
+      "kind": "person",
+      "title": "Executor Zygand",
+      "triggers": [{ "talk": 1515 }, { "accept": 427 }],
+      "body": [
+        "The Forsaken officer in Brill who runs the war against the Scarlet Crusade in Tirisfal. Executor Arren at Deathknell answers to him, and so does Deathguard Linnea at the eastern waystation.",
+        "Zygand thinks the Crusade a distraction from the real enemy, the Lich King's army, and wants it ended quickly. He favours recruits with initiative, and hands out the town's bounties, including the one on the gnoll Maggot Eye."
+      ],
+      "sources": ["quests 383, 427, 370, 371, 372 descriptions and offer texts", "quest 356 reward text (Linnea's superior)", "quest 398"]
+    },
+    {
+      "id": 85031,
+      "kind": "person",
+      "title": "Magistrate Sevren",
+      "triggers": [{ "talk": 1499 }, { "accept": 358 }],
+      "body": [
+        "The magistrate of Brill, who keeps the town's records, including the names of those who died of the plague and where they were buried. He takes the threat of the Scourge personally and promises that the Lich King will never take the Forsaken again.",
+        "Sevren directs the fight against the Scourge on Brill's side of the Glades: the rot hides at the graves, the dead at the Agamand crypt, and the reports from the Bulwark. When the mage Bethor Iceshard asked for an agent of proven worth, it was Sevren who chose one."
+      ],
+      "sources": ["quests 358, 359, 360, 405, 408 descriptions and reward texts", "quest 440 reward text (records of deaths)"]
+    },
+    {
+      "id": 85032,
+      "kind": "person",
+      "title": "Coleman and Yvette Farthing",
+      "triggers": [{ "talk": 1500 }, { "talk": 1560 }, { "accept": 354 }],
+      "body": [
+        "Coleman Farthing worked the Agamand mills before the plague and stayed on, loyal, when the family chose to stand and fight. It cost him his life. Now Forsaken in Brill, he hates the Agamands for it and collects their bones for his mantelpiece.",
+        "His daughter Yvette was in love with Thurman, the gentle elder Agamand son, and begged him to flee the mills with her. He would not leave his family. A letter he wrote her never arrived, and when it finally reached her she grieved for a moment, then told herself that the Forsaken have no room for love."
+      ],
+      "sources": ["quests 354, 362 descriptions and reward texts", "quest 361 description and reward text"]
+    },
+    {
+      "id": 85033,
+      "kind": "person",
+      "title": "Apothecary Johaan",
+      "triggers": [{ "talk": 1518 }, { "accept": 367 }],
+      "body": [
+        "A member of the Royal Apothecary Society who works in Brill. He has been given the task of brewing a new plague, one that will destroy the Scourge, and he goes at it with real enthusiasm.",
+        "Johaan tests every lead: darkhound blood, murloc scales, the venom of spiders said to have carried an ancient plague. He is happy to try his recipes on the prisoners in the tavern cellar, and he shares his findings with colleagues as far away as Silverpine."
+      ],
+      "sources": ["quests 367, 368, 369, 492, 445 descriptions and texts"]
+    },
+    {
+      "id": 85034,
+      "kind": "person",
+      "title": "Gunther Arcanus",
+      "triggers": [{ "talk": 1497 }, { "complete": 366 }],
+      "body": [
+        "An undead mage who once studied with the Kirin Tor of Dalaran alongside Bethor Iceshard and Thule Ravenclaw. All three fell to the plague. Thule went over to the Scourge; Gunther slipped free of the Lich King on his own and went into hiding.",
+        "For a long time he believed he was the only undead with a will of his own, and he took every stranger for a Scourge spy. A spell Bethor placed on his stolen spellbook, and proof that its bearer was an enemy of the Lich King, finally convinced him that there were others."
+      ],
+      "sources": ["quest 366 description and reward text", "quests 409, 411 descriptions and reward texts"]
+    },
+    {
+      "id": 85035,
+      "kind": "person",
+      "title": "Gordo and Junior Apothecary Holland",
+      "triggers": [{ "talk": 10666 }, { "talk": 10665 }, { "accept": 5481 }],
+      "body": [
+        "Gordo is an abomination who wanders the roads near Brill picking weeds for his master. He likes picking flowers, which he says is a bit like killing. Unfortunately he keeps bringing back the wrong kind.",
+        "His master, Junior Apothecary Holland, works in the Brill graveyard and has no patience left for him. Holland considers his own return as one of the Forsaken a stroke of luck, and he says he gathers doom weed for the Lady, though he seems to have uses of his own in mind."
+      ],
+      "sources": ["quest 5481 description and reward text", "quest 5482 description and reward text", "creature 10666 gossip", "creature 10665 gossip"]
+    },
+    {
+      "id": 85036,
+      "kind": "person",
+      "title": "Calvin Montague",
+      "triggers": [{ "talk": 6784 }, { "accept": 8 }],
+      "body": [
+        "A young rogue loitering near Deathknell who claims to have fought more than his share of zombies and spiders. He pays newcomers to carry a letter to the innkeeper in Brill, promising good money for the trouble.",
+        "The money is rarely as good as promised. Calvin has a habit of forgetting debts, and those who come back to collect are likely to end up in a fight with him."
+      ],
+      "sources": ["quests 8, 590 descriptions and reward texts"]
+    },
+    {
+      "id": 85050,
+      "kind": "history",
+      "title": "The Plague in Tirisfal",
+      "triggers": [{ "complete": 358 }, { "accept": 354 }, { "complete": 6395 }],
+      "body": [
+        "The plague of undeath was spread through Lordaeron by the Cult of the Damned, in the grain that fed its villages. Those who ate it died, and those who died rose to serve the Scourge. Tirisfal, with its farms and mills, was among the first places to fall.",
+        "So many died that the dead were buried in mass graves north of Brill. Families were split by it: in Deathknell, Marla Fipps survived the sickness only to be killed by her own husband, Samuel, after he rose. Her last wish was to be buried beside him.",
+        "Some of the dead still rest. Others walk the Glades as the Lich King's mindless servants, and the Forsaken who woke with their wills intact must fight them, though many were their neighbours."
+      ],
+      "sources": ["quest 358 description (mass graves for the deaths when the Plague first came)", "quest 6395 description (Marla and Samuel Fipps)", "quest 364 description (former brothers and sisters)", "pre-Cataclysm lore: Kel'Thuzad and the plagued grain"]
+    },
+    {
+      "id": 85051,
+      "kind": "history",
+      "title": "The Forsaken",
+      "triggers": [{ "complete": 364 }, { "complete": 3901 }, { "talk": 1569 }],
+      "body": [
+        "When the Lich King's power faltered, some of his undead found they could think for themselves again. Sylvanas Windrunner, once Ranger-General of Silvermoon, killed and raised by Arthas, was the first to throw off his control. She gathered the others who had woken, took the ruins of Lordaeron, and named her people the Forsaken.",
+        "The Forsaken call her the Dark Lady and owe her everything. Their war is with the Scourge that once enslaved them, and with the living who see no difference between the two. Each newly woken corpse is told the same thing at Deathknell: they are free, and they will not be chained again."
+      ],
+      "sources": ["quest 363 reward text (freed by Lady Sylvanas, war on the Scourge and humanity)", "quest 3901 reward text (free and will not be shackled again)", "pre-Cataclysm lore: Sylvanas Windrunner and the founding of the Forsaken"]
+    },
+    {
+      "id": 85052,
+      "kind": "history",
+      "title": "The New Plague",
+      "triggers": [{ "accept": 367 }, { "complete": 369 }, { "accept": 445 }],
+      "body": [
+        "Lady Sylvanas has ordered the Royal Apothecary Society to make a new plague, deadlier than anything Azeroth has seen, to bring down the Scourge. Its apothecaries are stationed in Brill, in Silverpine and in the Hillsbrad Foothills, and they send their findings to one another.",
+        "The work is grim. They gather blood, venom and scales from the beasts of the Glades and study old records of plagues that wiped out whole populations. The Society speaks of the Scourge as its target, but some of its members are already testing their brews on living prisoners."
+      ],
+      "sources": ["quest 367 description (Sylvanas's challenge to the Society)", "quests 368, 369, 492 descriptions", "quest 445 description", "quest 493 (Lydon in Tarren Mill)"]
+    }
+  ]
+}

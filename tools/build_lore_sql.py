@@ -34,13 +34,16 @@ lore every time it changes (the server's updater applies a changed file again).
     python3 tools/build_lore_sql.py --check     only checks the JSON
 
 With --world-sql DIR (the core's data/sql/base/db_world) it also checks that every creature
-and quest a trigger names exists.
+and quest a trigger names exists. With --areas FILE (the server's dbc/AreaTable.dbc, or an
+AreaTable csv export such as wago.tools') it also checks that every area a trigger names is in
+its zone.
 """
 
 import argparse
 import json
 import pathlib
 import re
+import struct
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -67,7 +70,39 @@ def ids_in(path):
     return set(int(m) for m in re.findall(r"\((\d+),", path.read_text(encoding="utf-8", errors="replace")))
 
 
-def check(zone_file, data, creatures, quests):
+def read_areas(path):
+    """{area id: (name, parent zone id)} from AreaTable.dbc (3.3.5) or an AreaTable csv."""
+    raw = path.read_bytes()
+    areas = {}
+    if raw[:4] == b"WDBC":
+        count, fields, size, _ = struct.unpack_from("<4I", raw, 4)
+        strings = 20 + count * size
+        for r in range(count):
+            row = struct.unpack_from(f"<{fields}I", raw, 20 + r * size)
+            name = raw[strings + row[11]:raw.index(b"\0", strings + row[11])].decode("utf-8", "replace")
+            areas[row[0]] = (name, row[2])
+    else:
+        import csv
+        import io
+        for row in csv.DictReader(io.StringIO(raw.decode("utf-8-sig"))):
+            areas[int(row["ID"])] = (row.get("AreaName_lang") or row.get("AreaName"), int(row["ParentAreaID"]))
+    return areas
+
+
+def zone_areas(areas, zone):
+    """Lower-case name -> id of the zone and every area inside it."""
+    inside = {zone}
+    grew = True
+    while grew:
+        grew = False
+        for aid, (_, parent) in areas.items():
+            if parent in inside and aid not in inside:
+                inside.add(aid)
+                grew = True
+    return {areas[a][0].lower(): a for a in inside if a in areas}
+
+
+def check(zone_file, data, creatures, quests, areas=None):
     problems = []
     zone = data.get("zone")
     if not isinstance(zone, int) or zone <= 0:
@@ -75,6 +110,7 @@ def check(zone_file, data, creatures, quests):
         return problems
     if not data.get("entries"):
         problems.append("no entries")
+    known_areas = zone_areas(areas, zone) if areas is not None else None
     seen = set()
     for i, e in enumerate(data.get("entries", [])):
         where = f"entry {e.get('id', '#' + str(i))}"
@@ -110,8 +146,12 @@ def check(zone_file, data, creatures, quests):
             if kind == "area":
                 if not isinstance(value, str) or not value or len(value) > 80:
                     problems.append(f"{where}: area must be an area name")
+                elif known_areas is not None and value.lower() not in known_areas:
+                    problems.append(f"{where}: no area \"{value}\" in zone {zone}")
             elif not isinstance(value, int) or value <= 0:
                 problems.append(f"{where}: {kind} must be an id")
+            elif kind == "areaId" and known_areas is not None and value not in known_areas.values():
+                problems.append(f"{where}: area {value} isn't in zone {zone}")
             elif kind in ("talk", "kill") and creatures is not None and value not in creatures:
                 problems.append(f"{where}: creature {value} doesn't exist")
             elif kind in ("accept", "complete") and quests is not None and value not in quests:
@@ -156,18 +196,20 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--check", action="store_true", help="only check the JSON")
     ap.add_argument("--world-sql", type=pathlib.Path, help="the core's data/sql/base/db_world, to check creature and quest ids")
+    ap.add_argument("--areas", type=pathlib.Path, help="AreaTable.dbc or an AreaTable csv, to check area names")
     a = ap.parse_args()
 
     creatures = quests = None
     if a.world_sql:
         creatures = ids_in(a.world_sql / "creature_template.sql")
         quests = ids_in(a.world_sql / "quest_template.sql")
+    areas = read_areas(a.areas) if a.areas else None
 
     failed = False
     zones = {}
     for path in sorted(LORE.glob("*.json")):
         data = json.loads(path.read_text(encoding="utf-8"))
-        problems = check(path, data, creatures, quests)
+        problems = check(path, data, creatures, quests, areas)
         if data.get("zone") in zones:
             problems.append(f"zone {data['zone']} is also in {zones[data['zone']]}")
         zones[data.get("zone")] = path.name
