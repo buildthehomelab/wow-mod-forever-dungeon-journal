@@ -1,0 +1,297 @@
+{
+  "zone": 1,
+  "name": "Dun Morogh",
+  "entries": [
+    {
+      "id": 1000,
+      "kind": "zone",
+      "title": "Dun Morogh",
+      "triggers": [{ "areaId": 1 }],
+      "body": [
+        "Dun Morogh is the snowbound lowland of Khaz Modan, the dwarven homeland: frozen lakes, pine woods and white valleys ringed by mountains, with the great gate of Ironforge cut into the peaks above. Kharanos sits at its centre, a village of stone halls and smoking chimneys where the roads from Coldridge, Ironforge and Loch Modan meet.",
+        "The dwarves share these snows with the gnomes, who once lived in their own city of Gnomeregan under the north-western mountains. That city is lost. Its people now live as guests in Ironforge and in the villages around it, and the twisted survivors who stayed behind still wander outside its gates.",
+        "Much of King Magni's army is away fighting for the Alliance, and the land feels it. Troggs have burst up out of the earth to wreck quarries and tunnels, Frostmane trolls hold the western hills, wendigo and bears raid the ranches, and Dark Iron dwarves have been seen spying in the east. Ironforge's Senate, its mountaineers and any willing traveller must keep the peace between them."
+      ],
+      "sources": ["quests 170, 182, 433, 314, 1784 descriptions", "quest 3361 description (gnomes scattered over Dun Morogh)", "quest 384 description (trapper enlisted for the Alliance front)", "pre-Cataclysm lore: Khaz Modan, Ironforge, fall of Gnomeregan"]
+    },
+    {
+      "id": 1001,
+      "kind": "place",
+      "title": "Coldridge Valley",
+      "triggers": [{ "area": "Coldridge Valley" }, { "accept": 170 }, { "accept": 183 }],
+      "body": [
+        "A high valley in the far south-west of Dun Morogh, walled in by mountains and reached from the rest of the land only through a tunnel. Young dwarves and gnomes take their first steps as fighters here, hunting the wolves and crag boars that crowd its slopes.",
+        "The valley has had a hard season. Troggs have come up out of the hills to the south-east and around the frozen lake, and one night they overran a camp to the west. Frostmane trolls have dug into a cave in the south, and the boars have grown so many that even the hunter Talin Keeneye, who camps beside the lake, finds them a danger."
+      ],
+      "sources": ["quest 170 description", "quests 182, 183, 233 descriptions", "quest 179 (wolf meat)"]
+    },
+    {
+      "id": 1002,
+      "kind": "place",
+      "title": "Anvilmar",
+      "triggers": [{ "area": "Anvilmar" }, { "talk": 713 }, { "accept": 179 }],
+      "body": [
+        "Anvilmar is the dwarven hall at the heart of Coldridge Valley, a settlement dug straight into the mountainside. The valley's trainers and merchants work inside, and Balir Frosthammer and Sten Stoutarm stand at its door to greet newcomers and put them to work.",
+        "It is a practical place. Sten trades warm gloves for wolf meat, Durnan Furcutter sells cloth and leather inside and likes his morning brew scalding hot, and gnomes who fled their ruined city have found shelter here, though few of them feel at home among so many dangerous beasts."
+      ],
+      "sources": ["quest 3364 description (settlement dug into the mountain)", "quests 179, 170, 3364, 3365 descriptions and offer texts", "quest 3361 description and progress text (Felix in Anvilmar)"]
+    },
+    {
+      "id": 1003,
+      "kind": "place",
+      "title": "Coldridge Pass",
+      "triggers": [{ "area": "Coldridge Pass" }, { "talk": 1965 }, { "complete": 282 }, { "accept": 2160 }],
+      "body": [
+        "The tunnel that links Coldridge Valley to Kharanos and the rest of Dun Morogh. It was an ordinary road until the troggs overran it; now they attack anyone who tries to pass, and word between Anvilmar and Kharanos has slowed to a trickle.",
+        "Mountaineer Thalos guards the Coldridge end and turns back anyone without good reason to cross. The gnome Hands Springsprocket waits beside him with a crate for the inn at Kharanos, unwilling to brave the tunnel alone and facing days before the next escort of mountaineers comes through."
+      ],
+      "sources": ["quests 282, 420 descriptions and texts", "quest 2160 description and offer text"]
+    },
+    {
+      "id": 1004,
+      "kind": "place",
+      "title": "Kharanos",
+      "triggers": [{ "area": "Kharanos" }, { "talk": 6806 }, { "talk": 1872 }],
+      "body": [
+        "The largest village in Dun Morogh, built in a sheltered valley south-west of Ironforge. Its heart is the Thunderbrew Distillery, which serves as inn, tavern and brewery all at once; around it stand a smithy, stables and the homes of dwarves and gnomes.",
+        "Kharanos is where news from all over the region ends up. Senir Whitebeard writes his reports for the Senate here, usually with a drink at hand. The smith Tharek Blackstone forges tools for the siege engine mechanics up the road, and a pair of gnomish inventors work in the snow just north of the village, trying to repair what went wrong in Gnomeregan."
+      ],
+      "sources": ["quests 291, 287, 420 (Senir in Kharanos)", "quest 400 description (Tharek's tools for Steelgrill)", "quests 412, 25283 (Ozzie north of Kharanos)", "quest 2160 (the inn)"]
+    },
+    {
+      "id": 1005,
+      "kind": "place",
+      "title": "Thunderbrew Distillery",
+      "triggers": [{ "area": "Thunderbrew Distillery" }, { "talk": 1267 }, { "accept": 310 }],
+      "body": [
+        "The Thunderbrew family's brewery and tavern in Kharanos, and the warmest room in Dun Morogh. Ragnar Thunderbrew is proud of his boar ribs basted in Rhapsody Malt, though the trapper who used to bring him meat has gone off to fight on the Alliance front and Ragnar now has to ask travellers for help.",
+        "The family's Thunder Ale is aged in the cellar, and nobody touches it. Jarven Thunderbrew guards the barrels under strict orders, which he finds very hard to obey. The rival Barleybrews of Brewnall Village would dearly like to see one of their own casks slipped in among the Thunderbrew stock."
+      ],
+      "sources": ["quest 384 description (Ragnar, the trapper, Rhapsody Malt)", "quests 308, 310, 403 descriptions and texts", "quest 2160 progress text"]
+    },
+    {
+      "id": 1006,
+      "kind": "place",
+      "title": "Steelgrill's Depot",
+      "triggers": [{ "area": "Steelgrill's Depot" }, { "talk": 1376 }, { "accept": 400 }],
+      "body": [
+        "A mechanic's yard north-east of Kharanos, owned by Beldin Steelgrill, said to be the best siege engine mechanic there is and certainly the hardest on his tools. Pilots of the Ironforge Siege Brigade bring their engines here for repairs, and the yard rings with hammering at all hours.",
+        "Each pilot treats his engine like a house. Stonegear wants a rug of wendigo manes for the deck of Trollplow, and Bellowfiz stocks Jetsteam with a month of food and furs before every long run. Gnomes sell mechanical striders from the depot too, and teach their friends to ride them."
+      ],
+      "sources": ["quest 400 description and offer text", "quests 313, 317, 318 descriptions", "creatures 7954, 7955 gossip (mechanostriders)"]
+    },
+    {
+      "id": 1007,
+      "kind": "place",
+      "title": "Brewnall Village and Iceflow Lake",
+      "triggers": [{ "area": "Brewnall Village" }, { "area": "Iceflow Lake" }, { "talk": 1374 }, { "accept": 319 }],
+      "body": [
+        "Iceflow Lake lies in the north-west of Dun Morogh, reached by following a frozen river west from the bridge on the Ironforge road. On its western bank is Brewnall Village, home of the Barleybrew family of brewers and a handful of other crafters.",
+        "The villagers like a quiet life with their kettles and workbenches, but bears, snow leopards and old crag boars wander down from the surrounding snows, and the Frostmane trolls' cave is close by to the south-west."
+      ],
+      "sources": ["quest 287 description (directions to Brewnall and Iceflow Lake)", "quest 319 description and offer text", "quest 318 description"]
+    },
+    {
+      "id": 1008,
+      "kind": "place",
+      "title": "Frostmane Hold",
+      "triggers": [{ "area": "Frostmane Hold" }, { "kill": 1123 }, { "accept": 287 }],
+      "body": [
+        "A cave in the hills south-west of Brewnall Village where the Frostmane trolls have made their main stronghold. Senir Whitebeard tracked them to it, saw how many there were, and decided his report could do without a look inside.",
+        "Headhunters, shadowcasters and hide-skinners live in its tunnels. The Frostmane are ice trolls, as at home in the snow as the dwarves, and they have long fought the dwarves for these hills."
+      ],
+      "sources": ["quest 287 description and texts", "creatures 1122, 1123, 1124 (Frostmane hideskinners, headhunters, shadowcasters)", "pre-Cataclysm lore: Frostmane ice trolls"]
+    },
+    {
+      "id": 1009,
+      "kind": "place",
+      "title": "Shimmer Ridge",
+      "triggers": [{ "area": "Shimmer Ridge" }, { "kill": 1397 }, { "accept": 315 }],
+      "body": [
+        "A high ridge east of Iceflow Lake held by Frostmane trolls. Their seers gather a plant called shimmerweed up here for their rituals and keep baskets of it around their camps.",
+        "The dwarves never found much use for it until Rejold Barleybrew tried some in his stout. The result, Shimmer Stout, makes drinkers feel they can see in the dark, or fly, depending on who is asked."
+      ],
+      "sources": ["quest 315 description", "quests 413, 414 offer texts (effects of Shimmer Stout)", "creature 1397 Frostmane Seer"]
+    },
+    {
+      "id": 1010,
+      "kind": "place",
+      "title": "The Gates of Gnomeregan",
+      "triggers": [{ "area": "Gnomeregan" }, { "kill": 1211 }, { "accept": 412 }],
+      "body": [
+        "The entrance to the gnomish capital lies in the mountains at the north-western edge of Dun Morogh. The city itself is a vast mechanical warren under the earth; what can be seen from outside is a great gate and the machinery around it, half buried in snow.",
+        "The gnomes no longer live here. Leper gnomes, survivors of the disaster that emptied the city, shuffle about the entrance, and the cogs and gears they carry are exactly what the inventors in Kharanos need. One of them, called Gibblewilt, is said to be worse than the rest."
+      ],
+      "sources": ["quest 412 description (leper gnomes out front of Gnomeregan, cogs and gears)", "creature 8503 Gibblewilt", "pre-Cataclysm lore: Gnomeregan"]
+    },
+    {
+      "id": 1011,
+      "kind": "place",
+      "title": "The Grizzled Den",
+      "triggers": [{ "area": "The Grizzled Den" }, { "kill": 1135 }, { "accept": 313 }],
+      "body": [
+        "A cave west of Kharanos taken over by wendigo, shaggy white beasts that are fierce when cornered and often when not. Pilots and hunters alike prize their thick manes.",
+        "The wendigo range far from the den. A courier carrying ammunition from Steelgrill's Depot camped too close and was chased off, leaving the crate behind, and the largest of the pack, known as Edan the Howler, roams the snow nearby."
+      ],
+      "sources": ["quest 313 description and progress text", "quest 5541 description", "creature 1137 Edan the Howler"]
+    },
+    {
+      "id": 1012,
+      "kind": "place",
+      "title": "Misty Pine Refuge",
+      "triggers": [{ "area": "Misty Pine Refuge" }, { "talk": 1266 }, { "kill": 1271 }],
+      "body": [
+        "A hunter's lodge among the pines of western Dun Morogh, home of Tundra MacGrann. He hunts deer and salts the meat away to see him through the cold season.",
+        "This year a great bear called Old Icebeard carried off his whole meat locker, thorium lock and all, and dragged it back to his cave. With a bad leg, Tundra cannot get in and out quickly enough to recover it himself."
+      ],
+      "sources": ["quest 312 description and offer text"]
+    },
+    {
+      "id": 1013,
+      "kind": "place",
+      "title": "Gol'Bolar Quarry",
+      "triggers": [{ "area": "Gol'Bolar Quarry" }, { "talk": 1254 }, { "accept": 433 }],
+      "body": [
+        "A quarry of the Miners' League in eastern Dun Morogh. The miners dug deep, and the troggs poured out of the rock below them, smashing equipment and powder barrels and driving the workers out.",
+        "Foreman Stonebrow watches the wreck of his site in a state of permanent rage. Senator Mehr Stonehallow, who sits in the Senate and belongs to the Explorers' League, has taken charge of clearing it, hoping to bring in mountaineers to hold it and then put the miners back to work."
+      ],
+      "sources": ["quests 432, 433 descriptions and texts"]
+    },
+    {
+      "id": 1014,
+      "kind": "place",
+      "title": "Amberstill Ranch",
+      "triggers": [{ "area": "Amberstill Ranch" }, { "talk": 1265 }, { "kill": 1388 }],
+      "body": [
+        "A ram ranch on the road east of Ironforge, run by Rudra and Veron Amberstill. The rams bred here carry riders across Khaz Modan, and Ultham Ironhorn teaches the art of riding them to those Ironforge counts as friends.",
+        "The ranch has a predator. A beast called Vagash lives in the rocks just above it and comes down at night to take rams from the herd, and with the king's soldiers far away there is nobody to stop him but passing adventurers."
+      ],
+      "sources": ["quest 314 description and offer text", "creature 4772 Ultham Ironhorn gossip", "quest 14083"]
+    },
+    {
+      "id": 1015,
+      "kind": "place",
+      "title": "Helm's Bed Lake and Ironband's Compound",
+      "triggers": [{ "area": "Helm's Bed Lake" }, { "area": "Ironband's Compound" }, { "kill": 6124 }, { "accept": 1681 }],
+      "body": [
+        "A lake in eastern Dun Morogh. South of it stood the compound of Sturgy Ironband, a master blacksmith who taught his craft there. When one of his students brought him a load of strange ore he called umbral ore, a band of Dark Iron dwarves fell on the compound and killed everyone in it.",
+        "The Dark Irons never left. They have dug in around the lake, and their captain has been seen giving orders to his spies. Some on the council in Ironforge still refuse to believe there are Dark Irons in Dun Morogh at all."
+      ],
+      "sources": ["quest 1681 description and offer text", "quests 1783, 1784 descriptions", "creature 6124 Captain Beld <Dark Iron Captain>"]
+    },
+    {
+      "id": 1016,
+      "kind": "place",
+      "title": "The Gate Outposts",
+      "triggers": [{ "area": "South Gate Outpost" }, { "area": "North Gate Outpost" }, { "talk": 1959 }, { "accept": 413 }],
+      "body": [
+        "Two guard towers stand at Dun Morogh's eastern end, where the road runs into the tunnel to Loch Modan. Mountaineers keep watch from both, guarding the border against troggs and anything else that comes through the mountain.",
+        "Duty here can be slow. Mountaineer Wellart Barleybrew, in the southern tower, complains he has not had a decent fight in days and that his ale is running low, and he welcomes any visitor who brings either."
+      ],
+      "sources": ["quest 413 description and texts", "quest 414 description (tunnel to Loch Modan)"]
+    },
+    {
+      "id": 1030,
+      "kind": "person",
+      "title": "Grelin and Senir Whitebeard",
+      "triggers": [{ "talk": 786 }, { "talk": 1252 }, { "accept": 182 }, { "complete": 291 }],
+      "body": [
+        "Two brothers sent by Ironforge to different corners of Dun Morogh to look into the troll problem, since the Senate has its hands full with troggs. Grelin camps in Coldridge Valley; Senir keeps to the warmth of Kharanos.",
+        "Grelin is thorough and a little careless with the king's name, which he invoked in his report. Senir is cheerful, behind on his own report and keen that nobody in Ironforge learn how much help he had writing it. Senator Barin Redstone, who received the reports in Ironforge, was not amused."
+      ],
+      "sources": ["quests 182, 218, 282, 420, 287, 291 descriptions and offer texts"]
+    },
+    {
+      "id": 1031,
+      "kind": "person",
+      "title": "Grik'nir the Cold",
+      "triggers": [{ "kill": 808 }, { "accept": 218 }],
+      "body": [
+        "A big Frostmane troll with strange markings on his skin and face who leads the trolls in the southern cave of Coldridge Valley. One night his raiders crept into Grelin Whitebeard's camp and carried off the dwarf's journal.",
+        "Grik'nir's band is small, and Grelin judged that a few strong arms could deal with it without troubling the army. Losing his notes, however, made it personal."
+      ],
+      "sources": ["quests 182, 218 descriptions and offer texts"]
+    },
+    {
+      "id": 1032,
+      "kind": "person",
+      "title": "Ozzie Togglevolt and Razzle Sprysprocket",
+      "triggers": [{ "talk": 1268 }, { "talk": 1269 }, { "accept": 412 }],
+      "body": [
+        "Two gnomish inventors who work in the snow just north of Kharanos. They are refreshingly honest about Gnomeregan: by their own account, the plan to wipe out the troggs failed, and turned most of their people into leper gnomes besides.",
+        "Their answer is another machine. Ozzie drew the schematics and Razzle is building the Recombobulator, a device they believe will reverse the leper effect, once it has enough of the right cogs and gears."
+      ],
+      "sources": ["quest 412 description and offer text", "quest 25283 (Ozzie north of Kharanos)"]
+    },
+    {
+      "id": 1033,
+      "kind": "person",
+      "title": "The Barleybrews",
+      "triggers": [{ "talk": 1374 }, { "talk": 1375 }, { "accept": 413 }],
+      "body": [
+        "A family of brewers from Brewnall Village. Rejold is the experimenter, forever chasing the perfect stout: his Evershine burns so hot that the pilot Bellowfiz throws it in his engine's furnace for a burst of speed, and his Shimmer Stout is made with the trolls' shimmerweed.",
+        "Marleth admits the Thunderbrews make good drink but resents that Kharanos thinks theirs is the only kind worth having, and would like to prove otherwise. Their brother Wellart never took up brewing; he serves as a mountaineer on the border, and drinks enough for all three."
+      ],
+      "sources": ["quests 315, 318, 319, 413 descriptions and texts", "quest 310 description"]
+    },
+    {
+      "id": 1034,
+      "kind": "person",
+      "title": "Mori Hildelve and Mangeclaw",
+      "triggers": [{ "kill": 1961 }, { "accept": 419 }, { "complete": 417 }],
+      "body": [
+        "Mori Hildelve was a siege engine pilot who went into the eastern hills with his friend Pilot Hammerfoot, looking for a rare ore to make better blastpowder. He wrecked his engine on a steep slope and went on searching on foot, leaving Hammerfoot to guard the machines.",
+        "He never came back. His journal tells of a fight with Mangeclaw, a huge ice claw bear that mauled him; the bear returned later and finished the work. His last written wish was for revenge, and the pilots of the Ironforge Siege Brigade remember whoever carried it out."
+      ],
+      "sources": ["quests 419, 417 descriptions and offer texts"]
+    },
+    {
+      "id": 1035,
+      "kind": "person",
+      "title": "Felix Whindlebolt",
+      "triggers": [{ "talk": 8416 }, { "accept": 3361 }],
+      "body": [
+        "A gnome who fled Gnomeregan when it filled with radiation and ended up in Anvilmar with nothing. In his hurry he lost his chest, his box and his bucket of bolts, and trolls carried all three off to their camps south-west of the hall.",
+        "Felix is no adventurer and does not pretend to be. He finds Coldridge Valley little safer than Gnomeregan was before the disaster, and is grateful for any help at all."
+      ],
+      "sources": ["quest 3361 description, progress and offer texts"]
+    },
+    {
+      "id": 1050,
+      "kind": "history",
+      "title": "The Fall of Gnomeregan",
+      "triggers": [{ "accept": 3361 }, { "complete": 412 }, { "talk": 1268 }],
+      "body": [
+        "Gnomeregan was the gnomes' capital, a city of machines built beneath the mountains of Dun Morogh, and for generations the gnomes lived there beside their dwarven allies. Then troggs began to rise into it from the deep earth, more of them than the gnomes could fight.",
+        "On the advice of Mekgineer Sicco Thermaplugg, High Tinker Mekkatorque flooded the city with toxic radiation to purge the invaders. The troggs were driven back for a while, but the poison killed many gnomes and twisted many more into the mindless leper gnomes still found outside the gates. Thermaplugg, it turned out, had his own reasons for the plan, and stayed below to rule the ruins.",
+        "The survivors fled to Ironforge, where King Magni gave them shelter, and they have been scattered across Dun Morogh ever since. They call themselves the Gnomeregan Exiles, and their inventors have not stopped looking for a way home."
+      ],
+      "sources": ["quest 3361 description (troggs driven out, then radiation)", "quest 412 description", "quest 2038 offer text (a gnomish assault on Gnomeregan)", "pre-Cataclysm lore: fall of Gnomeregan, Thermaplugg's betrayal, Gnomeregan Exiles"]
+    },
+    {
+      "id": 1051,
+      "kind": "history",
+      "title": "The King's Army Abroad",
+      "triggers": [{ "complete": 420 }, { "complete": 291 }, { "accept": 433 }],
+      "body": [
+        "Ironforge has sent much of its army to fight for the Alliance in distant lands, and Dun Morogh is left with a few mountaineers to guard it. Ranchers lose their rams to beasts, trappers enlist and leave their customers without meat, and the work of defence falls to anyone willing.",
+        "At home the troggs are the greatest worry. They have come up everywhere at once, through quarries, tunnels and hillsides, and the Senate of Ironforge has taken the struggle against them in hand, with senators going into the field themselves.",
+        "The Senate and the crown do not always see eye to eye. When Grelin Whitebeard acted on the king's authority in his report on the trolls, his brother expected ruffled feathers, and Senator Barin Redstone in the royal court took it as a sign that the king's agents were acting without the Senate."
+      ],
+      "sources": ["quest 314 description (King Magni's army in distant lands)", "quest 384 description", "quests 170 offer text, 182, 433 descriptions", "quest 420 offer text", "quest 291 offer text"]
+    },
+    {
+      "id": 1052,
+      "kind": "history",
+      "title": "Operation: Gnomeregan",
+      "era": 16,
+      "triggers": [{ "accept": 25199 }, { "complete": 25393 }, { "talk": 39675 }],
+      "body": [
+        "Years after the fall of their city, the gnomes finally marched on it. High Tinker Mekkatorque gathered an army at Steelgrill's Depot, recruiting citizens from Tinker Town with a device meant to give them courage, while engineers tested new mechano-tanks fitted with ejection seats and guns that sprayed wildly.",
+        "Before the attack, flying machines dropped probes into Gnomeregan's vents and found the radiation had fallen within what the gnomes' suits could bear. A speechwriter named Toby Zeigear tried out drafts of the High Tinker's battle speech on the gnomes of Kharanos before settling on one.",
+        "The assault took the surface but could not break Thermaplugg's hold on the depths, and the army fell back to the gates. The gnomes hold the ground outside their city now, and have sworn to return with a force twice the size once the radiation clears."
+      ],
+      "sources": ["quests 25229, 25285, 25289, 25295 descriptions", "quest 25212 description and offer text", "quests 25283, 25287 descriptions", "quest 25393 description and offer text"]
+    }
+  ]
+}

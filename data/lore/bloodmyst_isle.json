@@ -1,0 +1,326 @@
+{
+  "zone": 3525,
+  "name": "Bloodmyst Isle",
+  "entries": [
+    {
+      "id": 3525000,
+      "kind": "zone",
+      "title": "Bloodmyst Isle",
+      "triggers": [{ "areaId": 3525 }],
+      "body": [
+        "The island north of Azuremyst, joined to it by a bridge. When the draenei first arrived it was as lovely as its neighbour, and they named it Silvergale. The name did not last. The Exodar's power core came down in its western mountains, and the fluid leaking from it has turned the rivers red, the trees crystalline and the animals monstrous.",
+        "Blood elves came down with the wreck too. Calling themselves the Sunhawks, they hold the north and west of the island, harvest its crystals and use the poison of the core as a weapon, while satyrs, naga and furbolgs fight over what remains.",
+        "Against all of them stands Blood Watch, the forward base of the Hand of Argus, the draenei's soldiers of the Light."
+      ],
+      "sources": ["quest 9694 description (we called it Silvergale)", "quest 9748 description and offer text (power core leaking into the water)", "quests 9753, 9567, 9666, 9667 descriptions", "quest 9625 description (road north from the Exodar)"]
+    },
+    {
+      "id": 3525001,
+      "kind": "place",
+      "title": "Kessel's Crossing",
+      "triggers": [{ "area": "Kessel's Crossing" }, { "talk": 17649 }, { "talk": 17586 }],
+      "body": [
+        "A draenei camp at the southern end of Bloodmyst, where the road from Azuremyst comes up from the bridge. It is the first stop for recruits of the Hand of Argus, and the elekk herds of the island are kept here.",
+        "Kessel, who calls himself lord of the elekk, runs the camp and tests every newcomer. Vorkhan the herder worries about the ravagers breeding on the nearby coast, and Aonar, who thought he had been hired to care for the elekk, discovered on his first day that the job came with a shovel. He consoles himself baking sand pear pies, which the elekk try to steal."
+      ],
+      "sources": ["quests 9625, 9634, 9624, 9663 descriptions and offer texts", "creatures 17599, 17649 gossip", "quest 9668 description (Blood Watch up the road to the north)"]
+    },
+    {
+      "id": 3525002,
+      "kind": "place",
+      "title": "Blood Watch",
+      "triggers": [{ "area": "Blood Watch" }, { "talk": 17658 }, { "talk": 17423 }],
+      "body": [
+        "The main draenei outpost on Bloodmyst, built in the island's centre from salvaged pods of the Exodar. Its inn was little more than a glorified tent until supplies came from the city, and its people are few for the enemies around them.",
+        "Exarch Admetius leads it and the Triumvirate of the Hand trains its soldiers. Beside them work researchers, trackers and healers, a mushroom collector who longs for the glittering city of Mac'Aree on Argus, an envoy of the Stillpine furbolgs, an interrogator fluent in Thalassian, and a dwarven prospector of the Explorers' League who mostly drinks."
+      ],
+      "sources": ["quests 9603, 9606 descriptions and offer texts", "quest 9694 description", "creatures 17658, 17663, 18803, 18804 gossip", "quests 9696, 10063"]
+    },
+    {
+      "id": 3525003,
+      "kind": "place",
+      "title": "Bladewood",
+      "triggers": [{ "area": "Bladewood" }, { "kill": 17604 }, { "accept": 9694 }],
+      "body": [
+        "Woods north-west of Blood Watch, held by the blood elves. Sunhawk spies swarm through them, so many that the draenei half suspect the elves of multiplying.",
+        "The Sunhawks are farming the crystals here. They alter the island's crystals and build them into magical devices; a sample taken from Bladewood pulses in a way that the crystals of cleaner ground do not."
+      ],
+      "sources": ["quest 9694 description and progress text", "quest 9584 description and offer text"]
+    },
+    {
+      "id": 3525004,
+      "kind": "place",
+      "title": "The Cryo-Core",
+      "triggers": [{ "area": "The Cryo-Core" }, { "accept": 9703 }, { "talk": 17508 }],
+      "body": [
+        "A wrecked section of the Exodar directly west of Blood Watch: the ship's cryo-core, holding the same kind of suspension pods the survivors of Ammen Vale climbed out of, along with its medical stores.",
+        "The draenei hoped to find more survivors here. They found blood elves stripping the wreck instead, and the body of Galaen, a technician, robbed of his jewelled amulet. Near him lay his journal, the last record of what the Sunhawks did to their prisoners."
+      ],
+      "sources": ["quest 9703 description and offer text", "quests 9578, 9579, 9706 descriptions"]
+    },
+    {
+      "id": 3525005,
+      "kind": "place",
+      "title": "The Vector Coil",
+      "triggers": [{ "area": "The Vector Coil" }, { "accept": 9759 }, { "kill": 17678 }],
+      "body": [
+        "The Exodar's power core, a gigantic piece of the ship jutting out of a mountainside in western Bloodmyst. Fluid leaking from it drains into the rivers, which is why the water of Bloodmyst runs red.",
+        "The Sunhawks hold the coil and its slopes, and their master Sironas is somewhere among them. They use its contamination deliberately, spreading its mutating fallout across the land. Exarch Admetius' answer is simple: blow it up."
+      ],
+      "sources": ["quests 9748, 9753 descriptions and offer texts", "quest 9759 description", "quest 9761 description"]
+    },
+    {
+      "id": 3525006,
+      "kind": "place",
+      "title": "The Warp Piston",
+      "triggers": [{ "area": "The Warp Piston" }, { "accept": 9700 }, { "kill": 17550 }],
+      "body": [
+        "A site in the north of the island, named like the Vector Coil and the Cryo-Core after a part of the Exodar. Velen reasoned that if the blood elves were opening portals to Outland, they would leave traces behind, and the Warp Piston was the first place to look.",
+        "The traces were there: void anomalies, creatures of the void spilling into Bloodmyst wherever a portal had torn through. The number of them suggested the elves had opened their sun portal here many times."
+      ],
+      "sources": ["quest 9700 description and offer text"]
+    },
+    {
+      "id": 3525007,
+      "kind": "place",
+      "title": "Vindicator's Rest",
+      "triggers": [{ "area": "Vindicator's Rest" }, { "talk": 17986 }, { "accept": 10064 }],
+      "body": [
+        "A forward post of the Hand of Argus on consecrated ground west of the northern road, the closest the draenei can hold to the Vector Coil. Vindicator Corin commands it; the scouts Jorli and Loryi, sent out to find the sun gate, have been pinned here since Jorli was wounded.",
+        "Everything around the post has been changed by the crystals. Enraged ravagers wait beyond the holy ground, tanglers have learned to set traps, and in the Foul Pool to the north the water spirits are turning to crystal."
+      ],
+      "sources": ["quests 10064, 10065, 9741, 10066, 10067, 9760 descriptions", "creatures 17927, 17926 gossip"]
+    },
+    {
+      "id": 3525008,
+      "kind": "place",
+      "title": "Nazzivian",
+      "triggers": [{ "area": "Nazzivian" }, { "kill": 17337 }, { "accept": 9567 }],
+      "body": [
+        "A satyr haunt in the south-west of Bloodmyst, built around a grotesque monument. The Nazzivus satyrs who live here feed on the corruption the crash spread across the land.",
+        "They have friends. A plate of black armour taken from one of them came from a felguard, and Vindicator Aalesia concluded that the satyrs are renewing their old ties with the Burning Legion."
+      ],
+      "sources": ["quest 9567 description", "quest 9594 description and offer text", "creature 17528 Tzerak"]
+    },
+    {
+      "id": 3525009,
+      "kind": "place",
+      "title": "Axxarien",
+      "triggers": [{ "area": "Axxarien" }, { "kill": 17494 }, { "accept": 9569 }],
+      "body": [
+        "The satyr stronghold in northern Bloodmyst, where their leader Zevrax kept his court of shadowstalkers and hellcallers.",
+        "Zevrax had been gathering the corrupted crystals of the Exodar, and the draenei feared what satyrs might do with them. Harbinger Mikolaas expected even the crystal growing at Axxarien to bear the mark of the place when he sent for a sample."
+      ],
+      "sources": ["quest 9569 description and offer text", "quest 9585 description"]
+    },
+    {
+      "id": 3525010,
+      "kind": "place",
+      "title": "Ruins of Loreth'Aran",
+      "triggers": [{ "area": "Ruins of Loreth'Aran" }, { "talk": 17600 }, { "accept": 9620 }],
+      "body": [
+        "Night elf ruins on the eastern side of Bloodmyst. Harbinger Mikolaas sent a survey team to map them, and it never returned.",
+        "The surveyors were found dead among their scattered equipment, pierced by naga weapons. The Wrathscale had taken their data crystal, which was recovered from the naga still prowling the ruins."
+      ],
+      "sources": ["quests 9620, 9628 descriptions and offer texts"]
+    },
+    {
+      "id": 3525011,
+      "kind": "place",
+      "title": "Wrathscale Lair",
+      "triggers": [{ "area": "Wrathscale Lair" }, { "kill": 17701 }, { "accept": 9666 }],
+      "body": [
+        "A naga stronghold north-east of Kessel's Crossing, ruled by Lord Xiz. Only nights after Kessel set up his camp, the naga tried to take it under cover of darkness.",
+        "Kessel's reply was a draenei banner driven through Lord Xiz's body. He was not proud of it. The draenei do not like such violence, he told the recruit who did it, but sometimes there is no other way."
+      ],
+      "sources": ["quest 9666 description and offer text"]
+    },
+    {
+      "id": 3525012,
+      "kind": "place",
+      "title": "Amberweb Pass",
+      "triggers": [{ "area": "Amberweb Pass" }, { "kill": 17683 }, { "accept": 9669 }],
+      "body": [
+        "A pass in the western wilds of Bloodmyst, choked with webs. The spiders here have grown huge and savage on the crystal contamination.",
+        "A research team led by Achelus was ambushed in the pass by the spiders' matriarch, Zarakh, who wrapped the researchers in cocoons and laid her eggs beside them. Achelus escaped; Researcher Cornelius cut his way out and refused to leave without the others."
+      ],
+      "sources": ["quests 9669, 9670 descriptions and offer texts", "creature 17686 gossip"]
+    },
+    {
+      "id": 3525013,
+      "kind": "place",
+      "title": "Blacksilt Shore",
+      "triggers": [{ "area": "Blacksilt Shore" }, { "talk": 17421 }, { "accept": 9629 }],
+      "body": [
+        "The Blacksilt murlocs hold stretches of Bloodmyst's coast. The herbalist Morae has noticed that they seem barely aware in some ways and remarkably organised in others, and has been tagging them to find out why.",
+        "On the northern shore, a gnome named Clopper Wizbang lives in an old turtle shell to watch them unobserved. He is the first gnome to join the Explorers' League, and he was delighted when murlocs stole his equipment, because it gave him a chapter for his report. One murloc, Cruelfin, took to wearing a pendant of corrupted crystal and outgrew the rest."
+      ],
+      "sources": ["quest 9629 description", "quests 9548, 9549, 10063 descriptions and offer texts", "creature 17421 gossip", "quest 9576 description and offer text"]
+    },
+    {
+      "id": 3525014,
+      "kind": "place",
+      "title": "Bristlelimb Enclave",
+      "triggers": [{ "area": "Bristlelimb Enclave" }, { "kill": 17702 }, { "accept": 9667 }],
+      "body": [
+        "Camps of the Bristlelimb furbolgs in southern Bloodmyst. The tribe that caged Stillpine children on Azuremyst has done worse here: they captured Princess Stillpine, the high chief's daughter, and meant to sacrifice her to their gods.",
+        "Her cage could only be opened with a key held by High Chief Bristlelimb, who shows himself only when enough of his warriors have fallen. The Stillpine keep an ambassador at Blood Watch, and they did not forget who came to the princess' aid."
+      ],
+      "sources": ["quest 9667 description and offer text", "creature 18803 gossip"]
+    },
+    {
+      "id": 3525015,
+      "kind": "place",
+      "title": "Wyrmscar Island",
+      "triggers": [{ "area": "Wyrmscar Island" }, { "talk": 17674 }, { "accept": 9687 }],
+      "body": [
+        "A scarred island off Bloodmyst's north-eastern coast, a battlefield of dragons in an age long past. The ghostly whelps of the green dragonflight still haunt it, bound to the land and unable to rest in the Dream, and rare mushrooms called Ysera's tears grow among their bones.",
+        "Prince Toreth of the Dragon Riders of Loreth'Aran is bound here with them. He warns visitors away from the sundered earth, and grieves over the owlkin who have begun stealing the dragon bones. The island also shelters the ghost of a sea captain, Edward Hanes, who died on its shore."
+      ],
+      "sources": ["quests 9687, 9688, 9689 descriptions and offer texts", "quest 9649 description", "creature 17674 gossip", "quests 9672, 9751 descriptions"]
+    },
+    {
+      "id": 3525016,
+      "kind": "place",
+      "title": "Ragefeather Ridge",
+      "triggers": [{ "area": "Ragefeather Ridge" }, { "complete": 9687 }],
+      "body": [
+        "Owlkin encampments on the heights west of the Crimson Reach, across the water from Wyrmscar Island. For thousands of years the owlkin of the region lived quietly, in harmony with the land.",
+        "Now they cross to Wyrmscar and carry off the bones of fallen dragons for some ritual of their own. Prince Toreth calls it an aberration, and cannot say what has driven them to it."
+      ],
+      "sources": ["quest 9687 description and offer text"]
+    },
+    {
+      "id": 3525017,
+      "kind": "place",
+      "title": "The Bloodcursed Reef",
+      "triggers": [{ "area": "The Bloodcursed Reef" }, { "area": "Bloodcurse Isle" }, { "talk": 17712 }, { "accept": 9674 }],
+      "body": [
+        "A stretch of spoiled, desecrated water off the north-east of Bloodmyst, littered with sunken ships. Sailors call what sank them the bloodcurse. Naga hold the reef, and the ghosts of drowned voyagers drift helplessly on its deeper ledges.",
+        "Captain Edward Hanes of the Lost Hope has been trapped here for twenty years. He was said to have died of scurvy; in truth, he says, the dragons of Wyrmscar ate him. South of the reef, on Bloodcurse Isle, the naga keep a shrine to Queen Azshara, guarded by their leader, Atoph the Bloodcursed."
+      ],
+      "sources": ["quests 9751, 9674, 9682, 9683 descriptions and offer texts", "creature 17712 gossip"]
+    },
+    {
+      "id": 3525030,
+      "kind": "person",
+      "title": "Exarch Admetius",
+      "triggers": [{ "talk": 17658 }, { "accept": 9693 }],
+      "body": [
+        "The leader of Blood Watch. Admetius takes the history of his people seriously: he reminds recruits that it was on Argus that the draenei split from the man'ari, the twisted servants of Sargeras who still call themselves eredar, and he can barely say the word without disgust.",
+        "He is a planner rather than a brawler. Torture is out of the question for him, so he used magic to disguise an agent as a blood elf and talk secrets out of the prisoners. He refuses to order any draenei on the suicidal mission against the Vector Coil, and waits for a volunteer instead."
+      ],
+      "sources": ["quests 9693, 9753, 9756, 9761 descriptions and offer texts", "creature 17658 gossip"]
+    },
+    {
+      "id": 3525031,
+      "kind": "person",
+      "title": "Harbinger Mikolaas",
+      "triggers": [{ "talk": 17423 }, { "accept": 9581 }],
+      "body": [
+        "The officer responsible for Blood Watch's defences, who also carries out whatever errands the leaders in the Exodar send him: crystal samples for the researchers, surveys of the island, bounties on dangerous beasts.",
+        "Mikolaas preaches vigilance, because Bloodmyst takes the careless first and wears down everyone else. He took the loss of his survey team at Loreth'Aran hard, and he is glad to be done with the crystal samples, valuable as they may be, when there are so many more pressing problems."
+      ],
+      "sources": ["quests 9581, 9585, 9620, 9628, 9646 descriptions and offer texts", "creature 17423 gossip"]
+    },
+    {
+      "id": 3525032,
+      "kind": "person",
+      "title": "The Triumvirate of the Hand",
+      "triggers": [{ "talk": 17684 }, { "talk": 17843 }, { "talk": 17844 }, { "accept": 9694 }],
+      "body": [
+        "The three vindicators who train the soldiers of the Hand of Argus at Blood Watch. Boros, the first, is loud and teasing, and sums up the Hand in two lines: its agents serve without question and die without question. Kuros, the second, is grave and exacting. Aesom, the third, plans the campaign against the Sunhawks.",
+        "Kuros took his seat only recently. His master Vindicator Saruan, once of the Triumvirate, vanished and was given up for lost, until a dead technician's journal revealed that the blood elves had tortured him to death."
+      ],
+      "sources": ["creatures 17684, 17843, 17844 gossip", "quests 9693, 9694, 9703, 9740, 9746 descriptions and offer texts", "quest 9706 offer text", "page text 2937-2940 (Galaen's Journal)"]
+    },
+    {
+      "id": 3525033,
+      "kind": "person",
+      "title": "Kessel",
+      "triggers": [{ "talk": 17649 }, { "accept": 9663 }],
+      "body": [
+        "The elekk lord of Kessel's Crossing and a disciple of the Hand of Argus. Every recruit who wants to join the Hand passes through his camp and his tests, starting with a ride on his own elekk to warn Azuremyst of a coming Sunhawk attack, against the clock.",
+        "Kessel sees the Hand as a kind of rebirth, and expects it to hurt. He remembers when his people were slaughtered by the orcs, and teaches that honourable people cannot always act honourably."
+      ],
+      "sources": ["quests 9663, 9666, 9668 descriptions and offer texts", "creature 17649 gossip", "creature 17599 gossip"]
+    },
+    {
+      "id": 3525034,
+      "kind": "person",
+      "title": "Morae and Galaen",
+      "triggers": [{ "talk": 17434 }, { "accept": 9578 }],
+      "body": [
+        "Morae is the herbalist of Blood Watch, a patient scientist who studies the crystals' effect on bark, murlocs and anything else she can sample. Since the crash, her days have narrowed to one island of mutants and blood elves, and life on the Exodar feels like another lifetime.",
+        "Her husband Galaen was a technician in the Cryo-Core. Like so many families aboard the ship, they were separated in the crash. They wore matching pendants, a gift from her sister, and it was by his pendant, taken from the blood elves, that she finally learned he had died."
+      ],
+      "sources": ["quests 9574, 9629, 9576, 9578, 9579 descriptions and offer texts", "creature 17434 gossip"]
+    },
+    {
+      "id": 3525035,
+      "kind": "person",
+      "title": "Matis the Cruel",
+      "triggers": [{ "accept": 9711 }, { "complete": 9711 }, { "complete": 9706 }],
+      "body": [
+        "A blood elf lieutenant who calls himself the herald of Sironas. Galaen's journal describes him beating Vindicator Saruan without mercy, as though cruelty were routine, and dousing the unconscious vindicator with tainted water to wake him.",
+        "Even Matis was afraid of his master; he fretted that Sironas would have him flayed if Saruan died before serving her plans. He was eventually run down and brought before the Triumvirate, who tried him at once."
+      ],
+      "sources": ["page text 2937-2940 (Galaen's Journal)", "quests 9706, 9711 descriptions and offer texts", "creature 17664 Matis the Cruel <Herald of Sironas>"]
+    },
+    {
+      "id": 3525036,
+      "kind": "person",
+      "title": "Sironas",
+      "triggers": [{ "kill": 17678 }, { "accept": 9759 }],
+      "body": [
+        "An eredar who commands the Sunhawk blood elves on Bloodmyst from the slopes of the Vector Coil. The Sunhawks' ultimate aim, the draenei have learned, is to enslave the naaru O'ros and take back the Exodar.",
+        "Sironas had plans for the captured Vindicator Saruan, plans her herald feared to spoil. To the draenei she is a reminder that the man'ari followed them even here."
+      ],
+      "sources": ["quest 9753 description (led by Sironas, seek to enslave O'ros)", "quest 9759 description (Sironas the eredar)", "page text 2939-2940 (Galaen's Journal)"]
+    },
+    {
+      "id": 3525050,
+      "kind": "history",
+      "title": "From Silvergale to Bloodmyst",
+      "triggers": [{ "complete": 9748 }, { "complete": 9641 }, { "complete": 9634 }],
+      "body": [
+        "When the draenei first saw the island they named it Silvergale. The crash changed that. Shards of fouled crystal scattered across the land, the power core began leaking into the water, and the rivers ran red.",
+        "The wildlife changed with it: treants grew crystal bark, moths began to damage whatever they touched, and shards are found in the flesh of bears, ravagers and treants alike. Outland ravagers carried aboard the Exodar as specimens escaped and began to breed. The draenei now cull some creatures, purify what they can, and, like Tracker Lyceon, make use of the rest."
+      ],
+      "sources": ["quest 9694 description (Silvergale)", "quests 9748, 9574, 9647, 9641 descriptions and offer texts", "quest 9634 description (Outland specimens)", "creature 17642 gossip"]
+    },
+    {
+      "id": 3525051,
+      "kind": "history",
+      "title": "The Sunhawks and the Sun Gate",
+      "triggers": [{ "complete": 9696 }, { "complete": 9740 }, { "accept": 9779 }],
+      "body": [
+        "The blood elves the draenei fought aboard the Exodar survived the crash and seemed only to grow in number. A missive taken from them, signed by Kael'thas Sunstrider, explained why: a sun portal was bringing reinforcements straight from Tempest Keep. The missive also revealed that the Sunhawks had a spy among the draenei at the Exodar.",
+        "The portal was hard to find because it moved. Its controllers let the elves shift the gate at a moment's notice, and the draenei tracked it by the void creatures it left behind. When the gate was found and destroyed south of the Vector Coil, the Sunhawks' supply line was cut."
+      ],
+      "sources": ["quests 9694, 9779, 9696, 9698, 9699 descriptions and offer texts", "page text 2943 (Translated Sunhawk Missive)", "quests 9700, 9740, 9741 descriptions and offer texts"]
+    },
+    {
+      "id": 3525052,
+      "kind": "history",
+      "title": "The Elder Days of the Isles",
+      "triggers": [{ "complete": 9633 }, { "complete": 9689 }, { "complete": 9561 }],
+      "body": [
+        "Long before the draenei, the isles belonged to the night elves, and some of the threats the draenei face here are the night elves' ancient enemies. When the world was sundered, it is said, this land suffered worst: thousands of night elves were lost beneath the sea, and from them rose the naga, loyal to Queen Azshara.",
+        "Later the island was a battlefield of dragons. Prince Toreth of the Dragon Riders of Loreth'Aran lies bound on Wyrmscar among the spirits of Ysera's brood, and Razormaw, a black dragon and lieutenant of Deathwing, fell there and still circles in death. An old journal dug up near a ruined temple on the coast tells of survivors gathered for a last stand against an enemy nearly upon them; its writer, Nolkai, buried his possessions so someone would one day know what happened."
+      ],
+      "sources": ["quest 9633 offer text (isles once inhabited by night elves, ancient enemies)", "quest 9674 description (the Sundering and the naga)", "quests 9687, 9688, 9689 descriptions and offer texts", "quests 9550, 9557, 9561 descriptions"]
+    },
+    {
+      "id": 3525053,
+      "kind": "history",
+      "title": "The Hero of Argus",
+      "triggers": [{ "complete": 9759 }, { "accept": 9761 }, { "complete": 9762 }],
+      "body": [
+        "Exarch Admetius' plan to end the Sunhawk threat needed someone to escort Demolitionist Legoso up the mountain, protect him while he rigged the Vector Coil to explode, and face Sironas at the top. The exarch would order no one to go; Vindicator Corin's soldiers cleared the path and waited for a volunteer.",
+        "The coil was destroyed and Sironas killed. For saving both isles, Velen named the champion a Hero of Argus, and asked one more thing: to go back to Outland and bring home the draenei left behind there."
+      ],
+      "sources": ["quests 9753, 9759, 9760, 9761 descriptions and offer texts", "quest 9762 offer text"]
+    }
+  ]
+}

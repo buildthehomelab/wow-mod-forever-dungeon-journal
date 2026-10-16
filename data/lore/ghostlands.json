@@ -1,0 +1,382 @@
+{
+  "zone": 3433,
+  "name": "Ghostlands",
+  "entries": [
+    {
+      "id": 3433000,
+      "kind": "zone",
+      "title": "Ghostlands",
+      "triggers": [{ "areaId": 3433 }],
+      "body": [
+        "The southern lands of Quel'Thalas were once as golden as Eversong. When Arthas led the Scourge through them on his way to Silvermoon, he left the forest grey and dead and its villages full of restless spirits. The elves now call it the Ghostlands, and the Dead Scar still runs through its middle, carrying undead north.",
+        "The Scourge did not leave. From the fortress of Deatholme in the south, Dar'Khan Drathir, the elf who betrayed Quel'Thalas, commands an army of undead that holds most of the region. The blood elves cling to the town of Tranquillien, the Sanctum of the Sun and a Farstrider outpost on Lake Elrendar, helped by Forsaken sent by Lady Sylvanas Windrunner, who was born in these lands.",
+        "The Scourge are not the only danger. Shadowpine trolls, backed by the Amani of Zul'Aman to the east, hold camps along the lake and the eastern road, gnolls have taken the mines, the plague has spread into the wildlife, and night elves have been seen at the old ley-line nexuses."
+      ],
+      "sources": ["quest 9327 reward text (Dar'Khan, Deatholme, Sylvanas)", "quest 9155 description (the Dead Scar)", "quest 9138, 9139 descriptions", "creature 16463 gossip (Shadowpine backed by Zul'Aman)", "quests 9192, 9158, 9160 descriptions", "pre-Cataclysm lore: Warcraft III, the Scourge's march through Quel'Thalas"]
+    },
+    {
+      "id": 3433001,
+      "kind": "place",
+      "title": "Tranquillien",
+      "triggers": [{ "area": "Tranquillien" }, { "talk": 16231 }, { "accept": 9138 }],
+      "body": [
+        "A blood elf town in the north-west of the Ghostlands, the base for the war against the Scourge. Dame Auriferous leads its people, and a company of Forsaken under High Executor Mavren holds the tower on the west side of town. Elves and undead share its streets, not always comfortably.",
+        "The outlying villages have all fallen, and Tranquillien is surrounded. Supplies are short and slow to arrive, so dragonhawks fly between the town and Silvermoon, a trader waits for a lost cart before he can open his shop, and a chef brought down from the city complains that he has nothing fit to cook."
+      ],
+      "sources": ["creature 16231 gossip", "quest 9327 description (Mavren in the western tower)", "quest 9138 description", "quests 9130, 9133, 9135, 9152, 9171 descriptions", "creature 16253 gossip"]
+    },
+    {
+      "id": 3433002,
+      "kind": "place",
+      "title": "Suncrown Village",
+      "triggers": [{ "area": "Suncrown Village" }, { "accept": 9138 }, { "kill": 16357 }],
+      "body": [
+        "A village north-east of Tranquillien, on the western shore of Lake Elrendar. Every year its people held a ritual at the lake to bind the forces of nature, until it went disastrously wrong.",
+        "Today Suncrown belongs to the nerubians of the Scourge, spider-like warriors who guard its ruins. The scouts who reported on it missed something important: the nerubians have a leader, Anok'suten, who prowls the village. Tranquillien learned of her from a dying blood elf sent to clear the village before her."
+      ],
+      "sources": ["quest 9138 description", "quest 9315 description, progress and reward texts", "quest 9157 description (Suncrown's yearly ritual)"]
+    },
+    {
+      "id": 3433003,
+      "kind": "place",
+      "title": "Goldenmist Village",
+      "triggers": [{ "area": "Goldenmist Village" }, { "accept": 9139 }, { "kill": 16325 }],
+      "body": [
+        "A village north-west of Tranquillien, reached by the western road. Its own people still fill it: the ghosts and wraiths of the high elves who lived there, bound into the service of the Scourge.",
+        "Arcanist Vandril calls it a gruesome tactic, and a typical one. The Scourge can raise the fallen of any battle against the living, so the elves have learned to fight them carefully, one small step at a time."
+      ],
+      "sources": ["quest 9139 description, progress and reward texts"]
+    },
+    {
+      "id": 3433004,
+      "kind": "place",
+      "title": "Windrunner Village",
+      "triggers": [{ "area": "Windrunner Village" }, { "accept": 9140 }, { "kill": 16324 }],
+      "body": [
+        "A village in the south-west, below Windrunner Spire. It was the last and strongest of the three villages the Scourge held around Tranquillien, garrisoned by shades and gargoyles, the Scourge's heavier troops.",
+        "The magisters of the Sanctum of the Sun asked for the remains of these creatures, hoping to study them for new ways to fight the Scourge. When the village was cleared, Tranquillien was at last free to turn its forces against the Dead Scar and Deatholme."
+      ],
+      "sources": ["quest 9140 description, progress and reward texts"]
+    },
+    {
+      "id": 3433005,
+      "kind": "place",
+      "title": "Windrunner Spire",
+      "triggers": [{ "area": "Windrunner Spire" }, { "accept": 9173 }, { "kill": 16314 }],
+      "body": [
+        "The ancestral home of the Windrunner family, in the south-west of the Ghostlands, beyond the Dead Scar. Sylvanas Windrunner, once ranger-general of Quel'Thalas and now queen of the Forsaken, was born here.",
+        "The Scourge took the spire. Acolytes from Deatholme hold it, along with fallen rangers, elves who died defending their homeland and were raised to serve the enemy. The Forsaken count retaking it as a matter of honour, and a necklace carrying the Lady's inscription has been taken from one of the undead there."
+      ],
+      "sources": ["quest 9173 description and reward text", "quest 9175 description and reward text", "pre-Cataclysm lore: Sylvanas Windrunner, ranger-general of Silvermoon"]
+    },
+    {
+      "id": 3433006,
+      "kind": "place",
+      "title": "Lake Elrendar",
+      "triggers": [{ "area": "Lake Elrendar" }, { "talk": 16201 }, { "kill": 16292 }],
+      "body": [
+        "A long lake in the north-east of the Ghostlands, with Suncrown Village on one shore and the Farstrider Enclave on the other. Drowned spirits haunt its waters, and their cries carry to the shore.",
+        "The people of Suncrown say they know why. Each year they summoned a water elemental named Aquantion and bound him as a sign of their mastery over water. One year he called on the murlocs to spoil the rite, turned the elves' magic against them and drowned them in the lake. Geranis Whitemorn, one of the drowned, wants revenge. The Farstriders at the Enclave remember only that many died there long ago, and that the dead have never rested."
+      ],
+      "sources": ["quests 9157, 9174 descriptions and reward texts", "quest 9274 description", "creature 16201 gossip", "creature 16462 gossip"]
+    },
+    {
+      "id": 3433007,
+      "kind": "place",
+      "title": "Farstrider Enclave",
+      "triggers": [{ "area": "Farstrider Enclave" }, { "talk": 16220 }, { "accept": 9158 }],
+      "body": [
+        "A Farstrider outpost on the southern shore of Lake Elrendar, commanded by Captain Helios. Its rangers hunt the plagued beasts of the region to keep the sickness from reaching Eversong's healthy wildlife.",
+        "Their main work is the Shadowpine trolls. The Farstriders harass the troll camps constantly to keep them off balance, and the Royal Apothecary Society has lent them an apothecary who would rather poison the trolls' food. All of them hope to be free of the trolls soon enough to join Tranquillien against Deatholme."
+      ],
+      "sources": ["quests 9158, 9159 descriptions and reward texts", "quests 9276, 9277, 9275, 9214 descriptions and reward texts", "creature 16202 gossip"]
+    },
+    {
+      "id": 3433008,
+      "kind": "place",
+      "title": "Zeb'Sora",
+      "triggers": [{ "area": "Zeb'Sora" }, { "accept": 9145 }, { "talk": 16219 }],
+      "body": [
+        "A Shadowpine troll camp across Lake Elrendar from Suncrown Village, on the lake's eastern side.",
+        "A Farstrider expedition attacked it without scouting first, on the orders of Lieutenant Tomathren, and was cut to pieces. The survivors are camped on the far shore. Ranger Valanna, badly wounded, sent one ranger west to Tranquillien and another south to the Enclave for help. The first spent precious time waiting for an audience in town; the second was never heard from again."
+      ],
+      "sources": ["quests 9143, 9145, 9146 descriptions and reward texts", "creature 16213, 16219 gossip"]
+    },
+    {
+      "id": 3433009,
+      "kind": "place",
+      "title": "Zeb'Tela and Zeb'Nowa",
+      "triggers": [{ "area": "Zeb'Tela" }, { "area": "Zeb'Nowa" }, { "accept": 9276 }, { "kill": 16358 }],
+      "body": [
+        "The main camps of the Shadowpine trolls, east and south of the Farstrider Enclave. Zeb'Nowa, home of the stronger warriors and witch doctors, sits on both sides of the road east to Zul'Aman, the capital of the Amani.",
+        "The Shadowpine are led by their chieftain, Kel'gash the Wicked, and supported by the might of Zul'Aman. The Farstriders keep them weak with constant raids and have posted a bounty on Kel'gash's head, hoping that without him the tribe will fall into disarray."
+      ],
+      "sources": ["quests 9276, 9277, 9214 descriptions", "quest 9275 description (camp straddles the road to Zul'Aman)", "quest 9215 description and reward text", "creature 16463 gossip"]
+    },
+    {
+      "id": 3433010,
+      "kind": "place",
+      "title": "The Amani Catacombs",
+      "triggers": [{ "area": "Amani Catacombs" }, { "area": "Sungraze Peak" }, { "accept": 9193 }, { "kill": 16342 }],
+      "body": [
+        "Old troll tombs inside Sungraze Peak, entered from the mountain's northern face. The Amani have buried their dead there for a long time.",
+        "Lately the dead have been getting up. Shadowpine oracles are raising the mummified trolls with juju, glowing charms of unknown power, to swell their tribe's numbers. They have also taken prisoners there: a Farstrider ranger was found caged in the catacombs, sure that the trolls meant to sacrifice her."
+      ],
+      "sources": ["quests 9193, 9199 descriptions and reward texts", "quest 9212 description and reward text"]
+    },
+    {
+      "id": 3433011,
+      "kind": "place",
+      "title": "Sanctum of the Sun",
+      "triggers": [{ "area": "Sanctum of the Sun" }, { "talk": 16239 }, { "accept": 9151 }],
+      "body": [
+        "An arcane sanctum south-east of Tranquillien, just south of Sungraze Peak. Some of Silvermoon's most powerful magisters came here to rebuild it, drove the Scourge out of the land around it and put it back into working order.",
+        "The sanctum is the elves' banner of defiance in sight of Deatholme. Magister Kaendris and Magister Idonis plan the offensive against Dar'Khan from here, working with the Forsaken to study the Scourge's weaknesses, while other magisters test ore, Scourge remains and anything else that might help."
+      ],
+      "sources": ["quest 9150, 9151, 9220 descriptions", "quest 9207 description (south of Sungraze Peak)", "quest 9172 description", "quest 9140 description", "creature 16239 gossip"]
+    },
+    {
+      "id": 3433012,
+      "kind": "place",
+      "title": "Sanctum of the Moon",
+      "triggers": [{ "area": "Sanctum of the Moon" }, { "accept": 9150 }, { "kill": 16304 }],
+      "body": [
+        "The other arcane sanctum of the Ghostlands, west of Tranquillien. Little is left of it, and with every important magister busy at the Sanctum of the Sun, nobody has bothered to rebuild it.",
+        "Its stray energies have not gone quiet. Strange creatures, arcane devourers and mana shifters, have grown out of them and roam the ruin, carrying crystallised mana that Magister Darenis, for one, does not intend to waste."
+      ],
+      "sources": ["quest 9150 description and reward text", "creature 16201 gossip (stray arcane forces)"]
+    },
+    {
+      "id": 3433013,
+      "kind": "place",
+      "title": "Dawnstar Spire",
+      "triggers": [{ "area": "Dawnstar Spire" }, { "accept": 9161 }, { "complete": 9162 }],
+      "body": [
+        "A tower north-east of the Farstrider Enclave. Before his betrayal, Dar'Khan Drathir spent much of his time here, hiding away for nights on end and scheming against his own people.",
+        "A dusty journal in the tower records his plots in his own hand, full of contempt for the elves. Those who read it say they feel watched. It confirmed that Dar'Khan meant to steal the Sunwell's power for the Scourge, and it held a great deal the elves had never known."
+      ],
+      "sources": ["quest 9161 description", "quest 9162 description and reward text", "quest 9172 reward text"]
+    },
+    {
+      "id": 3433014,
+      "kind": "place",
+      "title": "The Ley-Line Nexuses",
+      "triggers": [{ "area": "An'daroth" }, { "area": "An'telas" }, { "area": "An'owyn" }, { "accept": 9160 }, { "kill": 16333 }],
+      "body": [
+        "Three old high elf nexuses where ley lines meet: An'daroth to the north-west, An'telas on the southern slopes of Sungraze Peak, and An'owyn far to the south-east. Magister Sylastor studies the energy of An'telas for use against the Scourge.",
+        "Night elves have moved in on them. At each they raised a moon crystal, a small magically grown tree with a glowing orb on top. Stolen plans showed what they were for: scrying, so that the night elves could spy on the sin'dorei. Only An'owyn could give them enough power, and that is where their main crystal stood."
+      ],
+      "sources": ["quests 9160, 9163, 9166, 9169 descriptions and reward texts"]
+    },
+    {
+      "id": 3433015,
+      "kind": "place",
+      "title": "Shalandis Isle",
+      "triggers": [{ "area": "Shalandis Isle" }, { "accept": 9163 }, { "kill": 16332 }],
+      "body": [
+        "An island just off the western coast, at the end of the road west from Tranquillien. A night elf force has made camp here, with a ship anchored offshore.",
+        "Dame Auriferous sees the island as the heart of the night elves' plot in the Ghostlands. Plans taken from it showed their forces at An'daroth and An'owyn and their scheme for scrying on the sin'dorei."
+      ],
+      "sources": ["quest 9163 description and reward text", "quest 9160 description"]
+    },
+    {
+      "id": 3433016,
+      "kind": "place",
+      "title": "Underlight Mines",
+      "triggers": [{ "area": "Underlight Mines" }, { "accept": 9192 }, { "kill": 16334 }],
+      "body": [
+        "Tin and copper mines south-west of Tranquillien, along a dirt path past a ziggurat on the southern road. Their ore keeps the town's smiths making armour and weapons for the war.",
+        "A gnoll clan calling itself the Blackpaw has overrun them. The miners have been sent home, an apprentice from the Sanctum of the Sun who came for ore samples is stuck at the entrance, and the Forsaken deathstalkers want the place cleared."
+      ],
+      "sources": ["quest 9192 description and reward text", "quest 9207 description", "creature 16293, 16291 gossip"]
+    },
+    {
+      "id": 3433017,
+      "kind": "place",
+      "title": "The Dead Scar",
+      "triggers": [{ "area": "The Dead Scar" }, { "accept": 9155 }, { "kill": 16301 }],
+      "body": [
+        "In the Ghostlands the Dead Scar runs from the south, near Deatholme, up to the border with Eversong, passing just east of Tranquillien. Every road out of town crosses it.",
+        "Mindless undead still follow the path Arthas cut, the risen and the cannibal ghouls, skeletons and zombies. The Forsaken keep their numbers down, and Magistrix Aminel of Tranquillien has found a use for the remains, brewing elixirs from rotting hearts and spinal dust that strengthen those who fight the Scourge."
+      ],
+      "sources": ["quest 9155 description", "quests 9216, 9218 descriptions and reward texts", "quests 9139, 9152 (roads out of town cross the Dead Scar)"]
+    },
+    {
+      "id": 3433018,
+      "kind": "place",
+      "title": "The Twin Ziggurats",
+      "triggers": [{ "area": "Bleeding Ziggurat" }, { "area": "Howling Ziggurat" }, { "accept": 9176 }, { "kill": 16246 }],
+      "body": [
+        "The Bleeding Ziggurat and the Howling Ziggurat stand in the middle of the Dead Scar, Scourge buildings raised on elven land. According to Dar'Khan's journal, they were built where two elven artefacts he had promised the Scourge were to be delivered.",
+        "Two abominations of Dar'Khan's making, Knucklerot and Luzran, patrol the ground around them, and Tranquillien has put a price on both their heads."
+      ],
+      "sources": ["quest 9176 description", "quest 9156 description"]
+    },
+    {
+      "id": 3433019,
+      "kind": "place",
+      "title": "Deatholme",
+      "triggers": [{ "area": "Deatholme" }, { "accept": 9220 }, { "kill": 16319 }],
+      "body": [
+        "The Scourge fortress south of the Dead Scar, and Dar'Khan's seat of power. Nerubian centurions, wailers and necromancers guard it, and four lieutenants, Masophet the Black, Jurion the Deceiver, Borgoth the Bloodletter and Mirdoran the Fallen, command its armies in his name.",
+        "Those taken prisoner by the Scourge are brought here, drugged with poisons that break their will, and questioned. The elves count that as a fate worse than death. Their offensive against Deatholme is the purpose of the whole campaign in the Ghostlands."
+      ],
+      "sources": ["quests 9220, 9170 descriptions", "quest 9877, 9164 descriptions", "creature 16317 Deatholme Necromancer", "quest 9167 description"]
+    },
+    {
+      "id": 3433020,
+      "kind": "place",
+      "title": "Tower of the Damned",
+      "triggers": [{ "area": "Tower of the Damned" }, { "kill": 16320 }, { "complete": 9220 }],
+      "body": [
+        "A tower deep inside Deatholme where Dar'Khan's servants work to make stronger spectral soldiers. The most feared of them are the Eyes of Dar'Khan, killing creatures that Dar'Khan shaped himself and hardened with the dark magic of the fortress.",
+        "The magisters at the Sanctum of the Sun know that every Eye finished in the tower makes their own small foothold harder to hold."
+      ],
+      "sources": ["quest 9168 description", "quest 9220 targets"]
+    },
+    {
+      "id": 3433021,
+      "kind": "place",
+      "title": "Elrendar Crossing",
+      "triggers": [{ "area": "Elrendar Crossing" }, { "accept": 9144 }, { "talk": 16196 }],
+      "body": [
+        "The bridge where the road from Fairbreeze Village crosses the Elrendar River into the Ghostlands. The beasts on the far bank already carry the plague in their blood.",
+        "A courier from Silvermoon was found here, collapsed and close to death from the plague, still trying to reach Tranquillien with a sealed letter. Apothecary Thedra brewed a serum from plagued blood and brought him round. The letter, from Regent Lord Lor'themar Theron himself, warned that he sensed a dark presence in the Ghostlands, news that left Tranquillien unimpressed."
+      ],
+      "sources": ["quests 9144, 9147, 9148 descriptions and reward texts", "creature 16196, 16183 gossip"]
+    },
+    {
+      "id": 3433022,
+      "kind": "place",
+      "title": "Andilien Estate",
+      "triggers": [{ "area": "Andilien Estate" }, { "talk": 16480 }, { "accept": 9281 }],
+      "body": [
+        "An estate in the south of the Ghostlands, close to Deatholme. The magisters mean to turn it into an advance outpost against the Scourge once the land around it is safe.",
+        "Magister Kaendris sent Apprentice Vor'el to clear the surrounding woods of spiders and plague-maddened lynxes. Vor'el, who suspects apprentices get all the work the magisters would rather not do, prefers to pay someone else to do it."
+      ],
+      "sources": ["quest 9281 description and reward text", "creature 16480 gossip"]
+    },
+    {
+      "id": 3433030,
+      "kind": "person",
+      "title": "Dar'Khan Drathir",
+      "triggers": [{ "kill": 16329 }, { "accept": 9167 }],
+      "body": [
+        "A magister of Quel'Thalas who betrayed his people to the Scourge. He hated and despised his own kind, plotted against them in secret at Dawnstar Spire, and helped Arthas break into the kingdom in return for a share of the Sunwell's power.",
+        "Dar'Khan was believed dead, but he has returned in undeath to command the Scourge of the Ghostlands from Deatholme. He watches his enemies closely and builds his own monsters. Sylvanas Windrunner has a history with him and wants him destroyed as much as any elf does."
+      ],
+      "sources": ["quests 9161, 9162, 9172 descriptions and reward texts", "quest 9327 reward text", "quest 9156, 9168 descriptions", "pre-Cataclysm lore: Dar'Khan's betrayal of Quel'Thalas to Arthas"]
+    },
+    {
+      "id": 3433031,
+      "kind": "person",
+      "title": "High Executor Mavren",
+      "triggers": [{ "talk": 16252 }, { "accept": 9173 }, { "complete": 9175 }],
+      "body": [
+        "The commander of the Forsaken in Tranquillien, who works from the tower on the west side of town and spends much of his time in conference with Dame Auriferous. He has little patience for visitors without news.",
+        "Mavren knows his people look monstrous to the elves and assures them the Forsaken mean no harm. He serves Lady Sylvanas, and he treats the retaking of her family home at Windrunner Spire as an honour."
+      ],
+      "sources": ["creature 16252 gossip", "quest 9327, 9329 descriptions and reward texts", "quest 9173 description", "quest 9175 reward text"]
+    },
+    {
+      "id": 3433032,
+      "kind": "person",
+      "title": "Dame Auriferous",
+      "triggers": [{ "talk": 16231 }, { "accept": 9160 }, { "accept": 9163 }],
+      "body": [
+        "The noblewoman who leads Tranquillien. She is gracious about the help of the Forsaken and their lady, and takes a personal interest in the night elves who have appeared at the ley-line nexuses.",
+        "Auriferous keeps a degree of state even at war. Her advisor makes visitors wait for an audience, and she brought her own chef down from Silvermoon, who now sends hunters out for spider legs because the dame likes her food crunchy."
+      ],
+      "sources": ["creature 16231 gossip", "quests 9160, 9163, 9166 descriptions", "creature 16289 gossip", "quest 9171 description"]
+    },
+    {
+      "id": 3433033,
+      "kind": "person",
+      "title": "Arcanist Vandril",
+      "triggers": [{ "talk": 16197 }, { "accept": 9139 }, { "complete": 9148 }],
+      "body": [
+        "The arcanist who runs Tranquillien's campaign to retake the villages around it, sending volunteers out against Suncrown, Goldenmist and Windrunner in turn. He has learned to fight the Scourge in small steps, and admits that his scouts are spread too thin to find everything.",
+        "Vandril waited weeks for word from the regent lord. When the letter finally arrived, it warned of a dark presence in the Ghostlands, which Vandril could have told anyone himself."
+      ],
+      "sources": ["quests 9138, 9139, 9140 descriptions, progress and reward texts", "quest 9315 reward text", "quest 9148 reward text", "creature 16197 gossip"]
+    },
+    {
+      "id": 3433034,
+      "kind": "person",
+      "title": "Magister Kaendris",
+      "triggers": [{ "talk": 16239 }, { "accept": 9282 }, { "complete": 9172 }],
+      "body": [
+        "A magister at the Sanctum of the Sun who believes the Ghostlands will not be won by soldiers alone, but by the guile and arcane knowledge of his order. Magisters and Farstriders do not always agree, he admits, but on Dar'Khan they are of one mind.",
+        "When Dar'Khan's own journal came into his hands, Kaendris used it to find the two Sunwell-charged stones the traitor had promised the Scourge, meaning to turn their power against him."
+      ],
+      "sources": ["creature 16239 gossip", "quests 9282, 9172, 9176, 9167 descriptions and reward texts"]
+    },
+    {
+      "id": 3433035,
+      "kind": "person",
+      "title": "Lieutenant Tomathren and Ranger Valanna",
+      "triggers": [{ "talk": 16219 }, { "talk": 16217 }, { "accept": 9145 }],
+      "body": [
+        "Two Farstriders camped on the shore of Lake Elrendar after the disaster at Zeb'Sora. Lieutenant Tomathren led the attack without scouting the trolls first, lost many of his rangers, and has fallen apart since.",
+        "Ranger Valanna, wounded in the fight, has stayed to look after him, and she does not hide what she thinks of his leadership. She wants revenge on the trolls and a troll-ear necklace to show for it. Captain Helios admits he greatly overestimated Tomathren."
+      ],
+      "sources": ["quests 9143, 9145, 9146 descriptions and reward texts", "creature 16219 gossip"]
+    },
+    {
+      "id": 3433036,
+      "kind": "person",
+      "title": "Apothecary Renzithen",
+      "triggers": [{ "talk": 16198 }, { "accept": 9149 }, { "complete": 9164 }],
+      "body": [
+        "A Forsaken apothecary in Tranquillien, searching for a cure for the plague. He studies the plagued murlocs of the coast because, like the Forsaken, they kept their free will in undeath, and he means to find out why.",
+        "Renzithen also brewed a draught to wake prisoners from the stupor poisons used on them in Deatholme. He says the fresh air that drifts down from Eversong upsets his stomach."
+      ],
+      "sources": ["quest 9149 description and reward text", "quests 9877, 9164 descriptions and reward texts", "creature 16198 gossip"]
+    },
+    {
+      "id": 3433050,
+      "kind": "history",
+      "title": "The Fall of Quel'Thalas",
+      "triggers": [{ "complete": 9162 }, { "accept": 9173 }, { "kill": 16314 }],
+      "body": [
+        "In the Third War, Prince Arthas, now a death knight of the Lich King, marched the Scourge into Quel'Thalas. The traitor Dar'Khan Drathir helped him past the kingdom's magical defences, and Ranger-General Sylvanas Windrunner fought him all the way north, but she could only slow him.",
+        "Arthas killed Sylvanas and raised her as a banshee, broke through to Silvermoon and went on to the Sunwell, where he used its power to raise the lich Kel'Thuzad. Most of the elven people died, and the army left behind it a black road of dead earth, the Dead Scar, and a ruined southern country full of ghosts.",
+        "Sylvanas later broke free of the Lich King and became queen of the Forsaken. The fallen rangers who still walk the Ghostlands were her soldiers."
+      ],
+      "sources": ["quest 9162 reward text (Dar'Khan's plans to steal the Sunwell's power)", "quest 9173 description (Sylvanas, former ranger-general)", "quest 8475 description (the Dead Scar)", "page text of GO 180643 Saga of the Sin'dorei", "pre-Cataclysm lore: Warcraft III, Sylvanas's death and the Frozen Throne"]
+    },
+    {
+      "id": 3433051,
+      "kind": "history",
+      "title": "Sin'dorei and Forsaken",
+      "triggers": [{ "accept": 9327 }, { "accept": 9329 }, { "complete": 9758 }],
+      "body": [
+        "When the blood elves set out to reclaim the Ghostlands, they did not do it alone. The Forsaken came to Tranquillien at Lady Sylvanas's command, bringing deathstalkers, apothecaries and supplies, because Dar'Khan is their enemy as much as the elves'.",
+        "The alliance is uneasy. Some elves cannot stand the sight or smell of their rotting helpers, and Tranquillien's chef weeps at having to work among them. Still, even a dragonhawk master outside Silvermoon admits the Forsaken have put their backs to the wall for the elves, and many elves see Sylvanas's people as a way into the Horde and onward to Outland."
+      ],
+      "sources": ["quest 9327, 9329 reward texts", "quest 9135 description", "creature 16199 gossip (Forsaken as allies in the quest to reach Outland)", "creature 16253, 16198 gossip", "quest 9328 description (cement our bond with Sylvanas)"]
+    },
+    {
+      "id": 3433052,
+      "kind": "history",
+      "title": "The Stones of Light and Flame",
+      "triggers": [{ "accept": 9176 }, { "complete": 9176 }, { "complete": 9167 }, { "kill": 16329 }],
+      "body": [
+        "Among the secrets in Dar'Khan's journal was a bargain. He had promised the Scourge two elven artefacts, the Stone of Light and the Stone of Flame, both charged with the Sunwell's energy and made to ward against the undead.",
+        "The stones were to be carried to the place where the twin ziggurats now stand on the Dead Scar, and they were still there when the magisters came looking. Magister Kaendris turned them into weapons against the traitor himself, so that the power Dar'Khan tried to steal from the Sunwell could be used to end him."
+      ],
+      "sources": ["quest 9176 description and reward text", "quest 9167 description"]
+    },
+    {
+      "id": 3433053,
+      "kind": "history",
+      "title": "Plague in the Wild",
+      "triggers": [{ "accept": 9158 }, { "complete": 9159 }, { "accept": 9147 }, { "kill": 16348 }],
+      "body": [
+        "The Scourge brought more than an army to the Ghostlands. The plague it carries has soaked into the land, and the lynxes, bats, spiders and other beasts south of the Elrendar River all carry it in their blood.",
+        "The Farstriders hunt the sickest animals to stop the plague from crossing into Eversong, where the wildlife is still healthy. Forsaken apothecaries study it in everything from beasts to murlocs, hoping to understand it well enough one day to cure it."
+      ],
+      "sources": ["quests 9158, 9159 descriptions and reward texts", "quest 9147 description", "quest 9149 description"]
+    }
+  ]
+}

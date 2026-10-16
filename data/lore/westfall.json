@@ -1,0 +1,273 @@
+{
+  "zone": 40,
+  "name": "Westfall",
+  "entries": [
+    {
+      "id": 40000,
+      "kind": "zone",
+      "title": "Westfall",
+      "triggers": [{ "areaId": 40 }],
+      "body": [
+        "Westfall is the open country west of Elwynn Forest: rolling golden plains, windmills and farmsteads running down to the cliffs and beaches of the Great Sea. For generations its fields fed Stormwind, and the kingdom called it its breadbasket.",
+        "That was before the Defias Brotherhood came. The same masked thieves who trouble Elwynn's roads have made Westfall their home ground, driving families off their land, taking over farms and mines, and turning the old town of Moonbrook into a den of their own. Gnolls of the Riverpaw pack roam the southern plains, murlocs hold the coast, and strange metal scarecrows stalk the abandoned fields.",
+        "Stormwind sends little help. What order remains is kept by the People's Militia, a force of farmers and volunteers gathered at Sentinel Hill under a paladin named Gryan Stoutmantle."
+      ],
+      "sources": ["quest 102 description (Stormwind has abandoned us, breadbasket)", "quests 12, 13, 14, 36, 64, 9 descriptions", "quest 6281 offer text (a land Stormwind has all but forgotten)", "pre-Cataclysm lore: Westfall as Stormwind's breadbasket, the People's Militia"]
+    },
+    {
+      "id": 40001,
+      "kind": "place",
+      "title": "Sentinel Hill",
+      "triggers": [{ "area": "Sentinel Hill" }, { "talk": 234 }, { "talk": 491 }],
+      "body": [
+        "A stone watchtower on a hill at the centre of Westfall, ringed by tents and wagons, with a gryphon roost on the slope below. It is the headquarters of the People's Militia and the only place in the region where the law still has a garrison.",
+        "The garrison lives on what it can find. Quartermaster Lewis gets his armour from a merchant friend in Stormwind's Old Town rather than from the crown, the scouts in the tower pay for proof of dead Defias, and the protectors on the road are mostly local men and women who once worked the farms they now guard."
+      ],
+      "sources": ["quests 6181, 6281, 6285 descriptions and offer texts (Lewis, Osric Strang, Thor below the hill)", "quests 153, 214 (Scouts Galiaan and Riell)", "quest 102 description (former farmers make their stand)", "creatures 487-490, 869-876 Protectors of the People's Militia"]
+    },
+    {
+      "id": 40002,
+      "kind": "place",
+      "title": "Saldean's Farm",
+      "triggers": [{ "area": "Saldean's Farm" }, { "talk": 233 }, { "accept": 9 }],
+      "body": [
+        "A farmhouse just past the fork in the northern road, and one of the last in Westfall still lived in. Farmer Saldean and his wife Salma have watched their neighbours leave one by one and have refused to follow.",
+        "The farm survives on stubbornness and good cooking. Metal harvest watchers have taken over the surrounding fields, and thieves once tried to make off with the Saldeans' own wagon. That attempt went badly for the thief, who ended up a prisoner of the militia."
+      ],
+      "sources": ["quest 36 description (farm beyond the fork in the road)", "quest 9 description and offer text", "creature 237 gossip (Furlbrow told Saldean to get out)", "quest 142 offer text (thief caught stealing Saldean's wagon)"]
+    },
+    {
+      "id": 40003,
+      "kind": "place",
+      "title": "Furlbrow's Pumpkin Farm",
+      "triggers": [{ "area": "Furlbrow's Pumpkin Farm" }, { "accept": 64 }, { "accept": 184 }],
+      "body": [
+        "A pumpkin farm in northern Westfall, west of the road. Theodore and Verna Furlbrow worked it until the night Verna woke to a commotion and found the fields full of thieves. The couple fled with what they could carry; Theodore left behind the pocket watch Verna's father gave him on their wedding day.",
+        "The Defias kept more than the house. They took the Furlbrows' deed as well, with a note on the back suggesting it would make a good pattern for forging deeds of their own. Land in Westfall is not only being robbed but quietly signed away."
+      ],
+      "sources": ["quest 64 description and offer text", "quest 184 description and page text 55-56 (Furlbrow's Deed)"]
+    },
+    {
+      "id": 40004,
+      "kind": "place",
+      "title": "The Jansen Stead",
+      "triggers": [{ "area": "The Jansen Stead" }, { "kill": 480 }, { "talk": 238 }],
+      "body": [
+        "An abandoned homestead in the far north of Westfall, near the road down from Elwynn. It is the first empty farm travellers see, and it sets the tone for the rest: rusting harvest golems lurch about the yard and young Defias footpads watch the road.",
+        "The Furlbrows got this far on their way out of Westfall before their wagon broke down. They wait beside the road with their tired old horse, Blanchy, and Verna tells anyone who stops that a gray cloud of bad luck seems to hang over the whole land."
+      ],
+      "sources": ["creatures 480 Rusty Harvest Golem and 481 Defias Footpad spawned at the stead", "quest 151 description (Old Blanchy, the broken wagon)", "creature 238 gossip"]
+    },
+    {
+      "id": 40005,
+      "kind": "place",
+      "title": "The Molsen Farm and Jangolode Mine",
+      "triggers": [{ "area": "The Molsen Farm" }, { "area": "Jangolode Mine" }, { "accept": 12 }],
+      "body": [
+        "The Molsen Farm lies west of the Saldeans', and beyond it, in the north-western hills, the entrance to Jangolode Mine. Both are in Defias hands. Trappers and smugglers come and go between them, and harvest watchers pace the Molsens' empty rows.",
+        "The mine matters more than the farm. According to an informant of the militia, every mine from Westfall to Elwynn is now under Brotherhood control, worked or guarded by the Defias and the creatures they have enlisted."
+      ],
+      "sources": ["quest 12 description (Defias Trappers near Jangolode Mine and the Molsen Farm)", "page text 38 (Wiley's Note: every mine from Westfall to Elwynn)", "creatures 95, 504, 114 spawned there"]
+    },
+    {
+      "id": 40006,
+      "kind": "place",
+      "title": "Gold Coast Quarry",
+      "triggers": [{ "area": "Gold Coast Quarry" }, { "accept": 13 }, { "kill": 589 }],
+      "body": [
+        "A quarry cut into the bluffs near the western shore, west of Sentinel Hill's tower. Defias pillagers and looters have made it one of their camps, and it sits on the roads their messengers use between Moonbrook and the northern mines.",
+        "From here the Brotherhood raids the farms along the coast. Gryan Stoutmantle sends new recruits of the militia against the quarry early, to show that the Light still has a presence in Westfall."
+      ],
+      "sources": ["quest 13 description (Gold Coast Quarry near the shore, west of the tower)", "quest 142 description (messenger on the roads between Moonbrook, the Gold Coast Quarry and Jangolode Mine)"]
+    },
+    {
+      "id": 40007,
+      "kind": "place",
+      "title": "Alexston Farmstead",
+      "triggers": [{ "area": "Alexston Farmstead" }, { "kill": 573 }, { "complete": 13 }],
+      "body": [
+        "A large farm west of Sentinel Hill, its barns and fields picked over by Defias pillagers. The family is long gone; harvest watchers walk the furrows in their place.",
+        "The western farms are also the hunting ground of the Foe Reaper 4000, a heavier and more battered machine than the common watchers, which wanders from field to field between Alexston and the Molsen Farm."
+      ],
+      "sources": ["quest 13 description (pillagers at the Alexston Farmstead)", "creatures 114 Harvest Watcher and 573 Foe Reaper 4000 spawned there"]
+    },
+    {
+      "id": 40008,
+      "kind": "place",
+      "title": "Moonbrook",
+      "triggers": [{ "area": "Moonbrook" }, { "kill": 550 }, { "accept": 155 }],
+      "body": [
+        "Once the main town of southern Westfall, Moonbrook is now a Defias stronghold. Pillagers and looters hold its streets, and a Defias merchant does business in the open.",
+        "The town hides more than it shows. Beneath a barn on its edge runs the shaft of a vast mine that the Brotherhood has made into its secret hideout, and supplies for the Defias leadership are sent to \"the barn\". It took a captured thief, bargaining for his life, to lead the militia to it."
+      ],
+      "sources": ["quest 13 description (pillagers in Moonbrook)", "quest 167 description (a vast mine hidden beneath a barn in Moonbrook)", "page text 48 (A Mysterious Message: send your supplies to the barn)", "quests 142, 155 descriptions and offer texts", "creature 1669 Defias Profiteer"]
+    },
+    {
+      "id": 40009,
+      "kind": "place",
+      "title": "The Dagger Hills",
+      "triggers": [{ "area": "The Dagger Hills" }, { "accept": 14 }, { "kill": 122 }],
+      "body": [
+        "Dry, broken hills in the far south of Westfall, between Moonbrook and the sea. Defias highwaymen, pathstalkers and knuckledusters who slipped past the militia have gone to ground here, and from the hills they raid as far as the southern farms.",
+        "Not everyone in the hills is a thief. A dwarf brewer named Grimbooze Thunderbrew keeps a homestead on their edge and goes on making beer as if the Brotherhood were no concern of his."
+      ],
+      "sources": ["quest 14 description (Defias hiding out in the Dagger Hills)", "creature 239 Grimbooze Thunderbrew and quests 117, 48"]
+    },
+    {
+      "id": 40010,
+      "kind": "place",
+      "title": "The Dead Acre",
+      "triggers": [{ "area": "The Dead Acre" }, { "kill": 572 }],
+      "body": [
+        "A graveyard on the plains north-west of the Molsen Farm, below Jangolode Mine, where Westfall's farm families buried their dead. Nobody tends it any longer.",
+        "The dead do not stay down. Rotting ghouls wander among the stones, and on some nights a creature called Leprithus rises with them, as though the land's misfortunes have reached even those already under it."
+      ],
+      "sources": ["creatures 846 Rotten Ghoul and 572 Leprithus spawned at the Dead Acre", "creature 238 gossip (bad luck raining down on the land)"]
+    },
+    {
+      "id": 40011,
+      "kind": "place",
+      "title": "The Dust Plains",
+      "triggers": [{ "area": "The Dust Plains" }, { "accept": 102 }, { "kill": 125 }],
+      "body": [
+        "The dry south-eastern plains of Westfall, toward the Duskwood border, are Riverpaw gnoll country. Taskmasters, bandits and mystics hold camps across them, and their overseers drive the rest.",
+        "The Riverpaw are not merely raiders. The militia believes they are working with the Defias, and it was this same pack that spread east into Elwynn, where the giant gnoll Hogger runs with them."
+      ],
+      "sources": ["quest 102 description (gnolls working in conjunction with the Deadmines thieves)", "page text 38 (gnolls enlisted by the Defias)", "creatures 98, 452, 453, 125 spawned there", "Elwynn Forest lore entry on Hogger (quest 176)"]
+    },
+    {
+      "id": 40012,
+      "kind": "place",
+      "title": "Westfall Lighthouse",
+      "triggers": [{ "area": "Westfall Lighthouse" }, { "talk": 392 }, { "accept": 103 }],
+      "body": [
+        "A lighthouse on the south-western point of Westfall, warning ships off the rocks of a coast already littered with wrecks. Its keeper and his family are dead, killed by murlocs who raided it twice.",
+        "The flame still burns. It is kept by the ghost of Captain Grayson, a sailor whose ship broke on the rocks on a night the light was dark. He asks travellers for oil, which he says can be taken from the metal monsters in the fields."
+      ],
+      "sources": ["quests 103, 104, 152 descriptions and offer texts"]
+    },
+    {
+      "id": 40013,
+      "kind": "place",
+      "title": "Longshore",
+      "triggers": [{ "area": "Longshore" }, { "accept": 152 }, { "accept": 136 }],
+      "body": [
+        "Westfall's long western coast, a strip of sand below the bluffs facing the Great Sea. Wrecked ships lie up and down the beach, and murloc villages have grown up among them.",
+        "Wrecks breed stories, and one of them is true. A pirate called Captain Sanders hid his treasure on an island off this coast, and left a trail of clues from his sea chest by a rusty anchor to an old barrel, a whiskey jug by a lone windmill, and finally the open water."
+      ],
+      "sources": ["quest 152 description (shipwrecks, murlocs on the coast)", "quests 136, 138, 139, 140 descriptions (Captain Sanders' Hidden Treasure)"]
+    },
+    {
+      "id": 40030,
+      "kind": "person",
+      "title": "Gryan Stoutmantle",
+      "triggers": [{ "talk": 234 }, { "accept": 12 }],
+      "body": [
+        "A paladin of the Light and a son of Westfall, Gryan Stoutmantle was fighting on the battlefields of Lordaeron when the Defias overran his homeland. He came back to find honest farms turned into hideouts for thugs and murderers, and founded the People's Militia to take them back.",
+        "Stoutmantle is a careful man. He knew Edwin VanCleef by reputation as an industrious and talented builder, and refused to believe him the head of the Brotherhood until a message in VanCleef's own hand was taken from a Defias courier. Once convinced, he did not hesitate to call for VanCleef's death."
+      ],
+      "sources": ["creature 234 gossip", "quests 12, 14, 65, 141, 142, 166 descriptions and offer texts", "page text 38, 41 (Wiley's Note and Shaw's Report addressed to Stoutmantle)"]
+    },
+    {
+      "id": 40031,
+      "kind": "person",
+      "title": "Farmer Saldean and Salma",
+      "triggers": [{ "talk": 233 }, { "talk": 235 }, { "accept": 22 }],
+      "body": [
+        "The Saldeans stayed when everyone else left. Farmer Saldean is gruff and practical: if machines have taken his fields, he will pay someone to clear them, and perhaps Westfall will prosper again.",
+        "Salma keeps the household going from the kitchen. She is famous for her goretusk liver pie and, since Verna Furlbrow left her the recipe, for Westfall stew. She misses Verna, though she suspects her old friend was always a city girl at heart."
+      ],
+      "sources": ["quests 9, 22, 36, 38 descriptions and offer texts", "creature 233 gossip"]
+    },
+    {
+      "id": 40032,
+      "kind": "person",
+      "title": "Theodore and Verna Furlbrow",
+      "triggers": [{ "talk": 237 }, { "talk": 238 }, { "complete": 64 }],
+      "body": [
+        "Farmers driven from their pumpkin farm by Defias thieves. They mean to leave Westfall for Stormwind as soon as Theodore mends their wagon, and Theodore has no patience for neighbours who think they can wait the trouble out.",
+        "They have not quite let go. Theodore wants his deed back in case things ever get better, and Verna, before going, wrote down her stew recipe for Salma Saldean and fretted over feeding their worn-out horse."
+      ],
+      "sources": ["quests 36, 64, 151, 184 descriptions and offer texts", "creatures 237, 238 gossip"]
+    },
+    {
+      "id": 40033,
+      "kind": "person",
+      "title": "Captain Grayson",
+      "triggers": [{ "talk": 392 }, { "accept": 104 }],
+      "body": [
+        "A ship's captain who died on the rocks below the Westfall Lighthouse. On the night of his wreck the light was out, because the murloc Old Murk-Eye had frightened the keeper's family away.",
+        "Grayson watched from beyond death as the family returned, relit the flame and were killed in a second raid. He now keeps the light himself, so that no other sailor shares his end, and he would welcome news of Murk-Eye's death."
+      ],
+      "sources": ["quests 103, 104, 152 descriptions and offer texts"]
+    },
+    {
+      "id": 40034,
+      "kind": "person",
+      "title": "Old Murk-Eye",
+      "triggers": [{ "kill": 391 }, { "complete": 104 }],
+      "body": [
+        "An old murloc who roams the southern coast of Westfall and leads the weaker-minded of his kind on raids. He drove the lighthouse keeper's family out once, leaving the light dark, and when they came back he returned to kill them.",
+        "To the sailors of the Great Sea he is the reason the coast is so deadly. To the ghost who keeps the lighthouse he is an account still to be settled."
+      ],
+      "sources": ["quests 103, 104 descriptions"]
+    },
+    {
+      "id": 40035,
+      "kind": "person",
+      "title": "The Defias Traitor",
+      "triggers": [{ "talk": 467 }, { "accept": 155 }],
+      "body": [
+        "A Defias thief caught by the militia while trying to steal Farmer Saldean's wagon. To save his own neck, he offered a trade: his life in exchange for the location of the Brotherhood's hideout.",
+        "He is a reluctant guide. The Defias want his head now, and he insists on an armed escort before he will walk anywhere near Moonbrook. He has not much good to say about the people protecting him either."
+      ],
+      "sources": ["quest 142 offer text", "quest 155 description and offer text"]
+    },
+    {
+      "id": 40036,
+      "kind": "person",
+      "title": "Grimbooze Thunderbrew",
+      "triggers": [{ "talk": 239 }, { "accept": 117 }],
+      "body": [
+        "A dwarf of the brewing Thunderbrew family who lives on the edge of the Dagger Hills. He speaks almost entirely in rhyme and will not answer a question until the asker has run an errand for him.",
+        "Hops for his lager are only the beginning. For his finest drink, a spirit he calls Sweet Amber, he wants holy spring water, three kinds of grain, truesilver for a still and charred oak for the barrel, and he will sing the whole recipe again to anyone who asks."
+      ],
+      "sources": ["creature 239 gossip", "quests 117, 48, 49, 50, 51, 53 descriptions and offer texts"]
+    },
+    {
+      "id": 40050,
+      "kind": "history",
+      "title": "The People's Militia",
+      "triggers": [{ "complete": 14 }, { "accept": 102 }, { "complete": 6285 }],
+      "body": [
+        "Westfall's troubles grew while Stormwind looked elsewhere. Its soldiers were sent to Lordaeron and other fronts, and when thieves began driving families off the land, the crown did little. Farmers who could leave went to the city; the rest kept their heads down.",
+        "Gryan Stoutmantle came home and refused to accept it. The People's Militia he raised from former farmers and passing volunteers has one stated goal, to defend Westfall and return peace to it. Recruits prove themselves by fighting the Defias and are formally inducted in the name of the Light.",
+        "The militia still gets almost nothing from Stormwind. Its armour comes through private contacts in the city, and its captains speak openly of having been abandoned."
+      ],
+      "sources": ["quest 12 description (the People's Militia has but one goal)", "quest 14 offer text (induction)", "quest 102 description (Stormwind has abandoned us)", "quest 6181 description (we don't get much aid from Stormwind)", "creature 234 gossip"]
+    },
+    {
+      "id": 40051,
+      "kind": "history",
+      "title": "Unmasking the Brotherhood",
+      "triggers": [{ "complete": 141 }, { "complete": 142 }, { "accept": 65 }],
+      "body": [
+        "In Elwynn, the Defias left behind a Stonemasons' Guild ring and a mystery. In Westfall the mystery was solved. A rogue in Lakeshire named Wiley, who owed Stoutmantle his life, warned that the Brotherhood was far larger than anyone thought, with a tunnel network from Booty Bay to Stormwind Keep, and let slip a mention of the Stonemasons.",
+        "Mathias Shaw, head of SI:7, confirmed it. The Defias are led by Edwin VanCleef, the master builder whose guild rebuilt Stormwind and was never paid. Shaw knew him better than most: they were friends as boys, and Shaw himself taught VanCleef the ways of the shadows.",
+        "A note seized from a Defias courier, demanding metal for something that must reach the sea, settled the question of who was in charge. Wiley's warning remains: the masons are building something big."
+      ],
+      "sources": ["quests 65, 132, 135, 141, 142 descriptions and offer texts", "page text 38-39 (Wiley's Note)", "page text 41-43 (Shaw's Report)", "page text 48 (A Mysterious Message)", "Elwynn Forest lore entries on Morgan the Collector and the Stonemasons' Debt"]
+    },
+    {
+      "id": 40052,
+      "kind": "history",
+      "title": "Metal Monsters in the Fields",
+      "triggers": [{ "complete": 9 }, { "complete": 132 }, { "complete": 103 }],
+      "body": [
+        "Westfall's abandoned farms are patrolled by harvest golems: lumbering metal scarecrows, rusty ones in the north, watchers in the central fields and heavier reapers further south. To the farmers who fled, they were one more horror on top of the thieves.",
+        "They are not an accident. According to the militia's informant, the Defias have goblins building these machines and setting them in the fields on purpose, to play on the fears of the country people and keep them away. The golems run on oil, and the ghost at the lighthouse has found a use for it."
+      ],
+      "sources": ["page text 38 (Wiley's Note: goblins crafting metal monsters for the fields)", "quests 9, 151 descriptions (machines that have taken over)", "quest 103 description (oil from the Harvest Monsters)", "creatures 480, 114, 115 Harvest golems"]
+    }
+  ]
+}
