@@ -313,6 +313,7 @@ end
 local counts = {}
 local sent = {}
 local echoOnly = false -- a realm without the module: the whisper to yourself just comes back
+local emptyLibrary = false -- the J answer: no books read yet
 local function serve(msg)
 	if echoOnly then
 		fire("CHAT_MSG_ADDON", "JNL", msg, "WHISPER", "Tester")
@@ -326,7 +327,7 @@ local function serve(msg)
 	print("  -> " .. msg)
 	if cmd == "HELLO" then
 		assert(args[4] == "1", "HELLO without the addon's features: " .. msg)
-		reply("HELLO:" .. req .. ":2:127:4242:3")
+		reply("HELLO:" .. req .. ":2:511:4242:3")
 	elseif cmd == "D" then
 		list("D", req, "3", {
 			"I,6,36,0,0,15,25,19,6,Deadmines,Westfall",
@@ -442,6 +443,40 @@ local function serve(msg)
 		list("X", req, "1", {
 			"C,166,40", "Q,166,0,22,14,8,2650,1800,C,234,The Defias Brotherhood,Gryan Stoutmantle,-,0,0", "R,166,-,-",
 		})
+	elseif cmd == "Y" then
+		-- Elwynn Forest is where the tester stands; Hellfire Peninsula is past their era (3).
+		list("Y", req, "3:9:12", {
+			"Z,12,E,3,6,0,Elwynn Forest", "Z,14,K,0,2,0,Durotar", "Z,3483,O,0,1,8,Hellfire Peninsula",
+		})
+	elseif cmd == "U" then
+		if args[3] == "12" then
+			list("U", req, "12:3:6", {
+				"E,12000,0,1,0,Elwynn Forest,-", "E,12001,1,2,0,Goldshire,-", "E,12002,1,0,0,Fargodeep Mine,Explore Fargodeep Mine",
+				"E,12010,2,2,0,Marshal Dughan,-", "E,12011,2,0,0,Hogger,Defeat Hogger", "E,12020,3,1,0,The Defias Brotherhood,-",
+			})
+		else
+			list("U", req, args[3] .. ":0:1", { "E,14000,0,0,0,Durotar,Explore Durotar" })
+		end
+	elseif cmd == "V" then
+		if args[3] == "12001" then
+			-- The text in three pieces (rows), with an escaped comma and line breaks, and a piece that reads as a number.
+			reply("VR:" .. req .. ":12001:12:1:Goldshire")
+			reply("VD:" .. req .. ":The town at the crossroads%2C with an inn.%0A%0ALion's Pride;1066; 1066.")
+			reply("VE:" .. req)
+		else
+			list("V", req, args[3] .. ":12:0:Elwynn Forest", { "Green hills%2C old forest." })
+		end
+	elseif cmd == "J" then
+		if emptyLibrary then
+			list("J", req, "0", {})
+		else
+			list("J", req, "2", { "B,1001,1700000000,The Kaldorei and the Well of Eternity,Stormwind City", "B,2002,1700000100,A Letter,-" })
+		end
+	elseif cmd == "P" then
+		-- Two pages; the second's text comes in two pieces, one of them looking like a number.
+		reply("PR:" .. req .. ":" .. args[3] .. ":2:The Kaldorei and the Well of Eternity")
+		reply("PD:" .. req .. ":1.Long ago%2C the night elves.$B$BHello $N.;2.It fell in;2. 10000.")
+		reply("PE:" .. req)
 	elseif cmd == "O" then
 		-- Orb of Deception in the bags, Piccolo of the Flaming Fire only in the bank.
 		list("O", req, "2", { "1973,1", "13379,0" })
@@ -914,6 +949,102 @@ step("directory tab: class trainer, professions, search, map flag, Town Guide", 
 	-- the skills and the search; not the remembered category first
 	assert(counts.N == before + 2, ".find opening the tab asked " .. (counts.N - before) .. " times")
 	box:SetText("")
+	J.OpenSection("dungeons", true)
+	tick(0.5)
+end)
+
+step("lore tab: zones, entries, reading, discovery banner", function ()
+	SlashCmdList.JOURNALLORE()
+	tick(1)
+	assert(J.view.section == "lore", "/lore didn't open the Lore tab")
+	assert(textShown("^Lore found:"), "lore count missing")
+	assert(textShown("^Elwynn Forest$") and textShown("^Goldshire$"), "zone or its entries missing")
+	assert(textShown("^Places$") and textShown("^People$"), "kind headings missing")
+	assert(sent[#sent]:match("^V:%d+:12000$"), "zone overview not opened first: " .. sent[#sent])
+	assert(textShown("^Green hills, old forest%.$"), "overview text not shown")
+	-- an undiscovered entry says how it's found and never asks for its text
+	local before = counts.V or 0
+	local fargodeep = find(function (f) return f.__kind == "Button" and type(rawget(f, "entry")) == "table" and f.entry.entry
+		and f.entry.entry.id == 12002 and f:IsVisible() end)
+	fargodeep.__scripts.OnClick(fargodeep)
+	tick(0.5)
+	assert((counts.V or 0) == before, "undiscovered entry's text asked for")
+	assert(textShown("Explore Fargodeep Mine to learn more"), "hint not shown")
+	-- a new entry: marked New until read
+	assert(textShown("New"), "a found entry isn't marked New")
+	local goldshire = find(function (f) return f.__kind == "Button" and type(rawget(f, "entry")) == "table" and f.entry.entry
+		and f.entry.entry.id == 12001 and f:IsVisible() end)
+	goldshire.__scripts.OnClick(goldshire)
+	tick(0.5)
+	assert(textShown("^The town at the crossroads, with an inn%.\n\nLion's Pride1066 1066%.$"), "pieces not joined and unescaped, or read as numbers")
+	assert(JournalCharDB.loreRead[12001], "reading it didn't mark it read")
+	-- a discovery while playing: the banner, which opens the entry
+	J.OpenSection("dungeons", true)
+	tick(0.5)
+	reply("LN:0:12010:12:2:Marshal Dughan")
+	tick(0.2)
+	assert(JournalLoreBanner:IsShown() and textShown("^Marshal Dughan$"), "discovery banner not shown")
+	JournalLoreBanner.__scripts.OnClick(JournalLoreBanner, "LeftButton")
+	tick(1)
+	assert(J.view.section == "lore", "the banner didn't open the Lore tab")
+	assert(sent[#sent]:match("^V:%d+:12010$"), "the banner's entry not opened: " .. sent[#sent])
+	-- banners queue, and go away by themselves
+	reply("LN:0:12011:12:2:Hogger")
+	reply("LN:0:14000:14:0:Durotar")
+	tick(0.2)
+	assert(textShown("^Hogger$"), "first queued banner not shown")
+	tick(6)
+	assert(textShown("^Durotar$"), "second queued banner not shown")
+	tick(6)
+	assert(not JournalLoreBanner:IsShown(), "banner didn't go away")
+	SlashCmdList.JOURNALLORE("banner")
+	reply("LN:0:12002:12:1:Fargodeep Mine")
+	tick(0.2)
+	assert(not JournalLoreBanner:IsShown(), "/lore banner didn't turn it off")
+	SlashCmdList.JOURNALLORE("banner")
+	-- the Library: the books you've read, pages joined, read again
+	SlashCmdList.JOURNALLORE("library")
+	tick(1)
+	assert(J.view.section == "lore", "/lore library didn't open the Lore tab")
+	assert(textShown("Library$"), "Library row missing")
+	assert(sent[#sent]:match("^P:%d+:2002$") or sent[#sent]:match("^P:%d+:1001$"), "no book opened: " .. sent[#sent])
+	local kaldorei = find(function (f) return f.__kind == "Button" and type(rawget(f, "entry")) == "table" and f.entry.book
+		and f.entry.book.id == 1001 and f:IsVisible() end)
+	assert(kaldorei, "book missing from the shelf")
+	kaldorei.__scripts.OnClick(kaldorei)
+	tick(0.5)
+	assert(textShown("^|cffffd200Page 1|r\n\nLong ago, the night elves%.\n\nHello Tester%.\n\n|cffffd200Page 2|r\n\nIt fell in 10000%.$"),
+		"pages not joined in order, placeholders not filled in, or read as numbers")
+	assert(textShown("^Read in Stormwind City$"), "where it was read missing")
+	assert(JournalCharDB.loreRead.b1001, "reading a book didn't mark it read")
+	-- an empty Library, then back to a zone: the zone's entry shows again
+	local elwynn = find(function (f) return f.__kind == "Button" and type(rawget(f, "entry")) == "table" and f.entry.zone
+		and f.entry.zone.id == 12 and f:IsVisible() end)
+	elwynn.__scripts.OnClick(elwynn)
+	tick(0.5)
+	local function loreText() return textShown("^The town at the crossroads") or textShown("^Green hills, old forest%.$") end
+	assert(loreText(), "Elwynn's entry not reopened")
+	emptyLibrary = true
+	tick(6) -- past the shelf's few seconds of grace
+	local libraryRow = find(function (f) return f.__kind == "Button" and type(rawget(f, "entry")) == "table" and f.entry.zone
+		and f.entry.zone.library and f:IsVisible() end)
+	libraryRow.__scripts.OnClick(libraryRow)
+	tick(1.5)
+	assert(textShown("^Your library is empty"), "empty Library message missing")
+	emptyLibrary = false
+	elwynn.__scripts.OnClick(elwynn)
+	tick(0.5)
+	assert(loreText() and not textShown("^Your library is empty"), "the reader stayed blank after the empty Library")
+	-- a book read while playing: its banner opens it
+	J.OpenSection("dungeons", true)
+	tick(0.5)
+	reply("BN:0:2002:A Letter")
+	tick(0.2)
+	assert(textShown("^Added to your library$") and textShown("^A Letter$"), "book banner not shown")
+	JournalLoreBanner.__scripts.OnClick(JournalLoreBanner, "LeftButton")
+	tick(1)
+	-- (its pages were read before and kept: no second request)
+	assert(J.view.section == "lore" and JournalCharDB.loreTab.book == 2002, "the banner's book not opened")
 	J.OpenSection("dungeons", true)
 	tick(0.5)
 end)

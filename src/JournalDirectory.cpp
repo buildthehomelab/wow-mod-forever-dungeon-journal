@@ -63,7 +63,6 @@
 #include <mutex>
 #include <string>
 #include <string_view>
-#include <type_traits>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -316,32 +315,6 @@ namespace Journal::Directory
             uint32 page = 0;
             uint32 lastSearch = 0;       // getMSTime() of the last text search
         };
-
-        // Bots are sessions without a socket. AzerothCore marks them with WorldSession::IsHeadless();
-        // older playerbots core forks have WorldSession::IsBot() instead, and older stock cores have
-        // neither. Looking for both at compile time lets the module build on all of them.
-        template <typename Session, typename = void>
-        struct HasIsHeadless : std::false_type { };
-
-        template <typename Session>
-        struct HasIsHeadless<Session, std::void_t<decltype(std::declval<Session&>().IsHeadless())>> : std::true_type { };
-
-        template <typename Session, typename = void>
-        struct HasIsBot : std::false_type { };
-
-        template <typename Session>
-        struct HasIsBot<Session, std::void_t<decltype(std::declval<Session&>().IsBot())>> : std::true_type { };
-
-        template <typename Session>
-        bool IsBotSession(Session* session)
-        {
-            if constexpr (HasIsHeadless<Session>::value)
-                return session->IsHeadless();
-            else if constexpr (HasIsBot<Session>::value)
-                return session->IsBot();
-            else
-                return false;
-        }
 
         bool Enabled()
         {
@@ -1432,7 +1405,7 @@ public:
 
     void OnPlayerLogin(Player* player) override
     {
-        if (!Directory::Enabled() || !Directory::sDirectoryConfig.learnSpell || Directory::IsBotSession(player->GetSession()))
+        if (!Directory::Enabled() || !Directory::sDirectoryConfig.learnSpell || IsBot(player))
             return;
 
         uint32 spell = Directory::sDirectoryConfig.spellId;

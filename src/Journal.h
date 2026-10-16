@@ -17,6 +17,8 @@
  *   pets, toys drops, quests, achievements, crafting, trainers, containers and fishing
  *   directory  every friendly trainer, flight master, bank, mailbox and other service on the
  *              continents, nearest first (the Town Guide spell and .find open it)
+ *   lore       a codex of each zone's places, people and history that fills in as characters
+ *              explore, talk to people, fight and do quests, and a library of the books they read
  *
  * Per player it adds what only the server knows: lockouts, bosses killed this lockout, entry
  * requirements and, with mod-individual-progression, which instances the character's era has
@@ -60,6 +62,8 @@ namespace Journal
         HELLO_COLLECTIONS = 0x10, // C, W, O: mounts, pets and toys
         HELLO_QUESTS      = 0x20, // G, Z, X: every quest of the realm
         HELLO_DIRECTORY   = 0x40, // N: the town directory, M:N flags a result
+        HELLO_LORE        = 0x80, // Y, U, V: the lore codex, LN announces discoveries
+        HELLO_LIBRARY     = 0x100, // J, P: books read, BN announces a new one
     };
 
     // What the addon can do, sent as HELLO's second field.
@@ -158,6 +162,9 @@ namespace Journal
     void SetAddonFeature(Player* player, uint32 feature, bool on);
 
     bool ParseUInt(std::string_view text, uint32& out);
+
+    // A playerbot: a session without a socket.
+    bool IsBot(Player* player);
 
     // A DBC string in the server's DBC locale, or its enUS text when that one is empty.
     char const* DbcString(char const* const (&names)[16]);
@@ -373,6 +380,10 @@ namespace Journal
 
         // A red flag on the quest's giver and "M:<req>:ok:<where>"; false when nobody known gives it.
         bool ShowGiver(Player* player, std::string const& req, uint32 questId);
+
+        // The quest log group a zone is listed in: 'E', 'K', 'O', 'N' for the continents (the blood
+        // elf and draenei zones with their quest log's), 'D', 'R', 'B' for instances, 'X' else.
+        char GroupOfZone(uint32 zoneId);
     }
 
     // ---- JournalDirectory.cpp: the town directory ----------------------------------------------
@@ -398,6 +409,32 @@ namespace Journal
         void HandleMapPin(Player* player, std::string const& req, std::vector<std::string_view> const& args);
 
         // The Town Guide spell, .find and the menu that stands in for the tab without the addon.
+        void AddScripts();
+    }
+
+    // ---- JournalLore.cpp: the lore codex -------------------------------------------------------
+
+    namespace Lore
+    {
+        // Reads the lore (Journal.Lore.Enable); at startup after the dungeon index, and again
+        // from .journal lore reload.
+        void Load();
+
+        // Turned on and read.
+        bool Ready();
+
+        // Y:<req> -> YR, YD rows, YE: every zone with lore, with the character's counts.
+        void HandleZones(Player* player, std::string const& req);
+        // U:<req>:<zone> -> UR, UD rows, UE: a zone's entries.
+        void HandleZone(Player* player, std::string const& req, std::vector<std::string_view> const& args);
+        // V:<req>:<entry> -> VR, VD rows, VE: a discovered entry's text.
+        void HandleEntry(Player* player, std::string const& req, std::vector<std::string_view> const& args);
+        // J:<req> -> JR, JD rows, JE: the books the character has read.
+        void HandleLibrary(Player* player, std::string const& req);
+        // P:<req>:<book> -> PR, PD rows, PE: a book's pages.
+        void HandleBook(Player* player, std::string const& req, std::vector<std::string_view> const& args);
+
+        // Discovery hooks and .journal lore.
         void AddScripts();
     }
 }

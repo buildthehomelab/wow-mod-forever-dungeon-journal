@@ -1,8 +1,8 @@
 ## Interface: 30300
 ## Title: Journal
-## Notes: A retail-style journal in one window: every dungeon and raid with its bosses, abilities, loot and quests, every quest of the realm by zone, a directory of trainers, flight masters, banks and other townsfolk, and every mount, pet and toy with where to get it. Other addons add tabs of their own. Shift-J, /journal, /quests, /directory, /mounts, /pets, /toys. Backed by the mod-forever-journal server module.
+## Notes: A retail-style journal in one window: every dungeon and raid with its bosses, abilities, loot and quests, every quest of the realm by zone, a directory of trainers, flight masters, banks and other townsfolk, a codex of each zone's lore that fills in as you play, and every mount, pet and toy with where to get it. Other addons add tabs of their own. Shift-J, /journal, /quests, /directory, /lore, /mounts, /pets, /toys. Backed by the mod-forever-journal server module.
 ## Author: buildthehomelab
-## Version: 2.3.0
+## Version: 2.4.0
 ## OptionalDeps: DragonUI
 ## SavedVariables: JournalDB
 ## SavedVariablesPerCharacter: JournalCharDB
@@ -20,5 +20,7 @@ Loot.lua
 Quests.lua
 QuestTab.lua
 DirectoryTab.lua
+Lore.lua
+LoreTab.lua
 Collections.lua
 Minimap.lua

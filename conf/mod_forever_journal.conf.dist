@@ -7,7 +7,8 @@
 # and raid with its bosses, their abilities, loot with drop chances and the instance's quests,
 # plus the player's lockouts and entry requirements. Its Mounts, Pets and Toys tabs show every
 # collectible and where it comes from. Its Quests tab lists every quest of the realm by zone,
-# class, profession and world event. All of it is read from this realm's own data.
+# class, profession and world event. Its Lore tab is a codex of each zone's places, people and
+# history that fills in as characters play. All of it is read from this realm's own data.
 #
 # The journal is built once at startup. Changes to Rares, EraLocks, the Loot.*, Collections.*
 # and Quests.* options take effect after a restart, not after .reload config.
@@ -167,3 +168,15 @@ Journal.Directory.ResultsPerPage = 10
 #
 
 Journal.Directory.SaveZoneData = 1
+
+#
+#    Journal.Lore.Enable
+#        Description: The Lore tab: a codex of each zone's places, people and history. Entries are
+#                     discovered by exploring, talking to people, defeating them and doing quests
+#                     (mod_forever_journal_lore and _lore_trigger in the world database), and each
+#                     character's discoveries are kept in mod_forever_journal_lore_known. Takes a
+#                     restart; .journal lore reload reads changed lore without one.
+#        Default:     1
+#
+
+Journal.Lore.Enable = 1

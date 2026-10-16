@@ -15,6 +15,8 @@ J.HELLO_LEARNING = 8
 J.HELLO_COLLECTIONS = 16
 J.HELLO_QUESTS = 32
 J.HELLO_DIRECTORY = 64
+J.HELLO_LORE = 128
+J.HELLO_LIBRARY = 256
 
 -- What this addon can do, sent with HELLO (AddonFeatureFlags in src/Journal.h): open a tab when
 -- the server says OPEN (the Town Guide spell and .find), and answer OPENED.
@@ -265,20 +267,21 @@ local nextReq = 0
 local pending = {}
 -- list answers: first letter of the R/D/E codes per command
 local LISTS = { D = true, B = true, S = true, A = true, L = true, K = true, Q = true, T = true, F = true, C = true, W = true, O = true,
-	G = true, Z = true, X = true, N = true }
+	G = true, Z = true, X = true, N = true, Y = true, U = true, V = true, J = true, P = true }
 
 local function send(msg)
 	SendAddonMessage(J.PREFIX, msg, "WHISPER", UnitName("player"))
 end
 
 -- handler(result, err): result is { rows = {...}, meta = {...} } for list answers and the array of
--- fields for single ones; err is set when the server refused ("busy", "bad", "none").
-function J.Request(cmd, fields, handler)
+-- fields for single ones; err is set when the server refused ("busy", "bad", "none"). raw: each
+-- row is kept as one string ({ text }), never split on ',' or read as a number (text in pieces).
+function J.Request(cmd, fields, handler, raw)
 	nextReq = nextReq + 1
 	local req = tostring(nextReq)
 	local msg = cmd .. ":" .. req
 	if fields and #fields > 0 then msg = msg .. ":" .. table.concat(fields, ":") end
-	pending[req] = { req = req, cmd = cmd, handler = handler, rows = {}, msg = msg, tries = 0, at = GetTime() }
+	pending[req] = { req = req, cmd = cmd, handler = handler, rows = {}, msg = msg, tries = 0, at = GetTime(), raw = raw }
 	send(msg)
 	return req
 end
@@ -363,6 +366,18 @@ local function onAddonMessage(message)
 			J.Fire("OPEN", fields[1], J.NonEmpty(J.Unescape(fields[2])))
 		end
 		return
+	elseif code == "LN" then
+		-- Sent unasked: "LN:0:<entry>:<zone>:<kind>:<title>", a lore entry just discovered.
+		local fields = splitFields(rest)
+		local entry = tonumber(fields[1])
+		if entry then J.Fire("LORE_FOUND", entry, tonumber(fields[2]) or 0, tonumber(fields[3]) or 1, J.Unescape(fields[4] or "-")) end
+		return
+	elseif code == "BN" then
+		-- Sent unasked: "BN:0:<book>:<title>", a book just put on the character's shelf.
+		local fields = splitFields(rest)
+		local book = tonumber(fields[1])
+		if book then J.Fire("BOOK_FOUND", book, J.Unescape(fields[2] or "-")) end
+		return
 	elseif code == "OFF" then
 		J.serverReady = false
 		J.Fire("NO_SERVER")
@@ -382,6 +397,8 @@ local function onAddonMessage(message)
 		if not p then return end
 		if part == "R" then
 			p.meta = splitFields(rest)
+		elseif part == "D" and p.raw then
+			for row in rest:gmatch("[^;]+") do table.insert(p.rows, { row }) end
 		elseif part == "D" then
 			parseRows(rest, p.rows)
 		else
@@ -506,9 +523,10 @@ BINDING_NAME_JOURNAL_PETS = "Pets"
 BINDING_NAME_JOURNAL_TOYS = "Toys"
 BINDING_NAME_JOURNAL_QUESTS = "Quests"
 BINDING_NAME_JOURNAL_DIRECTORY = "Directory"
+BINDING_NAME_JOURNAL_LORE = "Lore"
 
 local HELP = "|cffffd200/journal|r (or Shift-J) opens the journal. |cffffd200/journal <name>|r searches dungeons, bosses "
-	.. "and loot. |cffffd200/quests|r, |cffffd200/directory|r, |cffffd200/mounts|r, |cffffd200/pets|r and |cffffd200/toys|r open those tabs. |cffffd200/journal minimap|r "
+	.. "and loot. |cffffd200/quests|r, |cffffd200/directory|r, |cffffd200/lore|r, |cffffd200/mounts|r, |cffffd200/pets|r and |cffffd200/toys|r open those tabs. |cffffd200/journal minimap|r "
 	.. "shows or hides the minimap button. |cffffd200/journal reset|r moves the window back. |cffffd200/journal refresh|r "
 	.. "fetches the data again."
 

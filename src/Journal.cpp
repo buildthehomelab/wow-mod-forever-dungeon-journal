@@ -27,8 +27,15 @@
  *   X:<req>:<text>                    -> XR, XD rows (C/Q/R), XE  quests by name
  *   N:<req>:<C|P|S>:<value>           -> NR, ND rows, NE        the town directory
  *   M:<req>:N:<place>:<entry>         -> M:<req>:ok:<where>     flags a directory result
+ *   Y:<req>                           -> YR, YD rows, YE        lore: zones, with the player's counts
+ *   U:<req>:<zone>                    -> UR, UD rows, UE        lore: a zone's entries
+ *   V:<req>:<entry>                   -> VR, VD rows, VE        lore: a discovered entry's text
+ *   J:<req>                           -> JR, JD rows, JE        library: the books the player has read
+ *   P:<req>:<book>                    -> PR, PD rows, PE        library: a book's pages
  *
- * The server sends one message unasked: OPEN:<token>:<tab>[:<argument>] opens one of the addon's
+ * The server sends three messages unasked. LN:0:<entry>:<zone>:<kind>:<title> tells the addon a
+ * lore entry was discovered, and BN:0:<book>:<title> that a book went on the shelf
+ * (JournalLore.cpp). And: OPEN:<token>:<tab>[:<argument>] opens one of the addon's
  * tabs (the Town Guide spell and .find), only to addons whose HELLO said they can (ADDON_OPEN).
  * The addon answers OPENED:<token>; without that answer the server shows its gossip menu instead
  * and stops sending OPEN until the addon's next HELLO.
@@ -53,6 +60,7 @@
 #include <algorithm>
 #include <charconv>
 #include <mutex>
+#include <type_traits>
 #include <unordered_map>
 
 namespace Journal
@@ -162,6 +170,40 @@ namespace Journal
             if (c >= 'A' && c <= 'Z')
                 c = char(c - 'A' + 'a');
         return out;
+    }
+
+    namespace
+    {
+        // Bots are sessions without a socket. AzerothCore marks them with WorldSession::IsHeadless();
+        // older playerbots core forks have WorldSession::IsBot() instead, and older stock cores have
+        // neither. Looking for both at compile time lets the module build on all of them.
+        template <typename Session, typename = void>
+        struct HasIsHeadless : std::false_type { };
+
+        template <typename Session>
+        struct HasIsHeadless<Session, std::void_t<decltype(std::declval<Session&>().IsHeadless())>> : std::true_type { };
+
+        template <typename Session, typename = void>
+        struct HasIsBot : std::false_type { };
+
+        template <typename Session>
+        struct HasIsBot<Session, std::void_t<decltype(std::declval<Session&>().IsBot())>> : std::true_type { };
+
+        template <typename Session>
+        bool IsBotSession(Session* session)
+        {
+            if constexpr (HasIsHeadless<Session>::value)
+                return session->IsHeadless();
+            else if constexpr (HasIsBot<Session>::value)
+                return session->IsBot();
+            else
+                return false;
+        }
+    }
+
+    bool IsBot(Player* player)
+    {
+        return player->GetSession() && IsBotSession(player->GetSession());
     }
 
     bool ParseUInt(std::string_view text, uint32& out)
@@ -278,6 +320,8 @@ namespace Journal
                 flags |= HELLO_QUESTS;
             if (Directory::Ready())
                 flags |= HELLO_DIRECTORY;
+            if (Lore::Ready())
+                flags |= HELLO_LORE | HELLO_LIBRARY;
             Send(player, "HELLO:" + req + ":" + std::to_string(PROTOCOL_VERSION) + ":" + std::to_string(flags)
                 + ":" + std::to_string(Index::Stamp()) + ":" + std::to_string(ProgressionState(player)));
         }
@@ -310,7 +354,7 @@ namespace Journal
             // Every heading, and the longest headings' quests.
             if (command == "G" || command == "Z")
                 return 4.0f;
-            if (command == "L" || command == "Q" || command == "F" || command == "K" || command == "X" || command == "N")
+            if (command == "L" || command == "Q" || command == "F" || command == "K" || command == "X" || command == "N" || command == "Y" || command == "P")
                 return 2.0f;
             return 1.0f;
         }
@@ -381,6 +425,16 @@ namespace Journal
                 Quests::HandleSearch(player, req, args);
             else if (command == "N" && Directory::Ready())
                 Directory::HandleList(player, req, args);
+            else if (command == "Y" && Lore::Ready())
+                Lore::HandleZones(player, req);
+            else if (command == "U" && Lore::Ready())
+                Lore::HandleZone(player, req, args);
+            else if (command == "V" && Lore::Ready())
+                Lore::HandleEntry(player, req, args);
+            else if (command == "J" && Lore::Ready())
+                Lore::HandleLibrary(player, req);
+            else if (command == "P" && Lore::Ready())
+                Lore::HandleBook(player, req, args);
             else
                 SendError(player, req, "unknown");
         }
@@ -448,6 +502,7 @@ public:
             Quests::Build();
         if (GetConfig().directory)
             Directory::Build();
+        Lore::Load();
     }
 };
 
@@ -472,4 +527,5 @@ void AddJournalScripts()
     new JournalWorldScript();
     new JournalSpellScript();
     Directory::AddScripts();
+    Lore::AddScripts();
 }

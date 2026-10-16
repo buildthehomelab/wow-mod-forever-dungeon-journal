@@ -8,6 +8,9 @@
 	<Binding name="JOURNAL_DIRECTORY">
 		Journal.ToggleSection("directory")
 	</Binding>
+	<Binding name="JOURNAL_LORE">
+		Journal.ToggleSection("lore")
+	</Binding>
 	<Binding name="JOURNAL_MOUNTS">
 		Journal.ToggleSection("mounts")
 	</Binding>
