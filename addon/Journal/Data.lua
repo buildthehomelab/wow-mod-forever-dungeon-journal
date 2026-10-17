@@ -30,10 +30,25 @@ J.Fetch = fetch
 
 local instances, instanceList
 
+-- The Dungeon Finder's info per LFG id: { name, typeID, ..., texture (10), ... }. FrameXML's
+-- LFGDungeonInfo (what LFGGetDungeonInfoByID reads) is only filled once the Dungeon Finder list
+-- has been opened, so ask the client for the same table ourselves.
+local LFG_TEXTURE = 10
+local lfgInfo
+
 local function lfgTexture(lfgId)
-	if not LFGGetDungeonInfoByID or not lfgId then return nil end
-	local ok, _, _, _, _, _, _, _, _, _, texture = pcall(LFGGetDungeonInfoByID, lfgId)
-	if ok and texture and texture ~= "" then return texture end
+	if not lfgId or lfgId == 0 then return nil end
+	if not lfgInfo then
+		lfgInfo = _G.LFGDungeonInfo
+		if type(lfgInfo) ~= "table" and GetLFDChoiceInfo then
+			local ok, info = pcall(GetLFDChoiceInfo, {})
+			lfgInfo = ok and type(info) == "table" and info or nil
+		end
+		if not lfgInfo then return nil end
+	end
+	local entry = lfgInfo[lfgId]
+	local texture = type(entry) == "table" and entry[LFG_TEXTURE]
+	if type(texture) == "string" and texture ~= "" then return texture end
 end
 
 local function buildInstances(rows)

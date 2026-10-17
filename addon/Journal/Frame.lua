@@ -470,7 +470,16 @@ local function addSection(spec)
 	tab:SetText(s.name)
 	PanelTemplates_TabResize(tab, 0)
 	local _, CP = J.Dragon()
-	if CP and CP.ReskinTab then pcall(CP.ReskinTab, tab) end
+	if CP and CP.ReskinTab then
+		pcall(CP.ReskinTab, tab)
+		-- Every tab's OnShow runs PanelTemplates_TabResize, which sizes for Blizzard's 20px caps,
+		-- not DragonUI's 35px ones: each tab grew by 30px and the strip ran past the window's
+		-- edge. DragonUI's resize hook calls this to size and chain a strip that isn't its own.
+		tab._duiRelayout = function ()
+			for _, o in ipairs(ordered) do pcall(CP.ReskinTab, o.tab) end
+			layoutTabs()
+		end
+	end
 	tab:SetScript("OnClick", function ()
 		PlaySound("igCharacterInfoTab")
 		J.OpenSection(s.key, true)

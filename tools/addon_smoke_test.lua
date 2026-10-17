@@ -149,10 +149,16 @@ function PanelTemplates_SelectTab(t) t.__selected = true end
 function PanelTemplates_DeselectTab(t) t.__selected = false end
 function SetPortraitToTexture(tex, path) tex.__portrait = path end
 function GameTooltip_ShowCompareItem() end
-function LFGGetDungeonInfoByID(id)
+-- As 3.3.5's: the client hands the Dungeon Finder's info out as one table per LFG id, and
+-- FrameXML's LFGGetDungeonInfoByID only reads LFGDungeonInfo, which stays nil until the Dungeon
+-- Finder list has been opened.
+function GetLFDChoiceInfo(into)
+	into = into or {}
 	local tex = { [6] = "DEADMINES", [18] = "SCARLETMONASTERY", [159] = "NAXXRAMAS" }
-	return "x", 1, 1, 1, 1, 1, 1, 0, 1, tex[id] or "MISSING", 0, 5
+	for id = 1, 300 do into[id] = { "x", 1, 1, 1, 1, 1, 1, 0, 1, tex[id] or "MISSING", 0, 5 } end
+	return into
 end
+function LFGGetDungeonInfoByID(id) return LFGDungeonInfo[id] end
 local bindings = {}
 function GetBindingAction(key) return bindings[key] or "" end
 function SetBinding(key, action) bindings[key] = action end
@@ -246,7 +252,12 @@ if os.getenv("DRAGON") == "1" then
 	DragonUI = {
 		_dir = "Interface\\AddOns\\DragonUI\\Textures\\", atlasinfo = {},
 		SafeSetAtlas = function () return true end, SkinRedButton = function () end,
-		CharacterPanel = { ReskinTab = function () end, ModernizeCloseButton = function () end,
+		-- ReskinTab sizes the tab to its label, as DragonUI's does; its PanelTemplates_TabResize
+		-- hook then calls the tab's _duiRelayout.
+		CharacterPanel = { ReskinTab = function (t)
+				t.__reskinned = (rawget(t, "__reskinned") or 0) + 1
+				t:SetWidth(math.max(62, 6 * #(t.__text or "") + 30))
+			end, ModernizeCloseButton = function () end,
 			SkinCheckbox = function () end, ReskinScrollBar = function () end },
 	}
 end
@@ -550,6 +561,20 @@ step("open the journal: classic dungeons", function ()
 	assert(counts.D == 1, "instance list not asked once")
 	assert(textShown("^Deadmines$") and textShown("^Scarlet Monastery$"), "classic dungeon tiles missing")
 	assert(not textShown("^Naxxramas$"), "a raid shows among the dungeons")
+	assert(find(function (f) return f.__kind == "Texture" and f.__portrait == "Interface\\LFGFrame\\LFGIcon-DEADMINES"
+		and f:IsVisible() end), "Deadmines tile has no Dungeon Finder icon")
+	assert(find(function (f) return f.__kind == "Texture" and f.__texture == "Interface\\LFGFrame\\UI-LFG-BACKGROUND-DEADMINES"
+		and f:IsVisible() end), "Deadmines tile has no Dungeon Finder art")
+	if DragonUI then
+		-- DragonUI's resize hook hands a strip that isn't the character panel's to _duiRelayout,
+		-- which has to resize every tab and keep the strip inside the window.
+		local tab = JournalFrameTab1
+		assert(type(tab._duiRelayout) == "function", "journal tabs have no DragonUI relayout")
+		local before1, before2 = JournalFrameTab1.__reskinned, JournalFrameTab2.__reskinned
+		tab._duiRelayout()
+		assert(JournalFrameTab1.__reskinned > before1 and JournalFrameTab2.__reskinned > before2,
+			"relayout didn't resize every tab")
+	end
 end)
 
 step("raids tab: 40 player Naxxramas under classic, locked by era", function ()
