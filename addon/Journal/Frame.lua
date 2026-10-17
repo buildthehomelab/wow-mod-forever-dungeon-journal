@@ -40,8 +40,8 @@ J.On("RESET_POSITION", function ()
 	placeFrame()
 end)
 
+-- No portrait: the title and the tabs already say which window this is.
 local dragon, contentTop = J.DressWindow(frame, {
-	portrait = true,
 	closeName = "JournalFrameCloseButton",
 	onMoved = function ()
 		local point, _, relativePoint, x, y = frame:GetPoint(1)
@@ -50,7 +50,6 @@ local dragon, contentTop = J.DressWindow(frame, {
 })
 frame.title:SetText("Journal")
 J.dragon = dragon
-if frame.portrait then J.SetPortrait(frame.portrait, "Interface\\Icons\\INV_Misc_Book_09") end
 
 local content = CreateFrame("Frame", nil, frame)
 content:SetPoint("TOPLEFT", frame, "TOPLEFT", dragon and 10 or 16, contentTop - (dragon and 8 or 0))
@@ -413,7 +412,7 @@ end
 --       key = "beasts",            -- unique; Journal.OpenTab("beasts") opens the journal on it
 --       name = "Beasts",           -- the tab's text, and the window title while it's shown
 --       order = 60,                -- place among the tabs (built-in: 10-50)
---       icon = "Interface\\Icons\\Ability_Hunter_BeastTaming",   -- the window's portrait
+--       icon = "Interface\\Icons\\Ability_Hunter_BeastTaming",   -- (unused since the window lost its portrait)
 --       build = function (panel) end,    -- once, the first time the tab is shown
 --       onShow = function (panel) end,   -- every time it's shown (optional)
 --       onHide = function (panel) end,   -- (optional)
@@ -507,7 +506,6 @@ local function showSection()
 		if shownSection.onHide then pcall(shownSection.onHide, shownSection.panel) end
 	end
 	frame.title:SetText(s.name)
-	if frame.portrait then J.SetPortrait(frame.portrait, s.icon or "Interface\\Icons\\INV_Misc_Book_09") end
 	if s.build then
 		local build = s.build
 		s.build = nil
